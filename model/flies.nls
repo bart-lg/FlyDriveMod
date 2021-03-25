@@ -39,6 +39,11 @@ flies-own [
   total-age
   ticks-since-fertilization
   
+  ; for performance reasons plants are looking for closest flies and set their direction
+  ; if direction has been set in current tick, the following variable gets updated with the tick-number
+  target-tick
+  target-distance
+  
 ]
 
 to set-mortality-rates
@@ -463,29 +468,28 @@ to kill-flies
   
 end
 
-to fly-activities
+to update-egg-laying-mode
   
-  let inverse-current-eggs-per-tick round ( 1 / current-eggs-per-tick )
-  let cherries-available FALSE
-  let fruits-available FALSE
-  
-  if total-grown-cherries > 0 [ set cherries-available TRUE ]
-  if total-grown-fruits > 0   [ set fruits-available TRUE ]
-  
-  ; reset number of targeting flies
-  ask trees        [ set targeted-from 0 ]
-  ask yummy-plants [ set targeted-from 0 ]
-  
+  let inverse-current-eggs-per-tick round ( 1 / current-eggs-per-tick ) 
+ 
   ask flies [
-
-    ; upgrade mode of fly
-    upgrade-fly
     
     ifelse current-eggs-per-tick > 0 and sex = "f" and eggs > 0 and ticks-since-fertilization > egg-dev-duration and ( ticks - last-egg-tick ) >= inverse-current-eggs-per-tick [
       set ready-to-lay-egg TRUE
     ] [
       set ready-to-lay-egg FALSE
     ]
+    
+  ]
+  
+end
+
+to fly-activities
+  
+  ask flies [
+
+    ; upgrade mode of fly
+    upgrade-fly
     
     if ( cherries-available or fruits-available ) and ready-to-lay-egg [
 
@@ -540,6 +544,8 @@ to fly-activities
               update-tree-label
             ]
             
+            if sum [ grown-cherries ] of trees = 0 [ set cherries-available FALSE ]
+            
           ] [
             
             ifelse any? fruits-here [
@@ -548,6 +554,8 @@ to fly-activities
                 set grown-fruits ( grown-fruits - 1 ) 
                 set occupied-fruits ( occupied-fruits + 1 )
               ]
+              
+              if sum [ grown-fruits ] of yummy-plants = 0 [ set fruits-available FALSE ]
               
             ] [
               print "Laid egg on patch with no cherries and no fruit (should not happen!)" 
@@ -590,66 +598,10 @@ to fly-activities
     ; increase age and mode-duration
     set mode-duration ( mode-duration + 1 )
     set total-age ( total-age + 1 )
-    
-  ]
-  
-  ; moving section
-  ask flies [
-    
-    ; female flies with eggs can sens cherries and fruits in a distance of 15m
-    ifelse ready-to-lay-egg [
-      
-      ; only scan world for cherries/fruits if enough left
-      ; only 2x number of cherries/fruits of targeting flies are allowed per plant to optimize the simulation speed
-      if not any? trees        with [ ( 2 * grown-cherries ) > targeted-from ] [ set cherries-available FALSE ] 
-      if not any? yummy-plants with [ ( 2 * grown-fruits   ) > targeted-from ] [ set fruits-available   FALSE ]
-      
-      let visible-cherries no-turtles
-      if cherries-available [ set visible-cherries trees with [grown-cherries > 0] in-radius visibility ]
-      
-      let visible-fruits no-turtles
-      if fruits-available [ set visible-fruits yummy-plants with [grown-fruits > 0] in-radius visibility ]
-      
-      ifelse any? visible-cherries [
-        
-        ; do not move if cherries an same patch
-        if not any? trees-here with [grown-cherries > 0] [
-          let nearest-cherry-tree min-one-of visible-cherries [ distance myself ]
-          face nearest-cherry-tree
-          ask nearest-cherry-tree [ set targeted-from ( targeted-from + 1 ) ]
-          fd 1
-        ]
-        
-      ] [
-       
-        ifelse any? visible-fruits [
-          
-          ; do not move if fruits on same patch
-          if not any? yummy-plants-here with [grown-fruits > 0] [
-            let nearest-yummy-plant min-one-of visible-fruits [ distance myself ]
-            face nearest-yummy-plant
-            ask nearest-yummy-plant [ set targeted-from ( targeted-from + 1 ) ]
-            fd 1
-          ]
-          
-        ] [
-          
-          ; move randomly if no fruits in visibility range
-          rt random 360
-          fd 1 
-          
-        ]
-        
-      ]
-      
-    ] [
-      
-      ; all other flies move randomly
-      if mode = "adult" [
-        rt random 360
-        fd 1
-      ]
-      
+
+    if mode = "adult" [
+      if not ( target-tick = ticks ) [ rt random 360 ]
+      fd 1
     ]
     
   ]  

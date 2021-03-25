@@ -6,7 +6,6 @@ trees-own [
   max-cherries
   grown-cherries
   occupied-cherries
-  targeted-from
   
 ]
 
@@ -96,5 +95,34 @@ to grow-cherries
   ]
   
   set total-grown-cherries sum [ grown-cherries ] of trees
+  ifelse total-grown-cherries > 0 [ set cherries-available TRUE ] [ set cherries-available FALSE ]
     
+end
+
+to cherries-attract-closest-flies
+  
+  if cherries-available [
+    
+    ask trees with [ grown-cherries > 0 ] [
+     
+      let flies-in-radius flies with [ ready-to-lay-egg and ( target-tick < ticks or distance myself < target-distance ) ] in-radius visibility
+      if count flies-in-radius > grown-cherries [
+        set flies-in-radius min-n-of grown-cherries flies-in-radius [ distance myself ]
+      ]
+      
+      let target-x xcor
+      let target-y ycor
+      
+      ask flies-in-radius [
+       
+        facexy target-x target-y
+        set target-tick ticks
+        set target-distance distance patch target-x target-y
+        
+      ]
+      
+    ]
+    
+  ]
+  
 end

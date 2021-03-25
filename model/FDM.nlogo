@@ -6,6 +6,8 @@ __includes [ "environment.nls" "trees.nls" "yummy-plants.nls" "flies.nls" "write
 ; global parameters
 globals [
 
+  model-version
+
   output-file-name
   output-values
 
@@ -22,8 +24,6 @@ globals [
   tree-rows
   yummy-plant-width
   yummy-plant-margin
-
-  yummy-fruits-per-plant
 
   visibility
 
@@ -98,6 +98,9 @@ globals [
   total-grown-cherries
   total-grown-fruits
 
+  cherries-available
+  fruits-available
+
   total-cherries ; TODO: guess we dont need this
 
   pesticide-concentration ; TODO: we dont need this for now
@@ -113,6 +116,10 @@ to setup
   file-close
   __clear-all-and-reset-ticks
 
+  set model-version "V0.502"
+
+  if behaviorspace-run-number > 0 [ random-seed behaviorspace-run-number ]
+
   ; init global variables
   set ticks-per-day 15
 
@@ -125,8 +132,6 @@ to setup
   set tree-rows 5
   set yummy-plant-width 1
   set yummy-plant-margin 5
-
-  set yummy-fruits-per-plant 5
 
   set visibility 15
 
@@ -242,7 +247,14 @@ to go
     ]
 
     calculate-current-eggs-per-tick-rate
+
+    update-egg-laying-mode
+
+    fruits-attract-closest-flies
+    cherries-attract-closest-flies
+
     fly-activities
+
   ]
 
   write-values-to-file
@@ -731,6 +743,21 @@ season
 1
 11
 
+SLIDER
+1377
+73
+1556
+107
+yummy-fruits-per-plant
+yummy-fruits-per-plant
+0
+15
+2.0
+1
+1
+NIL
+HORIZONTAL
+
 @#$#@#$#@
 ## WHAT IS IT?
 
@@ -1078,46 +1105,10 @@ NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 <experiments>
-  <experiment name="experiment1" repetitions="1" runMetricsEveryStep="false">
-    <setup>setup</setup>
-    <go>go</go>
-    <metric>count turtles</metric>
-    <enumeratedValueSet variable="cherries-growth-period">
-      <value value="45"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="gene-drive">
-      <value value="true"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="init-pop">
-      <value value="200"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="resistant-ratio">
-      <value value="50"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="release-day">
-      <value value="58"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="release-amount">
-      <value value="100"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="max-years">
-      <value value="3"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="cherries-growth-start">
-      <value value="101"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="sd-cherries">
-      <value value="18"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="mean-cherries">
-      <value value="252"/>
-    </enumeratedValueSet>
-  </experiment>
   <experiment name="combination-test1" repetitions="1" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>go</go>
-    <enumeratedValueSet variable="random-seed">
-      <value value="1"/>
+    <enumeratedValueSet variable="yummy-fruits-per-plant">
       <value value="2"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="cherries-growth-period">
@@ -1127,10 +1118,7 @@ NetLogo 6.1.1
       <value value="true"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="resistant-ratio">
-      <value value="0"/>
-      <value value="25"/>
       <value value="50"/>
-      <value value="75"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="init-pop">
       <value value="100"/>
@@ -1156,8 +1144,8 @@ NetLogo 6.1.1
       <value value="18"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="mean-cherries">
-      <value value="252"/>
-      <value value="1000"/>
+      <value value="250"/>
+      <value value="500"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>

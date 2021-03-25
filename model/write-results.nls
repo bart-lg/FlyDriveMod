@@ -39,6 +39,10 @@ end
 
 to write-configs-to-file
   
+  file-print ( word "model-version" " " model-version )
+  
+  file-print ( word "seed" " " behaviorspace-run-number )
+  
   file-print ( word "max-years" " " max-years )
   
   file-print ( word "ticks-per-day" " " ticks-per-day )
@@ -111,22 +115,22 @@ to write-headers-to-file
   set headers lput "female-flies-with-eggs" headers           ; #16
   set headers lput "male-flies" headers                       ; #17
   set headers lput "genotype-++" headers                      ; #18
-  set headers lput "genotype-++-dev" headers                  ; #19
+  set headers lput "genotype-++-stationary" headers           ; #19
   set headers lput "genotype-++-adult" headers                ; #20
   set headers lput "genotype-R+" headers                      ; #21
-  set headers lput "genotype-R+-dev" headers                  ; #22
+  set headers lput "genotype-R+-stationary" headers           ; #22
   set headers lput "genotype-R+-adult" headers                ; #23
   set headers lput "genotype-RR" headers                      ; #24
-  set headers lput "genotype-RR-dev" headers                  ; #25
+  set headers lput "genotype-RR-stationary" headers           ; #25
   set headers lput "genotype-RR-adult" headers                ; #26
   set headers lput "genotype-MM" headers                      ; #27
-  set headers lput "genotype-MM-dev" headers                  ; #28
+  set headers lput "genotype-MM-stationary" headers           ; #28
   set headers lput "genotype-MM-adult" headers                ; #29
   set headers lput "genotype-M+" headers                      ; #30
-  set headers lput "genotype-M+-dev" headers                  ; #31
+  set headers lput "genotype-M+-stationary" headers           ; #31
   set headers lput "genotype-M+-adult" headers                ; #32
   set headers lput "genotype-MR" headers                      ; #33
-  set headers lput "genotype-MR-dev" headers                  ; #34
+  set headers lput "genotype-MR-stationary" headers           ; #34
   set headers lput "genotype-MR-adult" headers                ; #35
   set headers lput "oldest-fly" headers                       ; #36
   set headers lput "upgraded-flies" headers                   ; #37 => set in procedure upgrade-fly in flies.nls
