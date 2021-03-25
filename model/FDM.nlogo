@@ -32,21 +32,21 @@ globals [
 
   ; mode durations depending on avg. temperature (values in days)
   mode-duration-temperatures
-  female-dev-durations
+  female-stat-durations
   female-adult-longevities
-  male-dev-durations
+  male-stat-durations
   male-adult-longevities
 
-  current-female-dev-duration
+  current-female-stat-duration
   current-female-adult-longevity
-  current-male-dev-duration
+  current-male-stat-duration
   current-male-adult-longevity
 
   ; mortality rates (arrays for every mode depending on avg. temperature)
   ; mortality-temperatures => array of temperatures (10-days avg. temp) in steps of 1°C (min and max serve as reference values for temperatures below and above the range)
   ; egg-mortality-rates-temp => array of mortality-rate per day (affects the flies at the beginning of the day)
   mortality-temperatures
-  dev-mortality-rates-temp
+  stat-mortality-rates-temp
   adult-mortality-rates-temp
 
   ; interval for mortality rates in days
@@ -100,6 +100,9 @@ globals [
   ; path for input csv files
   path-csv-input
 
+  ; timer
+  time-measurements
+
 ]
 
 ; initial setup procedure
@@ -120,7 +123,7 @@ to setup
   set yummy-plant-width 1
   set yummy-plant-margin 5
 
-  set yummy-fruits-per-plant 2
+  set yummy-fruits-per-plant 5
 
   set visibility 15
 
@@ -151,6 +154,8 @@ to setup
 
   set mean-10d-temp 0
   set temp-10d-log []
+
+  set time-measurements array:from-list n-values 10 [0]
 
   ; create output file
   create-file
@@ -189,8 +194,13 @@ to go
     stop
   ]
 
+  reset-timer
+
   get-current-weather
   calculate-mean-temperatures
+
+  array:set time-measurements 0 timer
+  reset-timer
 
   if season = FALSE and round ( mean-10d-temp ) >= season-start-temp [
     ; start season
@@ -226,8 +236,12 @@ to go
     ]
   ]
 
+  array:set time-measurements 1 timer
+
   ; if off-season => freeze
   if season [
+
+    reset-timer
 
     ; kill flies at beginning of the day ( mortality rate per tick is unefficient )
     if ticks mod ticks-per-day = 0 [
@@ -235,11 +249,17 @@ to go
       kill-flies
     ]
 
+    array:set time-measurements 2 timer
+
     calculate-current-eggs-per-tick-rate
     fly-activities
   ]
 
+  reset-timer
+
   write-values-to-file
+
+  if timer > array:item time-measurements 6 [ array:set time-measurements 6 timer ]
 
   tick
 
@@ -253,7 +273,7 @@ to-report current-date
   let return "0"
   let year 0
 
-  set year ( floor ( days / 365 ) ) + 1
+  set year ( floor ( days / ( 365 + 1 ) ) ) + 1
   set days ( days mod 365 )
   if days = 0 [ set days 365 ]
 
@@ -574,7 +594,7 @@ true
 true
 "" ""
 PENS
-"dev" 1.0 0 -1184463 true "" "plot count flies with [mode = \"dev\"]"
+"dev" 1.0 0 -1184463 true "" "plot count flies with [mode = \"stationary\"]"
 "adult" 1.0 0 -2674135 true "" "plot count flies with [mode = \"adult\"]"
 
 PLOT
@@ -626,7 +646,7 @@ SWITCH
 240
 gene-drive
 gene-drive
-1
+0
 1
 -1000
 
@@ -1071,6 +1091,43 @@ NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
+<experiments>
+  <experiment name="experiment1" repetitions="1" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <metric>count turtles</metric>
+    <enumeratedValueSet variable="cherries-growth-period">
+      <value value="45"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gene-drive">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="init-pop">
+      <value value="200"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistant-ratio">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-day">
+      <value value="58"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-amount">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-years">
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-start">
+      <value value="101"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sd-cherries">
+      <value value="18"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mean-cherries">
+      <value value="252"/>
+    </enumeratedValueSet>
+  </experiment>
+</experiments>
 @#$#@#$#@
 @#$#@#$#@
 default

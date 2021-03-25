@@ -3,7 +3,7 @@ breed [ flies fly ]
 ; properties of fly
 flies-own [
   
-  ; modes: developing (yellow), adult (red)
+  ; modes: stationary (yellow), adult (red)
   mode
   ; days since last mode change
   mode-duration
@@ -52,7 +52,7 @@ to set-mortality-rates
     
       ; create arrays
       set mortality-temperatures     array:from-list []
-      set dev-mortality-rates-temp   array:from-list []
+      set stat-mortality-rates-temp   array:from-list []
       set adult-mortality-rates-temp array:from-list []
       
       ; read data
@@ -64,7 +64,7 @@ to set-mortality-rates
         set mortality-temperatures array:from-list lput item 0 row array:to-list mortality-temperatures
         
         ; set mortality-rates depending on temperature
-        set dev-mortality-rates-temp   array:from-list lput item 1 row array:to-list dev-mortality-rates-temp
+        set stat-mortality-rates-temp  array:from-list lput item 1 row array:to-list stat-mortality-rates-temp
         set adult-mortality-rates-temp array:from-list lput item 1 row array:to-list adult-mortality-rates-temp
         
       ]
@@ -140,7 +140,7 @@ to set-mode-durations
   
     ; create arrays
     set mode-duration-temperatures array:from-list []
-    set female-dev-durations       array:from-list []
+    set female-stat-durations      array:from-list []
     
     ; read data
     while [ not file-at-end? ] [
@@ -151,7 +151,7 @@ to set-mode-durations
       set mode-duration-temperatures array:from-list lput item 0 row array:to-list mode-duration-temperatures
       
       ; set female-egg-to-pupa-durations depending on temperature
-      set female-dev-durations       array:from-list lput item 1 row array:to-list female-dev-durations
+      set female-stat-durations      array:from-list lput item 1 row array:to-list female-stat-durations
       
     ]  
     
@@ -195,7 +195,7 @@ to set-mode-durations
   if item 0 headers = "temperature" and item 1 headers = "maleEggsToAdult" [
   
     ; create arrays
-    set male-dev-durations array:from-list []
+    set male-stat-durations array:from-list []
     
     ; read data
     while [ not file-at-end? ] [
@@ -203,7 +203,7 @@ to set-mode-durations
       let row csv:from-row file-read-line
       
       ; set female-egg-to-pupa-durations depending on temperature
-      set male-dev-durations array:from-list lput item 1 row array:to-list male-dev-durations
+      set male-stat-durations array:from-list lput item 1 row array:to-list male-stat-durations
       
     ]  
     
@@ -256,10 +256,10 @@ to get-current-mode-durations
     ]
   ]
   
-  set current-female-dev-duration array:item female-dev-durations i
+  set current-female-stat-duration   array:item female-stat-durations    i
   set current-female-adult-longevity array:item female-adult-longevities i
-  set current-male-dev-duration array:item male-dev-durations i
-  set current-male-adult-longevity array:item male-adult-longevities i
+  set current-male-stat-duration     array:item male-stat-durations      i
+  set current-male-adult-longevity   array:item male-adult-longevities   i
   
 end
 
@@ -356,12 +356,12 @@ to kill-flies
   ; k = ln(1 - mortality-rate) / interval
   
   ; we need to "let" a variable outside of if statement...
-  let dev-mortality-rate 1
-  if array:item dev-mortality-rates-temp i   < 1 [
-    set dev-mortality-rate   1 - ( e ^ ( ln ( 1 - array:item dev-mortality-rates-temp i )   / mortality-interval ) )
+  let stat-mortality-rate 1
+  if array:item stat-mortality-rates-temp i   < 1 [
+    set stat-mortality-rate   1 - ( e ^ ( ln ( 1 - array:item stat-mortality-rates-temp i )   / mortality-interval ) )
   ]
   ; log
-  array:set output-values 46 dev-mortality-rate
+  array:set output-values 46 stat-mortality-rate
   
   let adult-mortality-rate 1
   if array:item adult-mortality-rates-temp i < 1 [
@@ -370,29 +370,29 @@ to kill-flies
   ; log
   array:set output-values 47 adult-mortality-rate
   
-  let PP-dev-flies   count flies with [ mode = "dev"   and genotype = "++" ]
-  let PP-adult-flies count flies with [ mode = "adult" and genotype = "++" ]
+  let PP-stat-flies  count flies with [ mode = "stationary" and genotype = "++" ]
+  let PP-adult-flies count flies with [ mode = "adult"      and genotype = "++" ]
   
-  let PR-dev-flies   count flies with [ mode = "dev"   and ( genotype = "R+" or genotype = "+R" ) ]
-  let PR-adult-flies count flies with [ mode = "adult" and ( genotype = "R+" or genotype = "+R" ) ]
+  let PR-stat-flies  count flies with [ mode = "stationary" and ( genotype = "R+" or genotype = "+R" ) ]
+  let PR-adult-flies count flies with [ mode = "adult"      and ( genotype = "R+" or genotype = "+R" ) ]
 
-  let RR-dev-flies   count flies with [ mode = "dev"   and genotype = "RR" ]
-  let RR-adult-flies count flies with [ mode = "adult" and genotype = "RR" ]
+  let RR-stat-flies  count flies with [ mode = "stationary" and genotype = "RR" ]
+  let RR-adult-flies count flies with [ mode = "adult"      and genotype = "RR" ]
 
-  let MM-dev-flies   count flies with [ mode = "dev"   and genotype = "MM" ]
-  let MM-adult-flies count flies with [ mode = "adult" and genotype = "MM" ]
+  let MM-stat-flies  count flies with [ mode = "stationary" and genotype = "MM" ]
+  let MM-adult-flies count flies with [ mode = "adult"      and genotype = "MM" ]
 
-  let MR-dev-flies   count flies with [ mode = "dev"   and ( genotype = "MR" or genotype = "RM" ) ]
-  let MR-adult-flies count flies with [ mode = "adult" and ( genotype = "MR" or genotype = "RM" ) ]
+  let MR-stat-flies  count flies with [ mode = "stationary" and ( genotype = "MR" or genotype = "RM" ) ]
+  let MR-adult-flies count flies with [ mode = "adult"      and ( genotype = "MR" or genotype = "RM" ) ]
 
-  let MP-dev-flies   count flies with [ mode = "dev"   and ( genotype = "M+" or genotype = "+M" ) ]
-  let MP-adult-flies count flies with [ mode = "adult" and ( genotype = "M+" or genotype = "+M" ) ]
+  let MP-stat-flies  count flies with [ mode = "stationary" and ( genotype = "M+" or genotype = "+M" ) ]
+  let MP-adult-flies count flies with [ mode = "adult"      and ( genotype = "M+" or genotype = "+M" ) ]
   
   
   ; kill flies due to mortality rate
   
-  let kill-num ( ceiling ( PP-dev-flies   * dev-mortality-rate   * ( 1 + ( 1 - fitness-PP ) ) ) )   
-  ask n-of kill-num flies with [mode = "dev"   and genotype = "++" ] [ die ]
+  let kill-num ( ceiling ( PP-stat-flies   * stat-mortality-rate   * ( 1 + ( 1 - fitness-PP ) ) ) )   
+  ask n-of kill-num flies with [mode = "stationary"   and genotype = "++" ] [ die ]
   ; log
   array:set output-values 50 kill-num
   
@@ -402,8 +402,8 @@ to kill-flies
   array:set output-values 51 kill-num
 
 
-  set kill-num ( ceiling ( PR-dev-flies   * dev-mortality-rate   * ( 1 + ( 1 - fitness-PR ) ) ) )
-  ask n-of kill-num flies with [mode = "dev"   and ( genotype = "R+" or genotype = "+R" ) ] [ die ]
+  set kill-num ( ceiling ( PR-stat-flies   * stat-mortality-rate   * ( 1 + ( 1 - fitness-PR ) ) ) )
+  ask n-of kill-num flies with [mode = "stationary"   and ( genotype = "R+" or genotype = "+R" ) ] [ die ]
   ; log
   array:set output-values 52 kill-num
   
@@ -413,8 +413,8 @@ to kill-flies
   array:set output-values 53 kill-num
   
 
-  set kill-num ( ceiling ( RR-dev-flies   * dev-mortality-rate   * ( 1 + ( 1 - fitness-RR ) ) ) )
-  ask n-of kill-num flies with [mode = "dev"   and genotype = "RR" ] [ die ]
+  set kill-num ( ceiling ( RR-stat-flies   * stat-mortality-rate   * ( 1 + ( 1 - fitness-RR ) ) ) )
+  ask n-of kill-num flies with [mode = "stationary"   and genotype = "RR" ] [ die ]
   ; log
   array:set output-values 54 kill-num
   
@@ -424,8 +424,8 @@ to kill-flies
   array:set output-values 55 kill-num
   
 
-  set kill-num ( ceiling ( MM-dev-flies   * dev-mortality-rate   * ( 1 + ( 1 - fitness-MM ) ) ) )
-  ask n-of kill-num flies with [mode = "dev"   and genotype = "MM" ] [ die ]
+  set kill-num ( ceiling ( MM-stat-flies   * stat-mortality-rate   * ( 1 + ( 1 - fitness-MM ) ) ) )
+  ask n-of kill-num flies with [mode = "stationary"   and genotype = "MM" ] [ die ]
   ; log
   array:set output-values 56 kill-num
   
@@ -435,8 +435,8 @@ to kill-flies
   array:set output-values 57 kill-num
 
 
-  set kill-num ( ceiling ( MP-dev-flies   * dev-mortality-rate   * ( 1 + ( 1 - fitness-PP ) ) ) )
-  ask n-of kill-num flies with [mode = "dev"   and ( genotype = "M+" or genotype = "+M" ) ] [ die ]
+  set kill-num ( ceiling ( MP-stat-flies   * stat-mortality-rate   * ( 1 + ( 1 - fitness-PP ) ) ) )
+  ask n-of kill-num flies with [mode = "stationary"   and ( genotype = "M+" or genotype = "+M" ) ] [ die ]
   ; log
   array:set output-values 58 kill-num  
   
@@ -446,8 +446,8 @@ to kill-flies
   array:set output-values 59 kill-num  
   
 
-  set kill-num ( ceiling ( MR-dev-flies   * dev-mortality-rate   * ( 1 + ( 1 - fitness-MR ) ) ) )
-  ask n-of kill-num flies with [mode = "dev"   and ( genotype = "MR" or genotype = "RM" ) ] [ die ]
+  set kill-num ( ceiling ( MR-stat-flies   * stat-mortality-rate   * ( 1 + ( 1 - fitness-MR ) ) ) )
+  ask n-of kill-num flies with [mode = "stationary"   and ( genotype = "MR" or genotype = "RM" ) ] [ die ]
   ; log
   array:set output-values 60 kill-num
   
@@ -461,8 +461,12 @@ end
 to fly-activities
   ask flies [
 
+    reset-timer
+    
     ; upgrade mode of fly
     upgrade-fly
+    
+    if timer > array:item time-measurements 3 [ array:set time-measurements 3 timer ]
     
     let ready-to-lay-egg FALSE
     if current-eggs-per-tick > 0 and sex = "f" and eggs > 0 and ticks-since-fertilization > egg-dev-duration and ( ticks - last-egg-tick ) >= round ( 1 / current-eggs-per-tick ) [
@@ -481,6 +485,8 @@ to fly-activities
     ; lay egg
     if ready-to-lay-egg [ 
 
+      reset-timer
+      
       let cherries-here ( trees-on patches in-radius floor ( tree-width / 2 ) ) with [grown-cherries > 0]
       let fruits-here ( yummy-plants-on patch-here ) with [grown-fruits > 0]
       
@@ -508,7 +514,7 @@ to fly-activities
           ask patch-here [
             sprout-flies 1 [
               set color yellow
-              set mode "dev"
+              set mode "stationary"
               set mode-duration 0
               set generation generation-temp + 1
               ifelse ( random 2 ) = 1 [ set sex "f" ][ set sex "m" ]
@@ -538,7 +544,7 @@ to fly-activities
               ]
               
             ] [
-              user-message "Laid egg on patch with no cherries and no fruit (should not happen!)" 
+              print "Laid egg on patch with no cherries and no fruit (should not happen!)" 
             ]
             
           ]
@@ -561,6 +567,8 @@ to fly-activities
         
       ]
       
+      if timer > array:item time-measurements 4 [ array:set time-measurements 4 timer ]
+      
     ]
     
     ; in case of fertilization => increase ticks since fertilization
@@ -569,6 +577,8 @@ to fly-activities
     ; increase age and mode-duration
     set mode-duration ( mode-duration + 1 )
     set total-age ( total-age + 1 )
+    
+    reset-timer
     
     ; female flies with eggs can sens cherries and fruits in a distance of 15m
     ifelse ready-to-lay-egg [
@@ -614,22 +624,24 @@ to fly-activities
       
     ]
     
+    if timer > array:item time-measurements 5 [ array:set time-measurements 5 timer ]
+    
   ]  
 end
 
 ; upgrade mode of fly if appropriate mode duration reached
 to upgrade-fly
   
-  if mode = "dev" [
+  if mode = "stationary" [
     
-    if ( sex = "f" and mode = "dev" and round (mode-duration / ticks-per-day) >= current-female-dev-duration ) [
+    if ( sex = "f" and mode = "stationary" and round (mode-duration / ticks-per-day) >= current-female-stat-duration ) [
       set mode "adult"
       set mode-duration 0
       set partner-search TRUE
       set color red
     ]
     
-    if ( sex = "m" and mode = "dev" and round (mode-duration / ticks-per-day) >= current-male-dev-duration ) [
+    if ( sex = "m" and mode = "stationary" and round (mode-duration / ticks-per-day) >= current-male-stat-duration ) [
       set mode "adult"
       set mode-duration 0
       set partner-search TRUE

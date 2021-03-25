@@ -34,7 +34,7 @@ end
 
 to write-headers-to-file
   
-  let number-of-values 62
+  let number-of-values 72
   
   set output-values array:from-list n-values number-of-values [0]
   
@@ -50,7 +50,7 @@ to write-headers-to-file
   set headers lput "occupied-cherries" headers                ; #9
   set headers lput "grown-fruits" headers                     ; #10
   set headers lput "occupied-fruits" headers                  ; #11
-  set headers lput "developing-flies" headers                 ; #12
+  set headers lput "stationary-flies" headers                 ; #12
   set headers lput "adult-flies" headers                      ; #13
   set headers lput "female-flies" headers                     ; #14
   set headers lput "female-flies-partner-search" headers      ; #15
@@ -80,26 +80,36 @@ to write-headers-to-file
   set headers lput "current-eggs-per-tick" headers            ; #39 => set in procedure calculate-current-eggs-per-tick-rate in flies.nls
   set headers lput "eggs-layed" headers                       ; #40 => set in procedure fly-activities in flies.nls
   set headers lput "poisoned-eggs" headers                    ; #41 => set in procedure fly-activities in flies.nls
-  set headers lput "current-female-dev-duration" headers      ; #42
+  set headers lput "current-female-statv-duration" headers    ; #42
   set headers lput "current-female-adult-longevity" headers   ; #43
-  set headers lput "current-male-dev-duration" headers        ; #44
+  set headers lput "current-male-stat-duration" headers       ; #44
   set headers lput "current-male-adult-longevity" headers     ; #45
-  set headers lput "dev-mortality-rate" headers               ; #46 => set in procedure kill-flies in flies.nls
+  set headers lput "stat-mortality-rate" headers              ; #46 => set in procedure kill-flies in flies.nls
   set headers lput "adult-mortality-rate" headers             ; #47 => set in procedure kill-flies in flies.nls
   set headers lput "killed-female-adult-longevity" headers    ; #48 => set in procedure kill-flies in flies.nls
   set headers lput "killed-male-adult-longevity" headers      ; #49 => set in procedure kill-flies in flies.nls
-  set headers lput "killed-++-dev" headers                    ; #50 => set in procedure kill-flies in flies.nls
+  set headers lput "killed-++-stat" headers                   ; #50 => set in procedure kill-flies in flies.nls
   set headers lput "killed-++-adult" headers                  ; #51 => set in procedure kill-flies in flies.nls
-  set headers lput "killed-R+-dev" headers                    ; #52 => set in procedure kill-flies in flies.nls
+  set headers lput "killed-R+-stat" headers                   ; #52 => set in procedure kill-flies in flies.nls
   set headers lput "killed-R+-adult" headers                  ; #53 => set in procedure kill-flies in flies.nls
-  set headers lput "killed-RR-dev" headers                    ; #54 => set in procedure kill-flies in flies.nls
+  set headers lput "killed-RR-stat" headers                   ; #54 => set in procedure kill-flies in flies.nls
   set headers lput "killed-RR-adult" headers                  ; #55 => set in procedure kill-flies in flies.nls
-  set headers lput "killed-MM-dev" headers                    ; #56 => set in procedure kill-flies in flies.nls
+  set headers lput "killed-MM-stat" headers                   ; #56 => set in procedure kill-flies in flies.nls
   set headers lput "killed-MM-adult" headers                  ; #57 => set in procedure kill-flies in flies.nls
-  set headers lput "killed-M+-dev" headers                    ; #58 => set in procedure kill-flies in flies.nls
+  set headers lput "killed-M+-stat" headers                   ; #58 => set in procedure kill-flies in flies.nls
   set headers lput "killed-M+-adult" headers                  ; #59 => set in procedure kill-flies in flies.nls
-  set headers lput "killed-MR-dev" headers                    ; #60 => set in procedure kill-flies in flies.nls
+  set headers lput "killed-MR-stat" headers                   ; #60 => set in procedure kill-flies in flies.nls
   set headers lput "killed-MR-adult" headers                  ; #61 => set in procedure kill-flies in flies.nls
+  set headers lput "time-01" headers                          ; #62
+  set headers lput "time-02" headers                          ; #63
+  set headers lput "time-03" headers                          ; #64
+  set headers lput "time-04" headers                          ; #65
+  set headers lput "time-05" headers                          ; #66
+  set headers lput "time-06" headers                          ; #67
+  set headers lput "time-07" headers                          ; #68
+  set headers lput "time-08" headers                          ; #69
+  set headers lput "time-09" headers                          ; #70
+  set headers lput "time-10" headers                          ; #71
 
   while [ length headers > 0 ] [
    
@@ -130,29 +140,29 @@ to write-values-to-file
   array:set output-values 9 sum [ occupied-cherries ] of trees
   array:set output-values 10 sum [ grown-fruits ] of yummy-plants
   array:set output-values 11 sum [ occupied-fruits ] of yummy-plants
-  array:set output-values 12 count flies with [ mode = "dev" ]
+  array:set output-values 12 count flies with [ mode = "stationary" ]
   array:set output-values 13 count flies with [ mode = "adult" ]
   array:set output-values 14 count flies with [ sex = "f" ]
   array:set output-values 15 count flies with [ sex = "f" and partner-search ]
   array:set output-values 16 count flies with [ eggs > 0 ]
   array:set output-values 17 count flies with [ sex = "m" ]
   array:set output-values 18 count flies with [ genotype = "++" ]
-  array:set output-values 19 count flies with [ genotype = "++" and mode = "dev" ]
+  array:set output-values 19 count flies with [ genotype = "++" and mode = "stationary" ]
   array:set output-values 20 count flies with [ genotype = "++" and mode = "adult" ]
   array:set output-values 21 count flies with [ genotype = "R+" or genotype = "+R" ]
-  array:set output-values 22 count flies with [ genotype = "R+" or genotype = "+R" and mode = "dev" ]
+  array:set output-values 22 count flies with [ genotype = "R+" or genotype = "+R" and mode = "stationary" ]
   array:set output-values 23 count flies with [ genotype = "R+" or genotype = "+R" and mode = "adult" ]
   array:set output-values 24 count flies with [ genotype = "RR" ]
-  array:set output-values 25 count flies with [ genotype = "RR" and mode = "dev" ]
+  array:set output-values 25 count flies with [ genotype = "RR" and mode = "stationary" ]
   array:set output-values 26 count flies with [ genotype = "RR" and mode = "adult" ]
   array:set output-values 27 count flies with [ genotype = "MM" ]
-  array:set output-values 28 count flies with [ genotype = "MM" and mode = "dev" ]
+  array:set output-values 28 count flies with [ genotype = "MM" and mode = "stationary" ]
   array:set output-values 29 count flies with [ genotype = "MM" and mode = "adult" ]
   array:set output-values 30 count flies with [ genotype = "M+" or genotype = "+M" ]
-  array:set output-values 31 count flies with [ genotype = "M+" or genotype = "+M" and mode = "dev" ]
+  array:set output-values 31 count flies with [ genotype = "M+" or genotype = "+M" and mode = "stationary" ]
   array:set output-values 32 count flies with [ genotype = "M+" or genotype = "+M" and mode = "adult" ]
   array:set output-values 33 count flies with [ genotype = "MR" or genotype = "RM" ]
-  array:set output-values 34 count flies with [ genotype = "MR" or genotype = "RM" and mode = "dev" ]
+  array:set output-values 34 count flies with [ genotype = "MR" or genotype = "RM" and mode = "stationary" ]
   array:set output-values 35 count flies with [ genotype = "MR" or genotype = "RM" and mode = "adult" ]
   ifelse count flies > 0 [
     array:set output-values 36 [ ceiling ( total-age / ticks-per-day ) ] of max-one-of flies [ total-age ]
@@ -160,11 +170,21 @@ to write-values-to-file
     array:set output-values 36 0
   ]
   ; 37-41 see procedures...
-  array:set output-values 42 current-female-dev-duration
+  array:set output-values 42 current-female-stat-duration
   array:set output-values 43 current-female-adult-longevity
-  array:set output-values 44 current-male-dev-duration
+  array:set output-values 44 current-male-stat-duration
   array:set output-values 45 current-male-adult-longevity
   ; 48-61 see procedures...
+  array:set output-values 62 array:item time-measurements 0
+  array:set output-values 63 array:item time-measurements 1
+  array:set output-values 64 array:item time-measurements 2
+  array:set output-values 65 array:item time-measurements 3
+  array:set output-values 66 array:item time-measurements 4
+  array:set output-values 67 array:item time-measurements 5
+  array:set output-values 68 array:item time-measurements 6
+  array:set output-values 69 array:item time-measurements 7
+  array:set output-values 70 array:item time-measurements 8
+  array:set output-values 71 array:item time-measurements 9  
   
   file-open output-file-name
 
@@ -182,5 +202,6 @@ to write-values-to-file
   file-close
   
   set output-values array:from-list n-values array:length output-values [0]
+  set time-measurements array:from-list n-values 10 [0]
   
 end
