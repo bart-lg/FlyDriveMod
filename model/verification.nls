@@ -1,0 +1,1846 @@
+
+; TODO: prevent creation of output csvs except for testing
+
+to verification-tests
+  
+  ; prevents CSV-output
+  set no-output "YES" 
+  
+  let total-check TRUE
+    
+  refresh-world
+  
+  let verification-file create-verification-file
+  
+  if not test-start-season                         verification-file [ set total-check FALSE ]
+  if not test-end-season                           verification-file [ set total-check FALSE ]
+  if not test-upgrade-fly                          verification-file [ set total-check FALSE ]
+  if not test-new-genotype                         verification-file [ set total-check FALSE ]
+  if not test-grow-cherries                        verification-file [ set total-check FALSE ]
+  if not test-grow-yummy-fruits                    verification-file [ set total-check FALSE ]
+  if not test-get-current-weather                  verification-file [ set total-check FALSE ]
+  if not test-calculate-mean-temp                  verification-file [ set total-check FALSE ]
+  if not test-release-gene-drive                   verification-file [ set total-check FALSE ]
+  if not test-set-mortality-rates                  verification-file [ set total-check FALSE ]
+  if not test-set-eggs-per-day-rates               verification-file [ set total-check FALSE ]
+  if not test-mode-durations                       verification-file [ set total-check FALSE ]
+  if not test-get-current-mode-duration            verification-file [ set total-check FALSE ]
+  if not test-kill-flies                           verification-file [ set total-check FALSE ]
+  if not test-calculate-current-eggs-per-tick-rate verification-file [ set total-check FALSE ]
+  if not test-update-egg-laying-mode               verification-file [ set total-check FALSE ]
+  if not test-fruits-attract-closest-flies         verification-file [ set total-check FALSE ]
+  if not test-cherries-attract-closest-flies       verification-file [ set total-check FALSE ]
+  if not test-fly-activities                       verification-file [ set total-check FALSE ]
+  
+  refresh-world
+  
+  ifelse total-check [
+    user-message "VERIFICATION-TEST OK!"
+  ] [
+    user-message "VERIFICAITON-TEST FAILED!"
+  ]
+  
+end
+
+to refresh-world
+  setup
+  random-seed 1
+end
+
+to-report create-verification-file
+  
+  let cur-date time:create "now"
+  
+  let year   time:get "year"   cur-date
+  let month  time:get "month"  cur-date
+  let day    time:get "day"    cur-date
+  let hour   time:get "hour"   cur-date
+  let minute time:get "minute" cur-date
+  let second time:get "second" cur-date
+  
+  if month  < 10 [ set month  word "0" month  ]
+  if day    < 10 [ set day    word "0" day    ]
+  if hour   < 10 [ set hour   word "0" hour   ]
+  if minute < 10 [ set minute word "0" minute ]
+  if second < 10 [ set second word "0" second ]
+  
+  let verification-file ( word "../verification-tests/" year "-" month "-" day " " hour "_" minute "_" second " verification-test.txt" )
+  
+  carefully [ file-delete verification-file ] []
+  
+  file-open verification-file
+  
+  file-print "VERIFICATION TEST"
+  file-print "================="
+  file-print ""
+  file-print word "Model-version: " model-version
+  file-print ""
+  
+  file-close
+
+  report verification-file  
+  
+end
+
+to write-verification-result-to-file [ verification-file log-header log-content ]
+  
+  file-open verification-file
+  
+  ifelse length log-content > 0 [
+    file-print word log-header "FAILED"
+    file-print log-content
+  ] [
+    file-print word log-header "OK"
+  ]
+  
+  file-print ""
+  
+  file-close
+  
+end
+
+to-report test-start-season [ verification-file ]
+
+  refresh-world
+  
+  set init-pop 3000
+  set resistant-ratio 50
+  
+  let log-header "test-start-season: "
+  let log-content ""
+  
+  ; ### test initial population ###
+  
+  start-season
+  
+  if count flies != init-pop [ set log-content word log-content "WRONG INITIAL POPULATION COUNT; " ]
+  
+  if count flies with [ genotype = "++" ] != init-pop / 2 
+    or count flies with [ genotype = "++" and fitness = fitness-PP ] != count flies with [ genotype = "RR" and fitness = fitness-RR ]
+  [ set log-content word log-content "WRONG INITIAL GENOTYPES; " ]
+  
+  let gender-distribution ( count flies with [ sex = "f" ] / count flies with [ sex = "m" ] )
+  if gender-distribution < 0.90 or gender-distribution > 1.10 [
+    set log-content ( word log-content "WRONG GENDER DISTRIBUTION " gender-distribution ";" )
+  ]
+  
+  if count flies with [
+    color != red
+    or mode != "adult"
+    or mode-duration > 0
+    or generation != 1
+    or partner-search = FALSE
+    or eggs > 0
+    or ready-to-lay-egg
+    or total-age > 0
+    or ticks-since-fertilization > 0
+  ] > 0 [ set log-content word log-content "WRONG INITIAL FLY PROPERTIES; " ]
+  
+  if not season or season-number != 1 [
+    set log-content word log-content "WRONG SEASON NUMBER OR SEASON FLAG; "
+  ]
+  
+  ; ### test season start in 2nd year ###
+  
+  ask flies [
+    set total-age 1
+    set mode-duration 1
+    set partner-search FALSE
+    set eggs 1
+    set ready-to-lay-egg TRUE
+    set ticks-since-fertilization 1
+  ]
+  
+  start-season
+  
+  if count flies with [
+    total-age > 0
+    or mode-duration > 0
+    or partner-search = FALSE
+    or eggs > 0
+    or ready-to-lay-egg
+    or ticks-since-fertilization > 0
+  ] > 0 [ set log-content word log-content "WRONG NEW SEASON FLY PROPERTIES; " ]  
+  
+  if not season or season-number != 2 [
+    set log-content word log-content "WRONG NEW SEASON NUMBER OR SEASON FLAG; "
+  ]  
+  
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]
+  
+end
+
+to-report test-end-season [ verification-file ]
+  
+  refresh-world
+  
+  set init-pop 3000
+  
+  let log-header "test-end-season: "
+  let log-content ""
+  
+  ; create initial population and start season
+  start-season  
+  
+  ; convert 1000 flies to stationary
+  ask n-of 1000 flies [
+    set color yellow
+    set mode "stationary"
+    set mode-duration 1
+    set partner-search FALSE
+    set eggs 0
+    set ready-to-lay-egg FALSE
+    set total-age 1
+    set ticks-since-fertilization 0     
+  ]
+  
+  end-season
+  
+  if season or season-number != 1 [
+    set log-content word log-content "WRONG SEASON NUMBER OR SEASON FLAG; "
+  ]
+  
+  if count flies with [ mode = "stationary" ] > 0 [
+    set log-content word log-content "STATIONARY FLIES SURVIVED WINTER; "
+  ]
+  
+  if count flies with [ mode = "adult" ] > ceiling ( 2000 - ceiling ( 2000 * mortality-off-season ) ) [
+    set log-content word log-content "TOO MANY FLIES SURVIVED WINTER; "
+  ]
+  
+  if count flies with [ mode = "adult" ] < ceiling ( 2000 - ceiling ( 2000 * mortality-off-season ) ) [
+    set log-content word log-content "TOO LITTLE FLIES SURVIVED WINTER; "
+  ]
+  
+  
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]  
+  
+end
+
+to-report test-upgrade-fly [ verification-file ]
+  
+  refresh-world
+  
+  set init-pop 3000
+  
+  ; create initial population and start season
+  start-season  
+  
+  let log-header "test-upgrade-fly: "
+  let log-content ""
+  
+  ; convert 150 flies to female stationary flies with age 10
+  ask n-of 150 flies [
+    set color yellow
+    set mode "stationary"
+    set sex "f"
+    set mode-duration 10
+    set partner-search FALSE
+    set total-age 10
+  ]
+  
+  ; convert 50 stationary flies to male
+  ask n-of 50 flies with [ mode = "stationary" ] [ set sex "m" ]
+  
+  ; set current stationary durations to 10 (usually depending on temperature)
+  set current-female-stat-duration 10
+  set current-male-stat-duration 10
+  
+  ; upgrade flies
+  ask flies [ upgrade-fly ]
+  
+  if count flies with [ mode = "adult" ] != 3000 [
+    set log-content word log-content "TOTAL NUMBER OF FLIES WRONG; "
+  ]
+  
+  if count flies with [ mode = "stationary" and sex = "f" ] > 0 [
+    set log-content word log-content "FEMALE STATIONARY FLIES NOT UPGRADED; "
+  ]
+
+  if count flies with [ mode = "stationary" and sex = "m" ] > 0 [
+    set log-content word log-content "MALE STATIONARY FLIES NOT UPGRADED; "
+  ]
+
+  
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]  
+  
+end
+
+to-report test-new-genotype [ verification-file ]
+  
+  refresh-world
+  
+  let log-header "test-new-genotype: "
+  let log-content ""  
+    
+  let genotype-list1 [ "++" "+R" "+M" "RR" "R+" "RM" "MM" "M+" "MR" ]
+  while [ length genotype-list1 > 0 ] [
+   
+    let genotype-list2 [ "++" "+R" "+M" "RR" "R+" "RM" "MM" "M+" "MR" ]
+    ; all combinations must produce 4x25% combinations (test sample 100000)
+    
+    while [ length genotype-list2 > 0 ] [
+      
+      let combinationCounter array:from-list n-values 4 [0]
+      let combination0 ( word item 0 first genotype-list1 item 0 first genotype-list2 )
+      let combination1 ( word item 0 first genotype-list1 item 1 first genotype-list2 )
+      let combination2 ( word item 1 first genotype-list1 item 0 first genotype-list2 )
+      let combination3 ( word item 1 first genotype-list1 item 1 first genotype-list2 )
+      
+      let i 0
+      while [ i < 100000 ] [
+        
+        let temp-genotype ( new-genotype first genotype-list1 first genotype-list2 )
+        ifelse combination0 = temp-genotype [ array:set combinationCounter 0 ( ( array:item combinationCounter 0 ) + 1 ) ] [
+          ifelse combination1 = temp-genotype [ array:set combinationCounter 1 ( ( array:item combinationCounter 1 ) + 1 ) ] [
+            ifelse combination2 = temp-genotype [ array:set combinationCounter 2 ( ( array:item combinationCounter 2 ) + 1 ) ] [
+              if combination3 = temp-genotype [ array:set combinationCounter 3 ( ( array:item combinationCounter 3 ) + 1 ) ] 
+            ]
+          ]
+        ]
+        
+        set i ( i + 1 )
+        
+      ]
+      
+      ; if all combinations are equal, split first counter on all 4
+      ifelse combination0 = combination1 and combination0 = combination2 and combination0 = combination3 [
+        array:set combinationCounter 3 ( ( array:item combinationCounter 0 ) / 4 )
+        array:set combinationCounter 2 ( ( array:item combinationCounter 0 ) / 4 )
+        array:set combinationCounter 1 ( ( array:item combinationCounter 0 ) / 4 )
+        array:set combinationCounter 0 ( ( array:item combinationCounter 0 ) / 4 )
+      ] [
+       
+        ; if two combinations are equal, split the counter in 2     
+        if combination0 = combination1 [
+          array:set combinationCounter 1 ( ( array:item combinationCounter 0 ) / 2 )
+          array:set combinationCounter 0 ( ( array:item combinationCounter 0 ) / 2 )
+        ]
+        if combination0 = combination2 [
+          array:set combinationCounter 2 ( ( array:item combinationCounter 0 ) / 2 )
+          array:set combinationCounter 0 ( ( array:item combinationCounter 0 ) / 2 )
+        ]
+        if combination0 = combination3 [
+          array:set combinationCounter 3 ( ( array:item combinationCounter 0 ) / 2 )
+          array:set combinationCounter 0 ( ( array:item combinationCounter 0 ) / 2 )
+        ]
+        if combination1 = combination2 [
+          array:set combinationCounter 2 ( ( array:item combinationCounter 1 ) / 2 )
+          array:set combinationCounter 1 ( ( array:item combinationCounter 1 ) / 2 )
+        ]
+        if combination1 = combination3 [
+          array:set combinationCounter 3 ( ( array:item combinationCounter 1 ) / 2 )
+          array:set combinationCounter 1 ( ( array:item combinationCounter 1 ) / 2 )
+        ]
+        if combination2 = combination3 [
+          array:set combinationCounter 3 ( ( array:item combinationCounter 2 ) / 2 )
+          array:set combinationCounter 2 ( ( array:item combinationCounter 2 ) / 2 )
+        ]
+        
+      ]
+      
+      ; check if number of every combination lies between 24% and 26%
+      let combinationSum ( array:item combinationCounter 0 + array:item combinationCounter 1 + array:item combinationCounter 2 + array:item combinationCounter 3 )
+      let check TRUE
+      let rateC0 ( array:item combinationCounter 0 / combinationSum )
+      let rateC1 ( array:item combinationCounter 1 / combinationSum )
+      let rateC2 ( array:item combinationCounter 2 / combinationSum )
+      let rateC3 ( array:item combinationCounter 3 / combinationSum )
+      
+      if rateC0 < 0.24 or rateC0 > 0.26
+         or rateC1 < 0.24 or rateC1 > 0.26
+         or rateC2 < 0.24 or rateC2 > 0.26
+         or rateC3 < 0.24 or rateC3 > 0.26 [
+       
+        set log-content ( word log-content "WRONG DISTRIBUTION AT " first genotype-list1 "|" first genotype-list2 " (" rateC0 ";" rateC1 ";" rateC2 ";" rateC3 "); " )
+        
+      ]
+      
+      set genotype-list2 but-first genotype-list2
+      
+    ]
+    
+    set genotype-list1 but-first genotype-list1 
+  ]
+  
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]
+  
+end
+
+to-report test-grow-cherries [ verification-file ]
+  
+  set mean-cherries 1000
+  set sd-cherries 0
+  
+  refresh-world
+  
+  let log-header "test-grow-cherries: "
+  let log-content ""  
+  
+  set cherries-growth-start 1
+  set cherries-growth-period 100
+  
+  while [ ticks < ( 102 * ticks-per-day ) ] [ 
+    grow-cherries 
+    tick
+  ]
+  
+  if sum [ grown-cherries ] of trees != mean-cherries * count trees [
+    set log-content word log-content "FAILURE IN GROW-CHERRIES; " 
+  ]
+  
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]
+    
+end
+
+to-report test-grow-yummy-fruits [ verification-file ]
+  
+  set yummy-fruits-per-plant 50
+  
+  refresh-world
+  
+  let log-header "test-grow-yummy-fruits: "
+  let log-content ""    
+    
+  if sum [ grown-fruits ] of yummy-plants != count yummy-plants * yummy-fruits-per-plant [
+    set log-content word log-content "FAILURE IN GROW-YUMMY-FRUITS; " 
+  ]
+  
+  ask yummy-plants [ set grown-fruits ( grown-fruits - 10 ) ]
+  
+  while [ ticks < 10 ] [
+    
+    grow-yummy-fruits
+    
+    if ticks = 4 and sum [ grown-fruits ] of yummy-plants != count yummy-plants * ( yummy-fruits-per-plant - 5 ) [
+      set log-content word log-content "FAILURE IN GROW-YUMMY-FRUITS (GROW-RATE); " 
+    ]
+    
+    tick
+    
+  ]
+  
+  if sum [ grown-fruits ] of yummy-plants != count yummy-plants * yummy-fruits-per-plant [
+    set log-content word log-content "FAILURE IN GROW-YUMMY-FRUITS; " 
+  ]
+
+  ask patches with [ count yummy-plants-here > 0 ] [
+    sprout-flies 5 [
+      set mode "stationary"
+    ] 
+  ]
+  
+  ask yummy-plants [ set grown-fruits ( grown-fruits - 10 ) ]
+  
+  while [ ticks < 20 ] [
+    
+    grow-yummy-fruits
+    
+    tick
+    
+  ]
+  
+  if sum [ grown-fruits ] of yummy-plants != count yummy-plants * ( yummy-fruits-per-plant - 5 ) [
+    set log-content word log-content "FAILURE IN GROW-YUMMY-FRUITS (STATIONARY FLIES); "
+  ]
+  
+  ask flies [ die ]
+  
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]  
+  
+end
+
+to-report test-get-current-weather [ verification-file ]
+  
+  refresh-world
+  
+  let log-header "test-get-current-weather: "
+  let log-content ""    
+  
+  set temperature-list [ 1 2 3 4 ]
+  
+  get-current-weather
+  if current-temp != 1 [
+    set log-content word log-content "FAILURE IN GET-CURRENT-WEATHER; "
+  ]
+  get-current-weather
+  if current-temp != 2 [
+    set log-content word log-content "FAILURE IN GET-CURRENT-WEATHER; "
+  ]
+  get-current-weather
+  if current-temp != 3 [
+    set log-content word log-content "FAILURE IN GET-CURRENT-WEATHER; "
+  ]  
+  get-current-weather
+  if current-temp != 4 [
+    set log-content word log-content "FAILURE IN GET-CURRENT-WEATHER; "
+  ]    
+  
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]  
+  
+end
+
+to-report test-calculate-mean-temp [ verification-file ]
+  
+  refresh-world
+  
+  let log-header "test-calculate-mean-temp: "
+  let log-content ""
+  
+  set temperature-list [ 1 2 3 4 5 6 7 8 9 10 ]
+  
+  let i 0
+  while [ i < 10 ] [
+    get-current-weather
+    calculate-mean-temperatures
+    set i ( i + 1 )
+  ]
+  
+  if mean-10d-temp != 5.5 and rounded-mean-10d-temp != 6 [
+    set log-content word log-content "FAILURE IN CALCULATE-MEAN-TEMP; "
+  ]
+  
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]  
+  
+end
+
+to-report test-release-gene-drive [ verification-file ]
+  
+  refresh-world
+  
+  let log-header "test-release-gene-drive: "
+  let log-content ""
+
+  set release-amount 1000
+  release-gene-drive
+  
+  if count flies != 1000 [
+    set log-content word log-content "WRONG NUMBER OF FLIES RELEASED; "
+  ]
+  
+  if count flies-on patch ( max-pxcor / 2 ) ( max-pycor / 2 ) != count flies [
+    set log-content word log-content "WRONG RELEASE POSITION; "
+  ]
+  
+  if count flies with [ mode = "adult" ] != count flies [
+    set log-content word log-content "RELEASED FLIES NOT ADULT; "
+  ]
+
+  if count flies with [ mode-duration = 0 ] != count flies [
+    set log-content word log-content "MODE DURATION NOT 0; "
+  ]
+
+  if count flies with [ generation = 1 ] != count flies [
+    set log-content word log-content "GENERATION NOT 1; "
+  ]
+
+  if count flies with [ sex = "f" ] != count flies [
+    set log-content word log-content "NOT ALL FLIES FEMALE; "
+  ]
+
+  if count flies with [ partner-search = TRUE ] != count flies [
+    set log-content word log-content "FLIES NOT SEARCHING FOR PARTNERS; "
+  ]
+
+  if count flies with [ eggs = 0 ] != count flies [
+    set log-content word log-content "FLIES EGG COUNT NOT 0; "
+  ]
+
+  if count flies with [ genotype = "MM" ] != count flies [
+    set log-content word log-content "WRONG GENOTYPE; "
+  ]
+
+  if count flies with [ fitness = fitness-MM ] != count flies [
+    set log-content word log-content "WRONG FITNESS; "
+  ]
+
+  if count flies with [ total-age = 0 ] != count flies [
+    set log-content word log-content "TOTAL-AGE NOT 0; "
+  ]
+
+  if count flies with [ ticks-since-fertilization = 0 ] != count flies [
+    set log-content word log-content "TICKS SINCE FERTILIZATION NOT 0; "
+  ]
+
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]    
+  
+end
+
+to-report test-set-mortality-rates [ verification-file ]
+
+  refresh-world
+  
+  let log-header "test-set-mortality-rates: "
+  let log-content ""
+  
+  let mortality-temp1 0
+  let mortality-temp2 0
+  let mortality-temp3 0
+  let stat-mortality-rates-temp1 0
+  let stat-mortality-rates-temp2 0
+  let stat-mortality-rates-temp3 0
+  let adult-mortality-rates-temp1 0
+  let adult-mortality-rates-temp2 0
+  let adult-mortality-rates-temp3 0
+
+  let i 0  
+  
+  let file-path (word path-csv-input "mortalityRates.csv")
+  ifelse not file-exists? file-path [
+     set log-content word log-content "mortalityRates.csv NOT FOUND; "
+  ] [
+    
+    file-open file-path
+    
+    let headers csv:from-row file-read-line
+    if not ( item 0 headers = "temperature" ) [
+      set log-content word log-content "HEADER temperature NOT FOUND; "
+    ]
+    if not ( item 1 headers = "mortalityRate" ) [
+      set log-content word log-content "HEADER mortalityRate NOT FOUND; "
+    ]
+    
+    if ( item 0 headers = "temperature" ) and ( item 1 headers = "mortalityRate" ) [
+      
+      ; read data
+      while [ not file-at-end? and i < 3 ] [
+        
+        let row csv:from-row file-read-line
+        
+        ; stat-mortality-rate and adult-mortality-rate currently equal
+        if i = 0 [
+          set mortality-temp1 item 0 row
+          set stat-mortality-rates-temp1 item 1 row
+          set adult-mortality-rates-temp1 item 1 row
+        ]
+        if i = 1 [
+          set mortality-temp2 item 0 row
+          set stat-mortality-rates-temp2 item 1 row
+          set adult-mortality-rates-temp2 item 1 row          
+        ]
+        if i = 2 [
+          set mortality-temp3 item 0 row
+          set stat-mortality-rates-temp3 item 1 row
+          set adult-mortality-rates-temp3 item 1 row          
+        ]
+        
+        set i ( i + 1 )
+        
+      ]      
+    
+    ]
+     
+    file-close
+      
+    set-mortality-rates
+    
+    if i > 0 [
+      if mortality-temp1 != array:item mortality-temperatures 0 [
+        set log-content word log-content "FAILURE IN mortality-temperatures[0]; "
+      ]
+      if stat-mortality-rates-temp1 != array:item stat-mortality-rates-temp 0 [
+        set log-content word log-content "FAILURE IN stat-mortality-rates-temp[0]; "
+      ]
+      if adult-mortality-rates-temp1 != array:item adult-mortality-rates-temp 0 [
+        set log-content word log-content "FAILURE IN adult-mortality-rates-temp[0]; "
+      ]
+    ]
+    if i > 1 [
+      if mortality-temp2 != array:item mortality-temperatures 1 [
+        set log-content word log-content "FAILURE IN mortality-temperatures[1]; "
+      ]
+      if stat-mortality-rates-temp2 != array:item stat-mortality-rates-temp 1 [
+        set log-content word log-content "FAILURE IN stat-mortality-rates-temp[1]; "
+      ]
+      if adult-mortality-rates-temp2 != array:item adult-mortality-rates-temp 1 [
+        set log-content word log-content "FAILURE IN adult-mortality-rates-temp[1]; "
+      ]        
+    ]
+    if i > 2 [
+      if mortality-temp3 != array:item mortality-temperatures 2 [
+        set log-content word log-content "FAILURE IN mortality-temperatures[2]; "
+      ]
+      if stat-mortality-rates-temp3 != array:item stat-mortality-rates-temp 2 [
+        set log-content word log-content "FAILURE IN stat-mortality-rates-temp[2]; "
+      ]
+      if adult-mortality-rates-temp3 != array:item adult-mortality-rates-temp 2 [
+        set log-content word log-content "FAILURE IN adult-mortality-rates-temp[2]; "
+      ]
+    ]
+    
+  ]
+  
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]     
+  
+end
+
+to-report test-set-eggs-per-day-rates [ verification-file ]
+  
+  refresh-world
+  
+  let log-header "test-set-eggs-per-day-rates: "
+  let log-content ""
+  
+  let eggs-per-day-temperatures1 0
+  let eggs-per-day-temperatures2 0
+  let eggs-per-day-temperatures3 0
+  let eggs-per-day1 0
+  let eggs-per-day2 0
+  let eggs-per-day3 0
+  
+  let i 0  
+
+  let file-path (word path-csv-input "eggsPerDay.csv")
+  ifelse not file-exists? file-path [
+     set log-content word log-content "eggsPerDay.csv NOT FOUND; "
+  ] [
+    
+    file-open file-path
+    
+    let headers csv:from-row file-read-line
+    if not ( item 0 headers = "temperature" ) [
+      set log-content word log-content "HEADER temperature NOT FOUND; "
+    ]
+    if not ( item 1 headers = "eggsPerDay" ) [
+      set log-content word log-content "HEADER eggsPerDay NOT FOUND; "
+    ]
+    
+    if ( item 0 headers = "temperature" ) and ( item 1 headers = "eggsPerDay" ) [
+     
+      ; read data
+      while [ not file-at-end? and i < 3 ] [
+        
+        let row csv:from-row file-read-line
+        
+        ; stat-mortality-rate and adult-mortality-rate currently equal
+        if i = 0 [
+          set eggs-per-day-temperatures1 item 0 row
+          set eggs-per-day1 item 1 row
+        ]
+        if i = 1 [
+          set eggs-per-day-temperatures2 item 0 row
+          set eggs-per-day2 item 1 row
+        ]
+        if i = 2 [
+          set eggs-per-day-temperatures3 item 0 row
+          set eggs-per-day3 item 1 row
+        ]
+        
+        set i ( i + 1 )
+        
+      ]      
+      
+    ]
+    
+    file-close
+     
+    set-eggs-per-day-rates
+    
+    if i > 0 [
+      if eggs-per-day-temperatures1 != array:item eggs-per-day-temperatures 0 [
+        set log-content word log-content "FAILURE IN eggs-per-day-temperatures[0]; "
+      ]
+      if eggs-per-day1 != array:item eggs-per-day 0 [
+        set log-content word log-content "FAILURE IN eggs-per-day[0]; "
+      ]
+    ]
+    if i > 1 [
+      if eggs-per-day-temperatures2 != array:item eggs-per-day-temperatures 1 [
+        set log-content word log-content "FAILURE IN eggs-per-day-temperatures[1]; "
+      ]
+      if eggs-per-day2 != array:item eggs-per-day 1 [
+        set log-content word log-content "FAILURE IN eggs-per-day[1]; "
+      ]      
+    ]
+    if i > 2 [
+      if eggs-per-day-temperatures3 != array:item eggs-per-day-temperatures 2 [
+        set log-content word log-content "FAILURE IN eggs-per-day-temperatures[2]; "
+      ]
+      if eggs-per-day3 != array:item eggs-per-day 2 [
+        set log-content word log-content "FAILURE IN eggs-per-day[2]; "
+      ]
+    ]
+    
+  ]  
+  
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]
+  
+end
+
+to-report test-mode-durations [ verification-file ]
+  
+  refresh-world
+  
+  let log-header "test-mode-durations: "
+  let log-content ""  
+  let new-log-content ""
+  
+  set-mode-durations
+  
+  set new-log-content ( test-mode-duration "femaleEggsToAdult" )
+  if length new-log-content > 0 [ set log-content word log-content new-log-content ]
+  set new-log-content ( test-mode-duration "femaleAdultLongevity" )
+  if length new-log-content > 0 [ set log-content word log-content new-log-content ]
+  set new-log-content ( test-mode-duration "maleEggsToAdult" )
+  if length new-log-content > 0 [ set log-content word log-content new-log-content ]
+  set new-log-content ( test-mode-duration "maleAdultLongevity" )
+  if length new-log-content > 0 [ set log-content word log-content new-log-content ]  
+  
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]  
+  
+end
+
+to-report test-mode-duration [ mode-name ]
+  
+  let log-content ""
+  
+  let temp1 0
+  let temp2 0
+  let temp3 0
+  let duration1 0
+  let duration2 0
+  let duration3 0
+  
+  let i 0  
+  
+  let file-path (word path-csv-input ( word mode-name ".csv"))
+  ifelse not file-exists? file-path [
+     set log-content word log-content ( word mode-name ".csv NOT FOUND; " )
+  ] [
+    
+    file-open file-path
+    
+    ; check the headers of the columns
+    let headers csv:from-row file-read-line
+    
+    if not ( item 0 headers = "temperature" ) [
+      set log-content word log-content "HEADER temperature NOT FOUND; "
+    ]
+    if not ( item 1 headers = mode-name ) [
+      set log-content word log-content ( word "HEADER " mode-name " NOT FOUND; " )
+    ]    
+    
+    if ( item 0 headers = "temperature" ) and ( item 1 headers = mode-name ) [    
+      
+      while [ not file-at-end? and i < 3 ] [
+        
+        let row csv:from-row file-read-line 
+        
+        if i = 0 [
+          set temp1 item 0 row
+          set duration1 ( item 1 row * ticks-per-day )
+        ]
+        if i = 1 [
+          set temp2 item 0 row
+          set duration2 ( item 1 row * ticks-per-day )          
+        ]
+        if i = 2 [
+          set temp3 item 0 row
+          set duration3 ( item 1 row * ticks-per-day )
+        ]
+        
+        set i ( i + 1 )
+        
+      ]
+      
+    ]
+    
+    file-close
+      
+    if i > 0 [
+      if temp1 != array:item mode-duration-temperatures 0 [
+        set log-content ( word log-content "FAILURE IN mode-duration-temperatures[0] (" mode-name "); " )
+      ]
+    ]
+    if i > 1 [
+      if temp2 != array:item mode-duration-temperatures 1 [
+        set log-content ( word log-content "FAILURE IN mode-duration-temperatures[1] (" mode-name "); " )
+      ]    
+    ]
+    if i > 2 [
+      if temp3 != array:item mode-duration-temperatures 2 [
+        set log-content ( word log-content "FAILURE IN mode-duration-temperatures[2] (" mode-name "); " )
+      ]
+    ]      
+    
+    if mode-name = "femaleEggsToAdult" [
+      if i > 0 [
+        if duration1 != array:item female-stat-durations 0 [
+          set log-content word log-content "FAILURE IN female-stat-durations[0]; "
+        ]
+      ]
+      if i > 1 [
+        if duration2 != array:item female-stat-durations 1 [
+          set log-content word log-content "FAILURE IN female-stat-durations[1]; "
+        ]    
+      ]
+      if i > 2 [
+        if duration3 != array:item female-stat-durations 2 [
+          set log-content word log-content "FAILURE IN female-stat-durations[2]; "
+        ]
+      ]          
+    ]
+    if mode-name = "femaleAdultLongevity" [
+      if i > 0 [
+        if duration1 != array:item female-adult-longevities 0 [
+          set log-content word log-content "FAILURE IN female-adult-longevities[0]; "
+        ]
+      ]
+      if i > 1 [
+        if duration2 != array:item female-adult-longevities 1 [
+          set log-content word log-content "FAILURE IN female-adult-longevities[1]; "
+        ]    
+      ]
+      if i > 2 [
+        if duration3 != array:item female-adult-longevities 2 [
+          set log-content word log-content "FAILURE IN female-adult-longevities[2]; "
+        ]
+      ]          
+    ]
+    if mode-name = "maleEggsToAdult" [
+      if i > 0 [
+        if duration1 != array:item male-stat-durations 0 [
+          set log-content word log-content "FAILURE IN male-stat-durations[0]; "
+        ]
+      ]
+      if i > 1 [
+        if duration2 != array:item male-stat-durations 1 [
+          set log-content word log-content "FAILURE IN male-stat-durations[1]; "
+        ]    
+      ]
+      if i > 2 [
+        if duration3 != array:item male-stat-durations 2 [
+          set log-content word log-content "FAILURE IN male-stat-durations[2]; "
+        ]
+      ]          
+    ]
+    if mode-name = "maleAdultLongevity" [
+      if i > 0 [
+        if duration1 != array:item male-adult-longevities 0 [
+          set log-content word log-content "FAILURE IN male-adult-longevities[0]; "
+        ]
+      ]
+      if i > 1 [
+        if duration2 != array:item male-adult-longevities 1 [
+          set log-content word log-content "FAILURE IN male-adult-longevities[1]; "
+        ]    
+      ]
+      if i > 2 [
+        if duration3 != array:item male-adult-longevities 2 [
+          set log-content word log-content "FAILURE IN male-adult-longevities[2]; "
+        ]
+      ]          
+    ]      
+    
+  ]
+  
+  report log-content
+  
+end
+
+to-report test-get-current-mode-duration [ verification-file ]
+
+  refresh-world
+  
+  let log-header "test-get-current-mode-duration: "
+  let log-content ""
+  
+  set mode-duration-temperatures array:from-list n-values 3 [0]
+  set female-stat-durations      array:from-list n-values 3 [0]
+  set female-adult-longevities   array:from-list n-values 3 [0]
+  set male-stat-durations        array:from-list n-values 3 [0]
+  set male-adult-longevities     array:from-list n-values 3 [0]
+  
+  array:set mode-duration-temperatures 0 10
+  array:set mode-duration-temperatures 1 15
+  array:set mode-duration-temperatures 2 20
+  
+  array:set female-stat-durations      0 0.1
+  array:set female-stat-durations      1 0.2
+  array:set female-stat-durations      2 0.3
+  
+  array:set female-adult-longevities   0 0.6
+  array:set female-adult-longevities   1 0.7
+  array:set female-adult-longevities   2 0.8
+  
+  array:set male-stat-durations        0 0.2
+  array:set male-stat-durations        1 0.3
+  array:set male-stat-durations        2 0.4
+  
+  array:set male-adult-longevities     0 0.7
+  array:set male-adult-longevities     1 0.8
+  array:set male-adult-longevities     2 0.9
+  
+  set rounded-mean-10d-temp 9
+  get-current-mode-durations
+  if current-female-stat-duration   != 0.1 [
+    set log-content word log-content "WRONG current-female-stat-duration (rounded-mean-10d-temp 9); "
+  ]
+  if current-female-adult-longevity != 0.6 [
+    set log-content word log-content "WRONG current-female-adult-longevity (rounded-mean-10d-temp 9); "
+  ]
+  if current-male-stat-duration     != 0.2 [
+    set log-content word log-content "WRONG current-male-stat-duration (rounded-mean-10d-temp 9); "
+  ]
+  if current-male-adult-longevity   != 0.7 [
+    set log-content word log-content "WRONG current-male-adult-longevity (rounded-mean-10d-temp 9); "
+  ]
+  
+  set rounded-mean-10d-temp 11
+  get-current-mode-durations
+  if current-female-stat-duration   != 0.2 [
+    set log-content word log-content "WRONG current-female-stat-duration (rounded-mean-10d-temp 11); "
+  ]
+  if current-female-adult-longevity != 0.7 [
+    set log-content word log-content "WRONG current-female-adult-longevity (rounded-mean-10d-temp 11); "
+  ]
+  if current-male-stat-duration     != 0.3 [
+    set log-content word log-content "WRONG current-male-stat-duration (rounded-mean-10d-temp 11); "
+  ]
+  if current-male-adult-longevity   != 0.8 [
+    set log-content word log-content "WRONG current-male-adult-longevity (rounded-mean-10d-temp 11); "
+  ]  
+  
+  set rounded-mean-10d-temp 15
+  get-current-mode-durations
+  if current-female-stat-duration   != 0.2 [
+    set log-content word log-content "WRONG current-female-stat-duration (rounded-mean-10d-temp 15); "
+  ]
+  if current-female-adult-longevity != 0.7 [
+    set log-content word log-content "WRONG current-female-adult-longevity (rounded-mean-10d-temp 15); "
+  ]
+  if current-male-stat-duration     != 0.3 [
+    set log-content word log-content "WRONG current-male-stat-duration (rounded-mean-10d-temp 15); "
+  ]
+  if current-male-adult-longevity   != 0.8 [
+    set log-content word log-content "WRONG current-male-adult-longevity (rounded-mean-10d-temp 15); "
+  ]    
+  
+  set rounded-mean-10d-temp 16
+  get-current-mode-durations
+  if current-female-stat-duration   != 0.3 [
+    set log-content word log-content "WRONG current-female-stat-duration (rounded-mean-10d-temp 16); "
+  ]
+  if current-female-adult-longevity != 0.8 [
+    set log-content word log-content "WRONG current-female-adult-longevity (rounded-mean-10d-temp 16); "
+  ]
+  if current-male-stat-duration     != 0.4 [
+    set log-content word log-content "WRONG current-male-stat-duration (rounded-mean-10d-temp 16); "
+  ]
+  if current-male-adult-longevity   != 0.9 [
+    set log-content word log-content "WRONG current-male-adult-longevity (rounded-mean-10d-temp 16); "
+  ]   
+  
+  set rounded-mean-10d-temp 20
+  get-current-mode-durations
+  if current-female-stat-duration   != 0.3 [
+    set log-content word log-content "WRONG current-female-stat-duration (rounded-mean-10d-temp 20); "
+  ]
+  if current-female-adult-longevity != 0.8 [
+    set log-content word log-content "WRONG current-female-adult-longevity (rounded-mean-10d-temp 20); "
+  ]
+  if current-male-stat-duration     != 0.4 [
+    set log-content word log-content "WRONG current-male-stat-duration (rounded-mean-10d-temp 20); "
+  ]
+  if current-male-adult-longevity   != 0.9 [
+    set log-content word log-content "WRONG current-male-adult-longevity (rounded-mean-10d-temp 20); "
+  ]   
+  
+  set rounded-mean-10d-temp 21
+  get-current-mode-durations
+  if current-female-stat-duration   != 0.3 [
+    set log-content word log-content "WRONG current-female-stat-duration (rounded-mean-10d-temp 21); "
+  ]
+  if current-female-adult-longevity != 0.8 [
+    set log-content word log-content "WRONG current-female-adult-longevity (rounded-mean-10d-temp 21); "
+  ]
+  if current-male-stat-duration     != 0.4 [
+    set log-content word log-content "WRONG current-male-stat-duration (rounded-mean-10d-temp 21); "
+  ]
+  if current-male-adult-longevity   != 0.9 [
+    set log-content word log-content "WRONG current-male-adult-longevity (rounded-mean-10d-temp 21); "
+  ]    
+  
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]     
+  
+end
+
+to-report test-kill-flies [ verification-file ]
+ 
+  refresh-world
+  
+  let log-header "test-kill-flies: "
+  let log-content ""
+  
+  let temp-female 0
+  let temp-male 0
+
+  set init-pop 3000
+  set mortality-off-season 0.9
+  
+  ; create initial population and start season
+  start-season
+  
+  ; convert 1000 flies to stationary
+  ask n-of 1000 flies [
+    set color yellow
+    set mode "stationary"
+    set mode-duration 1
+    set partner-search FALSE
+    set eggs 0
+    set ready-to-lay-egg FALSE
+    set total-age 1
+    set ticks-since-fertilization 0     
+  ]  
+  
+  ; test killing of flies off season
+  kill-flies-off-season  
+  
+  if count flies with [ mode = "stationary" ] > 0 [
+    set log-content word log-content "kill-flies-off-season: STATIONARY FLIES LEFT; "
+  ]
+  
+  if count flies != 200 [
+    set log-content word log-content "kill-flies-off-season: WRONG NUMBER OF FLIES LEFT; "
+  ]
+  
+  ; test killing of flies during season
+  refresh-world
+  
+  set init-pop 3000
+  start-season
+  
+  set current-female-adult-longevity 50
+  set current-male-adult-longevity 55
+  
+  ask n-of 100 flies with [ sex = "f" ] [ 
+    set mode-duration 50 
+  ]
+  ask n-of 100 flies with [ sex = "f" and mode-duration = 0 ] [
+    set mode-duration 52 
+  ]
+  ask n-of 100 flies with [ sex = "m" ] [ 
+    set mode-duration 53
+  ]
+  ask n-of 100 flies with [ sex = "m" and mode-duration = 0 ] [
+    set mode-duration 57 
+  ]
+  
+  
+  set mortality-temperatures     array:from-list n-values 3 [0]
+  set stat-mortality-rates-temp  array:from-list n-values 3 [0]
+  set adult-mortality-rates-temp array:from-list n-values 3 [0]
+  
+  array:set mortality-temperatures 0 0
+  array:set mortality-temperatures 1 10
+  array:set mortality-temperatures 2 20
+  
+  array:set stat-mortality-rates-temp 0 0.7
+  array:set stat-mortality-rates-temp 1 0.5
+  array:set stat-mortality-rates-temp 2 0
+  
+  array:set adult-mortality-rates-temp 0 0.5
+  array:set adult-mortality-rates-temp 1 0.2
+  array:set adult-mortality-rates-temp 2 0
+  
+  ; TODO: seems not really to act right for multiple days, because the reference population changes (in the excel file the reference population stays at day 1)
+  set mortality-interval 1
+  
+  set rounded-mean-10d-temp 20
+  
+  set temp-female count flies with [ sex = "f" ]
+  set temp-male count flies with [ sex = "m" ]
+
+  kill-flies
+  
+  if count flies != 2800 [
+    set log-content word log-content "kill-flies [life-expectancy]: WRONG NUMBER OF FLIES LEFT; "
+  ]
+  
+  if count flies with [ sex = "f" ] != temp-female - 100 [
+    set log-content ( word log-content "kill-flies [life-expectancy]: WRONG NUMBER OF FEMALE FLIES LEFT [" count flies with [ sex = "f" ] "]; " )
+  ]
+
+  if count flies with [ sex = "m" ] != temp-male - 100 [
+    set log-content ( word log-content "kill-flies [life-expectancy]: WRONG NUMBER OF MALE FLIES LEFT [" count flies with [ sex = "m" ] "]; " )
+  ]  
+  
+
+  refresh-world
+  
+  set mortality-temperatures     array:from-list n-values 3 [0]
+  set stat-mortality-rates-temp  array:from-list n-values 3 [0]
+  set adult-mortality-rates-temp array:from-list n-values 3 [0]
+  
+  array:set mortality-temperatures 0 0
+  array:set mortality-temperatures 1 10
+  array:set mortality-temperatures 2 20
+  
+  array:set stat-mortality-rates-temp 0 0.7
+  array:set stat-mortality-rates-temp 1 0.5
+  array:set stat-mortality-rates-temp 2 0
+  
+  array:set adult-mortality-rates-temp 0 0.5
+  array:set adult-mortality-rates-temp 1 0.2
+  array:set adult-mortality-rates-temp 2 0  
+  
+  set mortality-interval 1  
+  
+  set init-pop 10000
+  start-season  
+  
+  ; convert 1000 flies to stationary
+  ask n-of 1000 flies [
+    set color yellow
+    set mode "stationary"
+    set mode-duration 1
+    set partner-search FALSE
+    set eggs 0
+    set ready-to-lay-egg FALSE
+    set total-age 1
+    set ticks-since-fertilization 0     
+  ]  
+
+  set rounded-mean-10d-temp 10
+  
+  kill-flies
+  
+  if count flies with [ mode = "adult" ] < 7190 or count flies with [ mode = "adult" ] > 7210 [
+    set log-content ( word log-content "kill-flies [mortality-rate temp 10]: WRONG NUMBER OF ADULT FLIES LEFT [" count flies with [ mode = "adult" ] "]; " )
+  ]    
+  
+  if count flies with [ mode = "stationary" ] < 499 or count flies with [ mode = "stationary" ] > 501 [
+    set log-content ( word log-content "kill-flies [mortality-rate temp 10]: WRONG NUMBER OF STATIONARY FLIES LEFT [" count flies with [ mode = "stationary" ] "]; " )
+  ]    
+  
+  
+  refresh-world
+  
+  set mortality-temperatures     array:from-list n-values 3 [0]
+  set stat-mortality-rates-temp  array:from-list n-values 3 [0]
+  set adult-mortality-rates-temp array:from-list n-values 3 [0]
+  
+  array:set mortality-temperatures 0 0
+  array:set mortality-temperatures 1 10
+  array:set mortality-temperatures 2 20
+  
+  array:set stat-mortality-rates-temp 0 0.7
+  array:set stat-mortality-rates-temp 1 0.5
+  array:set stat-mortality-rates-temp 2 0
+  
+  array:set adult-mortality-rates-temp 0 0.5
+  array:set adult-mortality-rates-temp 1 0.2
+  array:set adult-mortality-rates-temp 2 0  
+
+  set mortality-interval 1    
+  
+  set init-pop 10000
+  start-season  
+  
+  ; convert 1000 flies to stationary
+  ask n-of 1000 flies [
+    set color yellow
+    set mode "stationary"
+    set mode-duration 1
+    set partner-search FALSE
+    set eggs 0
+    set ready-to-lay-egg FALSE
+    set total-age 1
+    set ticks-since-fertilization 0     
+  ]  
+
+  set rounded-mean-10d-temp 0
+  
+  kill-flies
+  
+  if count flies with [ mode = "adult" ] < 4490 or count flies with [ mode = "adult" ] > 4510 [
+    set log-content word log-content "kill-flies [mortality-rate temp 20]: WRONG NUMBER OF ADULT FLIES LEFT; "
+  ]    
+  
+  if count flies with [ mode = "stationary" ] < 299 or count flies with [ mode = "stationary" ] > 301 [
+    set log-content word log-content "kill-flies [mortality-rate temp 20]: WRONG NUMBER OF STATIONARY FLIES LEFT; "
+  ]   
+  
+  
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]  
+  
+end
+
+to-report test-calculate-current-eggs-per-tick-rate [ verification-file ]
+  
+  refresh-world
+  
+  let log-header "test-calculate-current-eggs-per-tick-rate: "
+  let log-content ""
+
+  set eggs-per-day-temperatures array:from-list n-values 3 [0]
+  set eggs-per-day              array:from-list n-values 3 [0]
+  
+  array:set eggs-per-day-temperatures 0 0
+  array:set eggs-per-day-temperatures 1 10
+  array:set eggs-per-day-temperatures 2 20
+  
+  array:set eggs-per-day 0 15
+  array:set eggs-per-day 1 30
+  array:set eggs-per-day 2 60
+  
+  set rounded-mean-10d-temp 0
+  
+  calculate-current-eggs-per-tick-rate
+  
+  if current-eggs-per-tick != ( 15 / ticks-per-day ) [
+    set log-content word log-content "WRONG EGGS PER TICK (temp 0); "
+  ]
+
+
+  set rounded-mean-10d-temp 10
+  
+  calculate-current-eggs-per-tick-rate
+  
+  if current-eggs-per-tick != ( 30 / ticks-per-day ) [
+    set log-content word log-content "WRONG EGGS PER TICK (temp 10); "
+  ]
+
+  
+  set rounded-mean-10d-temp 20
+  
+  calculate-current-eggs-per-tick-rate
+  
+  if current-eggs-per-tick != ( 60 / ticks-per-day ) [
+    set log-content word log-content "WRONG EGGS PER TICK (temp 20); "
+  ]  
+  
+  
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]  
+  
+end
+
+to-report test-update-egg-laying-mode [ verification-file ]
+  
+  refresh-world
+  
+  let log-header "test-update-egg-laying-mode: "
+  let log-content ""
+
+  set init-pop 10000
+  start-season  
+  
+  set current-eggs-per-tick 0.8
+  set egg-dev-duration 10
+  
+  ; convert 1000 flies to flies with eggs
+  ask n-of 1000 flies with [ sex = "f" ] [
+    set mode-duration 9
+    set partner-search FALSE
+    set eggs 10
+    set ready-to-lay-egg FALSE
+    set ticks-since-fertilization 9     
+    set last-egg-tick 0
+  ]    
+  
+  ask flies with [ eggs > 0 ] [
+    set ticks-since-fertilization ( ticks-since-fertilization + 1 ) 
+  ]
+  tick
+  update-egg-laying-mode
+
+  if count flies with [ ready-to-lay-egg ] > 0 [
+    set log-content word log-content "FAILURE IN EGG LAYING MODE (1); "
+  ] 
+
+  ask flies with [ eggs > 0 ] [
+    set ticks-since-fertilization ( ticks-since-fertilization + 1 ) 
+  ]
+  tick
+  update-egg-laying-mode
+  
+  if count flies with [ ready-to-lay-egg ] != 1000 [
+    set log-content word log-content "FAILURE IN EGG LAYING MODE (2); "
+  ]  
+
+  ask flies with [ eggs > 0 ] [
+    set ticks-since-fertilization ( ticks-since-fertilization + 1 ) 
+  ]
+  tick
+  update-egg-laying-mode
+
+  
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]  
+  
+end
+
+to-report test-fruits-attract-closest-flies [ verification-file ] ; raise to double fly attraction
+  
+  refresh-world
+  
+  let log-header "test-fruits-attract-closest-flies: "
+  let log-content ""
+
+  set init-pop 3
+  start-season   
+ 
+  ; coordinates in world
+  let x-coordinate border-margin + 1 
+  let y-coordinate border-margin + 1 + visibility / 2
+  
+  ; convert flies to flies with eggs
+  ask flies [
+    set sex "f"
+    set mode-duration 11
+    set partner-search FALSE
+    set eggs 10
+    set ready-to-lay-egg TRUE
+    set ticks-since-fertilization 11     
+    set last-egg-tick 0
+    setxy x-coordinate y-coordinate
+    facexy 0 0
+  ]
+  
+  ; tick 1 needed, because of target-tick property of flies
+  ; target-tick checks if fly has already been redirected within the current tick
+  tick
+  
+  ; grow 3 fruits
+  grow-yummy-fruits 
+  grow-yummy-fruits 
+  grow-yummy-fruits 
+  
+  fruits-attract-closest-flies
+  ask flies [ fd 1 ]
+    
+  if count flies-on patch x-coordinate y-coordinate != 0 [
+    set log-content word log-content "FLIES LEFT ON OLD PATCH; "
+  ]
+  
+  if count flies-on patch x-coordinate ( y-coordinate + 1 ) != 3 [
+    set log-content word log-content "FLIES NOT ATTRACTED BY YUMMY-PLANT; "
+  ]
+  
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]  
+  
+end
+
+to-report test-cherries-attract-closest-flies [ verification-file ]
+  
+  refresh-world
+  
+  let log-header "test-cherries-attract-closest-flies: "
+  let log-content ""
+
+  set init-pop 3
+  start-season   
+ 
+  ; coordinates in world
+  let x-coordinate ( border-margin + yummy-plant-width + yummy-plant-margin )
+  let y-coordinate ( border-margin + yummy-plant-width + yummy-plant-margin ) - 2
+  
+  ; convert flies to flies with eggs
+  ask flies [
+    set sex "f"
+    set mode-duration 11
+    set partner-search FALSE
+    set eggs 10
+    set ready-to-lay-egg TRUE
+    set ticks-since-fertilization 11     
+    set last-egg-tick 0
+    setxy x-coordinate y-coordinate
+    facexy 0 0
+  ]
+  
+  ; tick 1 needed, because of target-tick property of flies
+  ; target-tick checks if fly has already been redirected within the current tick
+  tick
+  
+  ; day > 1 needed for growing function ( grown-cherries and occupied-cherries get reseted on first day of year )
+  let i 0
+  while [ i < ticks-per-day ] [
+    tick
+    set i ( i + 1 ) 
+  ]
+  
+  set cherries-growth-start 2
+  set cherries-growth-period 2
+  
+  set mean-cherries 100
+  set sd-cherries 0
+  
+  grow-cherries
+  
+  cherries-attract-closest-flies
+  
+  ask flies [ fd 1 ]
+    
+  if count flies-on patch x-coordinate y-coordinate != 0 [
+    set log-content word log-content "FLIES LEFT ON OLD PATCH; "
+  ]
+  
+  if count flies-on patch x-coordinate ( y-coordinate + 1 ) != 3 [
+    set log-content word log-content "FLIES NOT ATTRACTED BY TREES; "
+  ]  
+  
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]  
+  
+end
+
+to-report test-fly-activities [ verification-file ]
+  
+  refresh-world
+  
+  let log-header "test-fly-activities: "
+  let log-content ""
+  
+  set current-eggs-per-tick 0.5
+  set egg-dev-duration 0
+  
+  ; temporary variable for intermediate results
+  let temp 0 
+  ; temporary index
+  let i 0
+  
+  ; 1.TEST lay egg on cherry
+  
+  ; grow cherries
+  ask trees [
+    set grown-cherries 5
+    set occupied-cherries 0
+  ]
+  set cherries-available TRUE
+  ; grow fruits
+  ask yummy-plants [
+    set grown-fruits 5
+    set occupied-fruits 0
+  ]
+  set fruits-available TRUE
+  ; create flies
+  set init-pop 2
+  start-season
+  ; modify flies
+  ask flies [
+    set sex "f"
+    set ready-to-lay-egg TRUE
+    set partner-search FALSE
+    set eggs 2
+    set genotype "++"
+    set genotype-of-partner "++"
+    set fitness 1
+    set fitness-of-partner 1
+    set combined-fitness 1
+    set ticks-since-fertilization 0
+    move-to min-one-of trees [who] ; move to tree with lowest id
+  ]
+  ask one-of flies [
+    move-to min-one-of yummy-plants [who] ; move to yummy-plant with lowest id
+  ]
+  ; lay eggs
+  fly-activities
+  ; check values
+  if count flies with [ mode = "adult" ] != 2 or count flies with [ mode = "stationary" ] != 2 [
+    set log-content word log-content "LAY EGG: wrong number of flies; "
+  ]
+  ask flies with [ mode = "stationary" ] [
+    if generation != 2 [
+      set log-content word log-content "LAY EGG: wrong generation number; "
+    ]
+    if genotype != "++" [
+      set log-content word log-content "LAY EGG: wrong genotype; "
+    ]
+    if mode-duration != 0 [
+      set log-content word log-content "LAY EGG: wrong mode-duration; "
+    ]    
+    if partner-search != FALSE [
+      set log-content word log-content "LAY EGG: wrong partner-search flag; "
+    ]   
+    if eggs != 0 [
+      set log-content word log-content "LAY EGG: wrong number of eggs; "
+    ] 
+    if ready-to-lay-egg != FALSE [
+      set log-content word log-content "LAY EGG: wrong ready-to-lay-egg flag; "
+    ]   
+    if fitness != 1 [
+      set log-content word log-content "LAY EGG: wrong fitness; "
+    ]  
+    if total-age != 0 [
+      set log-content word log-content "LAY EGG: wrong total-age; "
+    ]   
+    if ticks-since-fertilization != 0 [
+      set log-content word log-content "LAY EGG: wrong ticks-since-fertilization; "
+    ]   
+  ]
+  
+  ; 2.TEST check egg laying delay 
+  ask flies with [ mode = "stationary" ] [
+    die 
+  ]
+  ask flies [
+    move-to min-one-of trees [who] ; move to tree with lowest id
+  ]
+  ask one-of flies [
+    move-to min-one-of yummy-plants [who] ; move to yummy-plant with lowest id
+  ]
+  
+  tick
+  update-egg-laying-mode
+  ; lay eggs
+  fly-activities
+  if count flies with [ mode = "adult" ] != 2 or count flies with [ mode = "stationary" ] != 0 [
+    set log-content word log-content "CHECK EGG LAYING DELAY (first tick): wrong number of flies; "
+  ]
+  ask flies [
+    move-to min-one-of trees [who] ; move to tree with lowest id
+  ]
+  ask one-of flies [
+    move-to min-one-of yummy-plants [who] ; move to yummy-plant with lowest id
+  ]
+
+  tick
+  update-egg-laying-mode
+  ; lay eggs
+  fly-activities
+  if count flies with [ mode = "adult" ] != 2 or count flies with [ mode = "stationary" ] != 2 [
+    set log-content word log-content "CHECK EGG LAYING DELAY (second tick): wrong number of flies; "
+  ]
+  
+  ; 3.TEST check partner-search flag when all eggs had been layed
+  ask flies with [ mode = "adult" ] [
+    if partner-search != TRUE [
+      set log-content word log-content "LAY EGG: wrong partner-search flag after eggs had been layed; "
+    ]
+  ]
+  
+  ; 4.TEST check incrementation of mode-duration and total-age
+  ask flies with [ mode = "adult" ] [
+    if total-age != 3 [
+      set log-content word log-content "LAY EGG: wrong total-age count; "
+    ]
+    if mode-duration != 3 [
+      set log-content word log-content "LAY EGG: wrong mode-duration count; "
+    ] 
+  ]
+  
+  ; 5.TEST check non-movement of stationary flies and movement of adult flies  
+  ask flies with [ mode = "adult" ] [
+    if count trees-here > 0 [
+      set log-content word log-content "LAY EGG (trees-here): no movement of adult flies; "
+    ]
+    if count flies-here with [ mode = "stationary" ] > 0 [
+      set log-content word log-content "LAY EGG (flies-here): no movement of adult flies; "
+    ]
+  ]
+  ask flies with [ mode = "stationary" ] [
+    if count trees-here = 0 and count yummy-plants-here = 0 [
+      set log-content word log-content "LAY EGG: movement of stationary flies detected; "
+    ]
+    die
+  ]
+  
+  ; 6.TEST check if cherry and fruit number get reduced if egg gets not layed due to fitness
+  refresh-world
+  ; grow cherries
+  ask trees [
+    set grown-cherries 5
+    set occupied-cherries 0
+  ]
+  set cherries-available TRUE
+  ; grow fruits
+  ask yummy-plants [
+    set grown-fruits 5
+    set occupied-fruits 0
+  ]
+  set fruits-available TRUE
+  ; create flies
+  set init-pop 1
+  start-season
+  ; modify flies
+  ask flies [
+    set sex "f"
+    set ready-to-lay-egg TRUE
+    set eggs 1
+    set genotype "++"
+    set genotype-of-partner "++"
+    set fitness 0
+    set fitness-of-partner 0
+    set combined-fitness 0
+    set ticks-since-fertilization 0
+    move-to min-one-of trees [who] ; move to tree with lowest id
+  ]
+  fly-activities
+  ; check values
+  if count flies with [ mode = "adult" ] != 1 [
+    set log-content word log-content "CHECK FITNESS: wrong number of adult flies; "
+  ]
+  if count flies with [ mode = "stationary" ] != 0 [
+    set log-content word log-content "CHECK FITNESS: wrong number of stationary flies; "
+  ]  
+  
+  ; 7.TEST check if cherry and fruit number get reduced if egg gets not layed due to gene-drive
+  ; TEST A: M+/++ (female/male)
+  refresh-world
+  ; grow cherries
+  ask trees [
+    set grown-cherries 1000
+    set occupied-cherries 0
+  ]
+  set cherries-available TRUE
+  ; grow fruits
+  ask yummy-plants [
+    set grown-fruits 5
+    set occupied-fruits 0
+  ]
+  set fruits-available TRUE
+  ; create flies
+  set init-pop 1000
+  start-season
+  ; modify flies
+  ask flies [
+    set sex "f"
+    set ready-to-lay-egg TRUE
+    set eggs 1
+    set genotype "M+"
+    set genotype-of-partner "++"
+    set fitness 1
+    set fitness-of-partner 1
+    set combined-fitness 1
+    set ticks-since-fertilization 0
+    move-to min-one-of trees [who] ; move to tree with lowest id
+  ]
+  fly-activities
+  ; around 50% of stationary flies should have died
+  set temp count flies with [ mode = "stationary" ] 
+  if temp < 450 or temp > 550 [
+    set log-content word log-content "CHECK GENE DRIVE [A]: wrong number of stationary flies; " 
+  ]
+  
+  ; TEST B: MR/RR (female/male)
+  refresh-world
+  ; grow cherries
+  ask trees [
+    set grown-cherries 1000
+    set occupied-cherries 0
+  ]
+  set cherries-available TRUE
+  ; grow fruits
+  ask yummy-plants [
+    set grown-fruits 5
+    set occupied-fruits 0
+  ]
+  set fruits-available TRUE
+  ; create flies
+  set init-pop 1000
+  start-season
+  ; modify flies
+  ask flies [
+    set sex "f"
+    set ready-to-lay-egg TRUE
+    set eggs 1
+    set genotype "MR"
+    set genotype-of-partner "RR"
+    set fitness 1
+    set fitness-of-partner 1
+    set combined-fitness 1
+    set ticks-since-fertilization 0
+    move-to min-one-of trees [who] ; move to tree with lowest id
+  ]
+  set resistance-rate 0.5
+  fly-activities
+  ; around 25% of stationary flies should have died
+  set temp count flies with [ mode = "stationary" ] 
+  if temp < 700 or temp > 800 [
+    set log-content word log-content "CHECK GENE DRIVE [B]: wrong number of stationary flies; " 
+  ]
+    
+  ; 8.TEST check fertilization process
+  refresh-world
+  set eggs-per-cycle 10  
+  set current-female-stat-duration 20
+  set current-male-stat-duration 20  
+  ask trees [
+    set grown-cherries 10
+    set occupied-cherries 0
+  ]
+  set cherries-available TRUE  
+  ; create flies
+  set init-pop 2
+  start-season
+  ; modify flies
+  ask flies [
+    set sex "f"
+    set partner-search TRUE
+    move-to min-one-of trees [who] ; move to tree with lowest id
+  ]  
+  ask n-of 1 flies [
+    set sex "m"
+  ]
+  fly-activities
+  ask flies with [ sex = "f" ] [
+    if partner-search = TRUE [
+      set log-content word log-content "FERTILIZATION TEST: partner-search flag wrong; " 
+    ] 
+    if eggs != 10 [
+      set log-content word log-content "FERTILIZATION TEST: number of eggs wrong; " 
+    ]
+  ]
+  
+  ; 9.TEST check delay between fertilization and egg laying process
+  set current-eggs-per-tick 0.5
+  set egg-dev-duration 4
+  set i 0
+  while [ i < 3 ] [
+    tick
+    ask flies [ 
+      move-to min-one-of trees [who] ; move to tree with lowest id
+    ]
+    ;calculate-current-eggs-per-tick-rate
+    update-egg-laying-mode
+    fly-activities
+    if count flies with [ mode = "stationary" ] > 0 [
+      set log-content word log-content "FERTILIZATION TEST: egg-dev-duration not working properly; "
+    ]
+    set i ( i + 1 )
+  ]
+  set i 0
+  while [ i < 10 ] [
+    tick
+    ask flies [ 
+      move-to min-one-of trees [who] ; move to tree with lowest id
+    ]
+    ;calculate-current-eggs-per-tick-rate
+    update-egg-laying-mode
+    fly-activities
+    if count flies with [ mode = "stationary" ] > i [
+      set log-content word log-content "FERTILIZATION TEST: eggs-per-tick-rate not working properly; "
+    ]
+    tick
+    ask flies [ 
+      move-to min-one-of trees [who] ; move to tree with lowest id
+    ]
+    ;calculate-current-eggs-per-tick-rate
+    update-egg-laying-mode
+    fly-activities
+    if count flies with [ mode = "stationary" ] != ( i + 1 ) [
+      set log-content word log-content "FERTILIZATION TEST: eggs-per-tick-rate not working properly; "
+    ]
+    set i ( i + 1 )     
+  ]
+  
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]
+  
+end

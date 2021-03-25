@@ -1,44 +1,49 @@
 
 extensions [ time ]
 
-; TODO: separate output for config variables!
-
 to create-file
   
-  let cur-date time:create "now"
+  let number-of-values 62
+  set output-values array:from-list n-values number-of-values [0]
   
-  let year   time:get "year"   cur-date
-  let month  time:get "month"  cur-date
-  let day    time:get "day"    cur-date
-  let hour   time:get "hour"   cur-date
-  let minute time:get "minute" cur-date
-  let second time:get "second" cur-date
-  
-  if month  < 10 [ set month  word "0" month  ]
-  if day    < 10 [ set day    word "0" day    ]
-  if hour   < 10 [ set hour   word "0" hour   ]
-  if minute < 10 [ set minute word "0" minute ]
-  if second < 10 [ set second word "0" second ]
-  
-  set output-file-name ( word "../output/" year "-" month "-" day " " hour "_" minute "_" second " [" behaviorspace-run-number "] output.csv" )
-  let config-output-file-name ( word "../output/" year "-" month "-" day " " hour "_" minute "_" second " [" behaviorspace-run-number "] config-output.csv" )
-  
-  file-open config-output-file-name
-  
-  write-configs-to-file
-  
-  file-close
-  
-  file-open output-file-name
-  
-  write-headers-to-file
-  
-  file-close
+  if no-output != "YES" [ 
+    
+    let cur-date time:create "now"
+    
+    let year   time:get "year"   cur-date
+    let month  time:get "month"  cur-date
+    let day    time:get "day"    cur-date
+    let hour   time:get "hour"   cur-date
+    let minute time:get "minute" cur-date
+    let second time:get "second" cur-date
+    
+    if month  < 10 [ set month  word "0" month  ]
+    if day    < 10 [ set day    word "0" day    ]
+    if hour   < 10 [ set hour   word "0" hour   ]
+    if minute < 10 [ set minute word "0" minute ]
+    if second < 10 [ set second word "0" second ]
+    
+    set output-file-name ( word "../output/" year "-" month "-" day " " hour "_" minute "_" second " [" behaviorspace-run-number "] output.csv" )
+    let config-output-file-name ( word "../output/" year "-" month "-" day " " hour "_" minute "_" second " [" behaviorspace-run-number "] config-output.csv" )
+    
+    file-open config-output-file-name
+    
+    write-configs-to-file
+    
+    file-close
+    
+    file-open output-file-name
+    
+    write-headers-to-file
+    
+    file-close
+    
+  ]
   
 end
 
 to write-configs-to-file
-  
+    
   file-print ( word "model-version" " " model-version )
   
   file-print ( word "seed" " " behaviorspace-run-number )
@@ -87,15 +92,11 @@ to write-configs-to-file
   file-print ( word "sd-cherries" " " sd-cherries )
   file-print ( word "cherries-growth-start" " " cherries-growth-start )
   file-print ( word "cherries-growth-period"  " " cherries-growth-period )
-  
+   
 end
 
 to write-headers-to-file
-  
-  let number-of-values 62
-  
-  set output-values array:from-list n-values number-of-values [0]
-  
+    
   let headers [ "tick" ]                                      ; #0
   set headers lput "date" headers                             ; #1
   set headers lput "temperature" headers                      ; #2
@@ -158,11 +159,11 @@ to write-headers-to-file
   set headers lput "killed-M+-adult" headers                  ; #59 => set in procedure kill-flies in flies.nls
   set headers lput "killed-MR-stat" headers                   ; #60 => set in procedure kill-flies in flies.nls
   set headers lput "killed-MR-adult" headers                  ; #61 => set in procedure kill-flies in flies.nls
-
+  
   while [ length headers > 0 ] [
-   
+    
     file-write first headers
-   
+    
     set headers but-first headers
     
   ]
@@ -174,71 +175,75 @@ end
 
 to write-values-to-file
   
-  let i 0
+  if no-output != "YES" [ 
   
-  array:set output-values 0 ticks
-  array:set output-values 1 current-date
-  array:set output-values 2 current-temp
-  array:set output-values 3 mean-10d-temp
-  array:set output-values 4 season
-  array:set output-values 5 season-number
-  array:set output-values 6 total-cherries
-  array:set output-values 7 sum [ max-cherries ] of trees
-  array:set output-values 8 sum [ grown-cherries ] of trees
-  array:set output-values 9 sum [ occupied-cherries ] of trees
-  array:set output-values 10 sum [ grown-fruits ] of yummy-plants
-  array:set output-values 11 sum [ occupied-fruits ] of yummy-plants
-  array:set output-values 12 count flies with [ mode = "stationary" ]
-  array:set output-values 13 count flies with [ mode = "adult" ]
-  array:set output-values 14 count flies with [ sex = "f" ]
-  array:set output-values 15 count flies with [ sex = "f" and partner-search ]
-  array:set output-values 16 count flies with [ eggs > 0 ]
-  array:set output-values 17 count flies with [ sex = "m" ]
-  array:set output-values 18 count flies with [ genotype = "++" ]
-  array:set output-values 19 count flies with [ genotype = "++" and mode = "stationary" ]
-  array:set output-values 20 count flies with [ genotype = "++" and mode = "adult" ]
-  array:set output-values 21 count flies with [ genotype = "R+" or genotype = "+R" ]
-  array:set output-values 22 count flies with [ genotype = "R+" or genotype = "+R" and mode = "stationary" ]
-  array:set output-values 23 count flies with [ genotype = "R+" or genotype = "+R" and mode = "adult" ]
-  array:set output-values 24 count flies with [ genotype = "RR" ]
-  array:set output-values 25 count flies with [ genotype = "RR" and mode = "stationary" ]
-  array:set output-values 26 count flies with [ genotype = "RR" and mode = "adult" ]
-  array:set output-values 27 count flies with [ genotype = "MM" ]
-  array:set output-values 28 count flies with [ genotype = "MM" and mode = "stationary" ]
-  array:set output-values 29 count flies with [ genotype = "MM" and mode = "adult" ]
-  array:set output-values 30 count flies with [ genotype = "M+" or genotype = "+M" ]
-  array:set output-values 31 count flies with [ genotype = "M+" or genotype = "+M" and mode = "stationary" ]
-  array:set output-values 32 count flies with [ genotype = "M+" or genotype = "+M" and mode = "adult" ]
-  array:set output-values 33 count flies with [ genotype = "MR" or genotype = "RM" ]
-  array:set output-values 34 count flies with [ genotype = "MR" or genotype = "RM" and mode = "stationary" ]
-  array:set output-values 35 count flies with [ genotype = "MR" or genotype = "RM" and mode = "adult" ]
-  ifelse count flies > 0 [
-    array:set output-values 36 [ ceiling ( total-age / ticks-per-day ) ] of max-one-of flies [ total-age ]
-  ] [
-    array:set output-values 36 0
-  ]
-  ; 37-41 see procedures...
-  array:set output-values 42 current-female-stat-duration
-  array:set output-values 43 current-female-adult-longevity
-  array:set output-values 44 current-male-stat-duration
-  array:set output-values 45 current-male-adult-longevity
-  ; 48-61 see procedures...
-  
-  file-open output-file-name
-
-  while [ i < ( array:length output-values ) ] [
+    let i 0
     
-    file-write array:item output-values i
-   
-    set i ( i + 1 ) 
+    array:set output-values 0 ticks
+    array:set output-values 1 current-date
+    array:set output-values 2 current-temp
+    array:set output-values 3 mean-10d-temp
+    array:set output-values 4 season
+    array:set output-values 5 season-number
+    array:set output-values 6 total-cherries
+    array:set output-values 7 sum [ max-cherries ] of trees
+    array:set output-values 8 sum [ grown-cherries ] of trees
+    array:set output-values 9 sum [ occupied-cherries ] of trees
+    array:set output-values 10 sum [ grown-fruits ] of yummy-plants
+    array:set output-values 11 sum [ occupied-fruits ] of yummy-plants
+    array:set output-values 12 count flies with [ mode = "stationary" ]
+    array:set output-values 13 count flies with [ mode = "adult" ]
+    array:set output-values 14 count flies with [ sex = "f" ]
+    array:set output-values 15 count flies with [ sex = "f" and partner-search ]
+    array:set output-values 16 count flies with [ eggs > 0 ]
+    array:set output-values 17 count flies with [ sex = "m" ]
+    array:set output-values 18 count flies with [ genotype = "++" ]
+    array:set output-values 19 count flies with [ genotype = "++" and mode = "stationary" ]
+    array:set output-values 20 count flies with [ genotype = "++" and mode = "adult" ]
+    array:set output-values 21 count flies with [ genotype = "R+" or genotype = "+R" ]
+    array:set output-values 22 count flies with [ genotype = "R+" or genotype = "+R" and mode = "stationary" ]
+    array:set output-values 23 count flies with [ genotype = "R+" or genotype = "+R" and mode = "adult" ]
+    array:set output-values 24 count flies with [ genotype = "RR" ]
+    array:set output-values 25 count flies with [ genotype = "RR" and mode = "stationary" ]
+    array:set output-values 26 count flies with [ genotype = "RR" and mode = "adult" ]
+    array:set output-values 27 count flies with [ genotype = "MM" ]
+    array:set output-values 28 count flies with [ genotype = "MM" and mode = "stationary" ]
+    array:set output-values 29 count flies with [ genotype = "MM" and mode = "adult" ]
+    array:set output-values 30 count flies with [ genotype = "M+" or genotype = "+M" ]
+    array:set output-values 31 count flies with [ genotype = "M+" or genotype = "+M" and mode = "stationary" ]
+    array:set output-values 32 count flies with [ genotype = "M+" or genotype = "+M" and mode = "adult" ]
+    array:set output-values 33 count flies with [ genotype = "MR" or genotype = "RM" ]
+    array:set output-values 34 count flies with [ genotype = "MR" or genotype = "RM" and mode = "stationary" ]
+    array:set output-values 35 count flies with [ genotype = "MR" or genotype = "RM" and mode = "adult" ]
+    ifelse count flies > 0 [
+      array:set output-values 36 [ ceiling ( total-age / ticks-per-day ) ] of max-one-of flies [ total-age ]
+    ] [
+      array:set output-values 36 0
+    ]
+    ; 37-41 see procedures...
+    array:set output-values 42 current-female-stat-duration
+    array:set output-values 43 current-female-adult-longevity
+    array:set output-values 44 current-male-stat-duration
+    array:set output-values 45 current-male-adult-longevity
+    ; 48-61 see procedures...
+    
+    file-open output-file-name
+    
+    while [ i < ( array:length output-values ) ] [
+      
+      file-write array:item output-values i
+      
+      set i ( i + 1 ) 
+      
+    ]
+    
+    ; carriage-return
+    file-print ""
+    
+    file-close
+    
+    set output-values array:from-list n-values array:length output-values [0]
     
   ]
-  
-  ; carriage-return
-  file-print ""
-  
-  file-close
-  
-  set output-values array:from-list n-values array:length output-values [0]
   
 end

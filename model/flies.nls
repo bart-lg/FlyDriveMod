@@ -57,7 +57,7 @@ to set-mortality-rates
   ; first check if csv file exists
   let file-path (word path-csv-input "mortalityRates.csv")
   if file-exists? file-path [
-  
+    
     file-open file-path
     
     ; check the headers of the columns
@@ -66,7 +66,7 @@ to set-mortality-rates
     
       ; create arrays
       set mortality-temperatures     array:from-list []
-      set stat-mortality-rates-temp   array:from-list []
+      set stat-mortality-rates-temp  array:from-list []
       set adult-mortality-rates-temp array:from-list []
       
       ; read data
@@ -139,8 +139,10 @@ to set-mode-durations
   if not file-exists? file-path [ set allFilesExist FALSE ]
   set file-path (word path-csv-input "maleEggsToAdult.csv")
   if not file-exists? file-path [ set allFilesExist FALSE ]
-  set file-path (word path-csv-input "maleEggsToPupa.csv")
+  set file-path (word path-csv-input "maleAdultLongevity.csv")
   if not file-exists? file-path [ set allFilesExist FALSE ]
+  
+  ; TODO: do something if allFilesExist is FALSE
   
   ; ### TEMPERATURES
   ; ### FEMALE EGGS TO ADULT
@@ -305,27 +307,40 @@ end
 
 to fly-init-pop
   
+  let temp-pop init-pop
+  
   set-default-shape flies "dot"
   
-  ask n-of init-pop patches [
-    sprout-flies 1 [
-      set color red
-      set mode "adult"
-      set mode-duration 0
-      set generation 1
-      ifelse ( random 2 ) = 1 [ set sex "f" ][ set sex "m" ]
-      set partner-search TRUE
-      set eggs 0
-      set ready-to-lay-egg FALSE
-      set genotype "++"
-      set fitness fitness-PP
-      set total-age 0
-      set ticks-since-fertilization 0
-    ] 
+  while [ temp-pop > 0 ] [
+    let current-pop 0
+    ifelse temp-pop > count patches [
+      set current-pop ( count patches )
+      set temp-pop ( temp-pop - count patches )
+    ] [
+      set current-pop temp-pop
+      set temp-pop 0
+    ]
+    ask n-of current-pop patches [
+      sprout-flies 1 [
+        set color red
+        set mode "adult"
+        set mode-duration 0
+        set generation 1
+        ifelse ( random 2 ) = 1 [ set sex "f" ][ set sex "m" ]
+        set partner-search TRUE
+        set eggs 0
+        set ready-to-lay-egg FALSE
+        set genotype "++"
+        set fitness fitness-PP
+        set total-age 0
+        set ticks-since-fertilization 0
+      ] 
+    ]
   ]
 
   ask n-of ( init-pop * ( resistant-ratio / 100 ) ) flies [
     set genotype "RR"
+    set fitness fitness-RR
   ]
   
 end
@@ -342,6 +357,7 @@ to kill-flies
   let female-adult-flies count flies with [ sex = "f" and mode = "adult" ]
   let male-adult-flies   count flies with [ sex = "m" and mode = "adult" ]
   
+  ; TODO: optimize: ask flies with [ ... ] [ ]
   ask flies [
     if sex = "f" and mode = "adult" and current-female-adult-longevity < mode-duration [ die ]
     if sex = "m" and mode = "adult" and current-male-adult-longevity   < mode-duration [ die ]
@@ -387,6 +403,8 @@ to kill-flies
   ]
   ; log
   array:set output-values 47 adult-mortality-rate
+  
+  ; TODO: since fitness has no effect on mortality anymore the killing-algorithmus shall not depend on genotypes!!
   
   let PP-stat-flies  count flies with [ mode = "stationary" and genotype = "++" ]
   let PP-adult-flies count flies with [ mode = "adult"      and genotype = "++" ]
@@ -478,7 +496,11 @@ end
 
 to update-egg-laying-mode
   
-  let inverse-current-eggs-per-tick round ( 1 / current-eggs-per-tick ) 
+  let inverse-current-eggs-per-tick 0
+  
+  if current-eggs-per-tick > 0 [
+    set inverse-current-eggs-per-tick round ( 1 / current-eggs-per-tick )
+  ]
  
   ask flies [
     
@@ -599,7 +621,7 @@ to fly-activities
     ]
     
     ; if female fly detects male fly on same patch => start fertilization
-    if sex = "f" and mode = "adult" and partner-search = TRUE and any? flies-here with [sex = "m"] [
+    if sex = "f" and mode = "adult" and partner-search = TRUE and any? flies-here with [sex = "m" and mode = "adult"] [
       set partner-search FALSE
       set ticks-since-fertilization 0
       set eggs eggs-per-cycle
@@ -611,7 +633,7 @@ to fly-activities
     ]    
     
     ; in case of fertilization => increase ticks since fertilization
-    if partner-search = FALSE and sex = "f" [ set ticks-since-fertilization ( ticks-since-fertilization + 1 ) ]
+    if partner-search = FALSE and sex = "f" and mode = "adult" [ set ticks-since-fertilization ( ticks-since-fertilization + 1 ) ]
 
     ; increase age and mode-duration
     set mode-duration ( mode-duration + 1 )

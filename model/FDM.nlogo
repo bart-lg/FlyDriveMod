@@ -1,7 +1,7 @@
 extensions [ csv array ]
 
 ; include files for environment and agents
-__includes [ "environment.nls" "trees.nls" "yummy-plants.nls" "flies.nls" "write-results.nls" ]
+__includes [ "environment.nls" "trees.nls" "yummy-plants.nls" "flies.nls" "write-results.nls" "verification.nls" ]
 
 ; global parameters
 globals [
@@ -10,6 +10,9 @@ globals [
 
   output-file-name
   output-values
+
+  ; set no-output to "YES" to prevent CSV ouptut (e.g. for verification purpose)
+  no-output
 
   ; ticks-per-day is also max. meters per day per fly
   ticks-per-day
@@ -113,10 +116,16 @@ globals [
 ; initial setup procedure
 to setup
 
-  file-close
+  ; setup procedure gets called in verification process
+  ; therefore, it is necessary to remember the global variable no-output
+  let temp-no-output no-output
+
+  file-close-all
   __clear-all-and-reset-ticks
 
-  set model-version "V0.504"
+  set no-output temp-no-output
+
+  set model-version "V0.600"
 
   if behaviorspace-run-number > 0 [ random-seed behaviorspace-run-number ]
 
@@ -163,6 +172,9 @@ to setup
   set mean-10d-temp 0
   set temp-10d-log []
 
+  set cherries-available FALSE
+  set fruits-available FALSE
+
   ; create output file
   create-file
 
@@ -203,30 +215,7 @@ to go
   get-current-weather
   calculate-mean-temperatures
 
-  if season = FALSE and round ( mean-10d-temp ) >= season-start-temp [
-    ; start season
-    ifelse season-number = 0 [
-      fly-init-pop
-    ] [
-      ; reset the age of the starting population otherwise they get killed immediately due to reached life expectancy
-      ask flies [
-        set total-age 0
-        set mode-duration 0
-        set partner-search TRUE
-        set eggs 0
-        set ready-to-lay-egg FALSE
-        set ticks-since-fertilization 0
-      ]
-    ]
-    set season TRUE
-    set season-number ( season-number + 1 )
-  ]
-
-  if season = TRUE and round ( mean-10d-temp ) <= season-end-temp [
-    ; end season
-    set season FALSE
-    kill-flies-off-season
-  ]
+  check-season
 
   grow-cherries
   grow-yummy-fruits
@@ -261,6 +250,45 @@ to go
   write-values-to-file
 
   tick
+
+end
+
+to check-season
+
+  if season = FALSE and round ( mean-10d-temp ) >= season-start-temp [
+    start-season
+  ]
+
+  if season = TRUE and round ( mean-10d-temp ) <= season-end-temp [
+    end-season
+  ]
+
+end
+
+to start-season
+
+  ifelse season-number = 0 [
+    fly-init-pop
+  ] [
+    ; reset the age of the starting population otherwise they get killed immediately due to reached life expectancy
+    ask flies [
+      set total-age 0
+      set mode-duration 0
+      set partner-search TRUE
+      set eggs 0
+      set ready-to-lay-egg FALSE
+      set ticks-since-fertilization 0
+    ]
+  ]
+  set season TRUE
+  set season-number ( season-number + 1 )
+
+end
+
+to end-season
+
+  set season FALSE
+  kill-flies-off-season
 
 end
 
@@ -359,7 +387,7 @@ init-pop
 init-pop
 0
 1000
-501.0
+2.0
 1
 1
 NIL
@@ -526,7 +554,7 @@ mean-cherries
 mean-cherries
 0
 4000
-252.0
+100.0
 1
 1
 NIL
@@ -541,7 +569,7 @@ sd-cherries
 sd-cherries
 0
 1000
-18.0
+0.0
 1
 1
 NIL
@@ -556,7 +584,7 @@ cherries-growth-start
 cherries-growth-start
 0
 365
-101.0
+2.0
 1
 1
 NIL
@@ -571,7 +599,7 @@ cherries-growth-period
 cherries-growth-period
 0
 180
-45.0
+2.0
 1
 1
 NIL
@@ -673,7 +701,7 @@ release-amount
 release-amount
 0
 10000
-240.0
+1000.0
 10
 1
 NIL
@@ -696,7 +724,7 @@ INPUTBOX
 1002
 204
 max-years
-5.0
+0.0
 1
 0
 Number
@@ -753,11 +781,28 @@ yummy-fruits-per-plant
 yummy-fruits-per-plant
 0
 15
-2.0
+50.0
 1
 1
 NIL
 HORIZONTAL
+
+BUTTON
+926
+103
+1000
+137
+selftest
+verification-tests
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -1281,43 +1326,6 @@ NetLogo 6.1.1
     </enumeratedValueSet>
     <enumeratedValueSet variable="mean-cherries">
       <value value="250"/>
-    </enumeratedValueSet>
-  </experiment>
-  <experiment name="winter-survival2" repetitions="1" runMetricsEveryStep="false">
-    <setup>setup</setup>
-    <go>go</go>
-    <enumeratedValueSet variable="cherries-growth-period">
-      <value value="45"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="yummy-fruits-per-plant">
-      <value value="50"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="gene-drive">
-      <value value="true"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="init-pop">
-      <value value="500"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="release-day">
-      <value value="58"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="resistant-ratio">
-      <value value="50"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="release-amount">
-      <value value="500"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="max-years">
-      <value value="5"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="cherries-growth-start">
-      <value value="101"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="sd-cherries">
-      <value value="500"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="mean-cherries">
-      <value value="12000"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>
