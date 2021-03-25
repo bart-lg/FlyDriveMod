@@ -1,7 +1,7 @@
 extensions [ csv array ]
 
 ; include files for environment and agents
-__includes [ "environment.nls" "trees.nls" "flies.nls" ]
+__includes [ "environment.nls" "trees.nls" "yummy-plants.nls" "flies.nls" ]
 
 ; global parameters
 globals [
@@ -16,6 +16,12 @@ globals [
   border-margin
   trees-per-row
   tree-rows
+  yummy-plant-width
+  yummy-plant-margin
+
+  yummy-fruits-per-plant
+
+  visibility
 
   ; eggs (duration values in days)
   eggs-per-cycle
@@ -27,26 +33,24 @@ globals [
   pupa-duration
   immature-adult-duration
 
-  ; life expectancy of fly depending on month born
-  ; array => every element represents one month
-  life-expectancies
+  ; life expectancy of flies (fly dies if age reaches this number of ticks)
+  life-expectancy
 
-  ; mortality rates (arrays for every mode depending on temperature)
-  ; example:
-  ; mortality-temperatures =>
-  ; [0] => 15 (first entry of arrays reflect the mortality rates for temperatures until 15°C)
-  ; [1] => 30 (second entry of arrays reflect the mortality rate for temperatures between 15.1°C and 30°C)
-  ; [2] => 99 (last entry of arrays reflect the mortality rate for temperatures above 30.1°C)
-  ; egg-mortality-rates-temp =>
-  ; [0] => 0.05 (5% of flies die per tick)
-  ; [1] => 0.01 (1% of flies die per tick)
-  ; [2] => 0.2 (20% of flies die per tick)
+  ; mortality rates (arrays for every mode depending on avg. temperature)
+  ; mortality-temperatures => array of temperatures (10-days avg. temp) in steps of 1°C (min and max serve as reference values for temperatures below and above the range)
+  ; egg-mortality-rates-temp => array of mortality-rate per day (affects the flies at the beginning of the day)
   mortality-temperatures
   egg-mortality-rates-temp
   larva-mortality-rates-temp
   pupa-mortality-rates-temp
   immature-adult-mortality-rates-temp
   adult-mortality-rates-temp
+
+  ; eggs-per-day (array for eggs-per-day depending on avg. temperature)
+  ; eggs-per-day-temperatures => array of temperatures (10-days avg. temp) in steps of 1°C (min and max serve as reference values for temperatures below and above the range)
+  ; eggs-per-day => array of eggs-per-day rate at given avg. temperature
+  eggs-per-day-temperatures
+  eggs-per-day
 
   ; resistance rate
   resistance-rate
@@ -60,6 +64,9 @@ globals [
   total-cherries
 
   pesticide-concentration
+
+  ; path for input csv files
+  path-csv-input
 
 ]
 
@@ -78,6 +85,12 @@ to setup
   set border-margin 5
   set trees-per-row 10
   set tree-rows 5
+  set yummy-plant-width 1
+  set yummy-plant-margin 5
+
+  set yummy-fruits-per-plant 150
+
+  set visibility 15
 
   set eggs-per-cycle 30
   set egg-development-duration 5
@@ -87,9 +100,13 @@ to setup
   set pupa-duration 4
   set immature-adult-duration 5
 
+  set life-expectancy 80 * ticks-per-day
+
   set resistance-rate 0.2
 
   set total-cherries 0
+
+  set path-csv-input "../params/"
 
   ; world area setup
   env-setworld
@@ -100,31 +117,35 @@ to setup
   ; plant trees
   plant-trees
 
-  ; set life-expectancies
-  set-life-expectancies
+  ; plant yummy-plants
+  plant-yummy-plants
 
   ; set mortality rates for modes
   set-mortality-rates
+
+  ; set eggs-per-day rates
+  eggs-per-day-rates
 
   ; initial population
   fly-init-pop
 
   ask patches [
-    set pcolor [0 54 0]
+    set pcolor [0 41 0]
   ]
 
 end
 
 to go
 
-  if ceiling ( ticks / ticks-per-day ) > 365 [
-    user-message "1 year simulation over"
+  if ceiling ( ticks / ticks-per-day ) > ( 365 * max-years ) [
+    user-message "simulation is over"
     stop
   ]
 
   get-current-weather
 
   grow-cherries
+  grow-yummy-fruits
 
   ; gene-drive: on/off switch
   if gene-drive [
@@ -140,23 +161,30 @@ to go
 
 end
 
-; returns the current date in the format 1.1.2010
+; returns the current date in the format 1.1.[1] (the number in brackets reflects the year - note: NO LEAP YEARS!)
 to-report current-date
+
   let days ceiling ( ticks / ticks-per-day )
-  let return "0"
   if days = 0 [ set days 1 ]
-  ifelse days < 32 [ set return ( word days ".1.2010" ) ] [
-    ifelse days < 60 [ set return ( word ( days - 31 ) ".2.2010" ) ] [
-      ifelse days < 91 [ set return ( word ( days - 59 ) ".3.2010" ) ] [
-        ifelse days < 121 [ set return ( word ( days - 90 ) ".4.2010" ) ] [
-          ifelse days < 152 [ set return ( word ( days - 120 ) ".5.2010" ) ] [
-            ifelse days < 182 [ set return ( word ( days - 151 ) ".6.2010" ) ] [
-              ifelse days < 213 [ set return ( word ( days - 181 ) ".7.2010" ) ] [
-                ifelse days < 244 [ set return ( word ( days - 212 ) ".8.2010" ) ] [
-                  ifelse days < 274 [ set return ( word ( days - 243 ) ".9.2010" ) ] [
-                    ifelse days < 305 [ set return ( word ( days - 273 ) ".10.2010" ) ] [
-                      ifelse days < 335 [ set return ( word ( days - 304 ) ".11.2010" ) ] [
-                        if days < 366 [ set return ( word ( days - 334 ) ".12.2010" ) ]
+  let return "0"
+  let year 0
+
+  set year ( floor ( days / 365 ) ) + 1
+  set days ( days mod 365 )
+  if days = 0 [ set days 365 ]
+
+  ifelse days < 32 [ set return ( word days ".1." ) ] [
+    ifelse days < 60 [ set return ( word ( days - 31 ) ".2." ) ] [
+      ifelse days < 91 [ set return ( word ( days - 59 ) ".3." ) ] [
+        ifelse days < 121 [ set return ( word ( days - 90 ) ".4." ) ] [
+          ifelse days < 152 [ set return ( word ( days - 120 ) ".5." ) ] [
+            ifelse days < 182 [ set return ( word ( days - 151 ) ".6." ) ] [
+              ifelse days < 213 [ set return ( word ( days - 181 ) ".7." ) ] [
+                ifelse days < 244 [ set return ( word ( days - 212 ) ".8." ) ] [
+                  ifelse days < 274 [ set return ( word ( days - 243 ) ".9." ) ] [
+                    ifelse days < 305 [ set return ( word ( days - 273 ) ".10." ) ] [
+                      ifelse days < 335 [ set return ( word ( days - 304 ) ".11." ) ] [
+                        if days < 366 [ set return ( word ( days - 334 ) ".12." ) ]
                       ]
                     ]
                   ]
@@ -168,17 +196,21 @@ to-report current-date
       ]
     ]
   ]
+
+  set return ( word return "[" year "]" )
+
   report return
+
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
 18
 18
-910
-625
+907
+666
 -1
 -1
-13.0
+11.0
 1
 13
 1
@@ -189,9 +221,9 @@ GRAPHICS-WINDOW
 0
 1
 0
-67
+79
 0
-45
+57
 0
 0
 1
@@ -224,7 +256,7 @@ init-pop
 init-pop
 0
 1000
-624.0
+226.0
 1
 1
 NIL
@@ -242,10 +274,10 @@ count(flies)
 11
 
 BUTTON
-930
-67
-994
-101
+929
+62
+993
+96
 NIL
 go
 T
@@ -513,7 +545,7 @@ SWITCH
 240
 gene-drive
 gene-drive
-0
+1
 1
 -1000
 
@@ -551,9 +583,31 @@ MONITOR
 1145
 72
 1208
-118
+117
 max-gen
 max [ generation ] of flies
+17
+1
+11
+
+INPUTBOX
+927
+144
+1002
+204
+max-years
+3.0
+1
+0
+Number
+
+MONITOR
+1218
+73
+1298
+119
+yummy-fruits
+sum [grown-fruits] of yummy-plants
 17
 1
 11

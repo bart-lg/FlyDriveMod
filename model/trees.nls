@@ -24,8 +24,8 @@ to plant-trees
     set j 1
     while [ j <= trees-per-row ] [
       
-      set x-coordinate ( border-margin + ( j - 1 ) * ( tree-width + tree-margin-x ) )
-      set y-coordinate ( border-margin + ( i - 1 ) * ( tree-width + tree-margin-y ) )
+      set x-coordinate ( border-margin + yummy-plant-width + yummy-plant-margin + ( j - 1 ) * ( tree-width + tree-margin-x ) )
+      set y-coordinate ( border-margin + yummy-plant-width + yummy-plant-margin + ( i - 1 ) * ( tree-width + tree-margin-y ) )
       
       if ( tree-width > 1 ) [ set x-coordinate ( x-coordinate + ceiling ( tree-width / 2 ) ) ]
       if ( tree-width > 1 ) [ set y-coordinate ( y-coordinate + ceiling ( tree-width / 2 ) ) ]

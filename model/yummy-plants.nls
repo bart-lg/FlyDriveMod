@@ -1,0 +1,87 @@
+breed [ yummy-plants yummy-plant ]
+
+; properties of yummy-plants
+yummy-plants-own [
+  
+  grown-fruits
+  occupied-fruits
+  
+]
+
+to plant-yummy-plant [ x y ]
+  
+  create-yummy-plants 1 [
+   
+    set shape "square"
+    set color 54
+    setxy x y
+    set grown-fruits yummy-fruits-per-plant
+    set occupied-fruits 0
+    
+  ]
+  
+end
+
+to plant-yummy-plants
+  
+  ; coordinates in world
+  let x-coordinate 0
+  let y-coordinate 0
+
+  set x-coordinate border-margin + 1 
+  set y-coordinate border-margin + 1 
+  while [ x-coordinate <= ( max-pxcor - border-margin ) ] [
+    
+    if not any? yummy-plants-on patch x-coordinate y-coordinate [
+      plant-yummy-plant x-coordinate y-coordinate
+    ]
+    
+    set x-coordinate ( x-coordinate + 1 )
+    
+  ]
+
+  set x-coordinate border-margin + 1 
+  set y-coordinate max-pycor - border-margin
+  while [ x-coordinate <= ( max-pxcor - border-margin ) ] [
+    
+    if not any? yummy-plants-on patch x-coordinate y-coordinate [
+      plant-yummy-plant x-coordinate y-coordinate
+    ]
+    
+    set x-coordinate ( x-coordinate + 1 )
+    
+  ]
+  
+  set x-coordinate border-margin + 1 
+  set y-coordinate border-margin + 2 
+  while [ y-coordinate <= ( max-pycor - border-margin ) ] [
+    
+    if not any? yummy-plants-on patch x-coordinate y-coordinate [
+      plant-yummy-plant x-coordinate y-coordinate
+    ]
+    
+    set y-coordinate ( y-coordinate + 1 )
+    
+  ]  
+
+  set x-coordinate max-pxcor - border-margin
+  set y-coordinate border-margin + 2 
+  while [ y-coordinate <= ( max-pycor - border-margin ) ] [
+    
+    if not any? yummy-plants-on patch x-coordinate y-coordinate [
+      plant-yummy-plant x-coordinate y-coordinate
+    ]
+    
+    set y-coordinate ( y-coordinate + 1 )
+    
+  ]
+  
+end
+
+to grow-yummy-fruits 
+  
+  ask yummy-plants with [ grown-fruits < yummy-fruits-per-plant ] [
+    set grown-fruits ( grown-fruits + 1 ) 
+  ]
+  
+end
