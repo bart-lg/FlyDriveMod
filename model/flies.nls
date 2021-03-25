@@ -353,7 +353,6 @@ to fly-init-pop
     ]
     ask n-of current-pop patches [
       sprout-flies 1 [
-        set color red
         set mode "adult"
         set mode-duration 0
         set generation 1
@@ -366,6 +365,8 @@ to fly-init-pop
         set total-age 0
         set fertilization-tick 0
         set immature-state FALSE
+        if sex = "f" [ set color magenta ]
+        if sex = "m" [ set color blue    ]
       ] 
     ]
   ]
@@ -562,7 +563,7 @@ to fly-activities
       set genotype-of-partner first [genotype] of partner
       set fitness-of-partner first [fitness] of partner
       set combined-fitness ( fitness * fitness-of-partner )
-      set color blue
+      set color orange
       ask one-of flies-here with [sex = "m" and mode = "adult" and partner-search = TRUE] [
         set partner-search FALSE
         set fertilization-tick ticks 
@@ -663,7 +664,7 @@ to fly-activities
         if eggs = 0 [
           ; set partner-search TRUE => controlled by start-immature-state and end-immature-state
           start-immature-state
-          set color red
+          set color magenta
         ] 
         
       ]
@@ -691,14 +692,14 @@ to upgrade-fly
       set mode "adult"
       set mode-duration 0
       set partner-search TRUE
-      set color red
+      set color magenta
     ]
     
     if ( sex = "m" and mode = "stationary" and mode-duration >= current-male-stat-duration ) [
       set mode "adult"
       set mode-duration 0
       set partner-search TRUE
-      set color red
+      set color blue
     ]
     
     ; increase log-value
@@ -739,7 +740,6 @@ to release-gene-drive
   
   ask patch ( max-pxcor / 2 ) ( max-pycor / 2 ) [
     sprout-flies release-amount [
-      set color red
       set mode "adult"
       set mode-duration 0
       set generation 1
@@ -760,6 +760,8 @@ to release-gene-drive
       set total-age 0
       set fertilization-tick 0
       start-immature-state
+      if sex = "f" [ set color magenta ]
+      if sex = "m" [ set color blue    ]
     ] 
   ]  
   
@@ -781,15 +783,16 @@ to female-attract-male-flies
   
   ask flies with [ mode = "adult" and sex = "m" and partner-search = TRUE ] [
    
-    let destination min-one-of flies with [ mode = "adult" and sex = "f" and partner-search = TRUE ] in-radius visibility [ distance myself ]
-    
-    let destination-x ( [xcor] of destination )
-    let destination-y ( [ycor] of destination )
-    
-    facexy destination-x destination-y
-    set target-tick ticks
-    set target-distance distance patch destination-x destination-y
-    
+    let target-fly min-one-of flies with [ mode = "adult" and sex = "f" and partner-search = TRUE ] in-radius visibility [ distance myself ]
+
+    if is-turtle? target-fly [
+      let destination-x ( [xcor] of target-fly )
+      let destination-y ( [ycor] of target-fly )
+      
+      facexy destination-x destination-y
+      set target-tick ticks
+      set target-distance distance patch destination-x destination-y
+    ]    
   ]
   
 end  

@@ -130,7 +130,8 @@ to-report test-start-season [ verification-file ]
   ]
   
   if count flies with [
-    color != red
+    sex = "f" and color != magenta
+    or sex = "m" and color != blue
     or mode != "adult"
     or mode-duration > 0
     or generation != 1

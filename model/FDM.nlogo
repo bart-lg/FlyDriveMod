@@ -124,7 +124,7 @@ to setup
 
   set no-output temp-no-output
 
-  set model-version "V1.1.0"
+  set model-version "V1.1.1"
 
   if behaviorspace-run-number > 0 [ random-seed behaviorspace-run-number ]
 
@@ -280,6 +280,9 @@ to start-season
       set ready-to-lay-egg FALSE
       set fertilization-tick 0
       set immature-state FALSE
+      if mode = "stationary"          [ set color yellow  ]
+      if mode = "adult" and sex = "f" [ set color magenta ]
+      if mode = "adult" and sex = "m" [ set color blue    ]
     ]
   ]
   set season TRUE
@@ -389,7 +392,7 @@ init-pop
 init-pop
 0
 10000
-2.0
+500.0
 1
 1
 NIL
@@ -432,7 +435,7 @@ resistant-ratio
 resistant-ratio
 0
 1
-0.5
+0.2
 0.01
 1
 NIL
@@ -545,7 +548,7 @@ mean-cherries
 mean-cherries
 0
 4000
-100.0
+2000.0
 1
 1
 NIL
@@ -560,7 +563,7 @@ sd-cherries
 sd-cherries
 0
 1000
-0.0
+50.0
 1
 1
 NIL
@@ -575,7 +578,7 @@ cherries-growth-start
 cherries-growth-start
 0
 365
-2.0
+105.0
 1
 1
 NIL
@@ -590,7 +593,7 @@ cherries-growth-period
 cherries-growth-period
 0
 180
-2.0
+45.0
 1
 1
 NIL
@@ -677,7 +680,7 @@ release-day
 release-day
 1
 365
-58.0
+50.0
 1
 1
 NIL
@@ -692,7 +695,7 @@ release-amount
 release-amount
 0
 10000
-1000.0
+500.0
 10
 1
 NIL
@@ -715,7 +718,7 @@ INPUTBOX
 1002
 204
 max-years
-1.0
+3.0
 1
 0
 Number
@@ -803,7 +806,7 @@ CHOOSER
 gd-gender
 gd-gender
 "female" "mixed" "male"
-2
+0
 
 SLIDER
 1292
@@ -814,7 +817,7 @@ resistance-rate
 resistance-rate
 0
 1
-0.5
+0.2
 0.01
 1
 NIL
@@ -844,7 +847,7 @@ fitness-RR
 fitness-RR
 0
 1
-0.8
+0.2
 0.01
 1
 NIL
@@ -859,7 +862,7 @@ fitness-MM
 fitness-MM
 0
 1
-0.8
+0.2
 0.01
 1
 NIL
