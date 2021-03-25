@@ -25,26 +25,26 @@ globals [
 
   ; eggs (duration values in days)
   eggs-per-cycle
-  egg-development-duration
+  egg-dev-duration
 
-  ; mode-durations of flies (values in days)
-  egg-duration
-  larva-duration
-  pupa-duration
-  immature-adult-duration
+  ; mode durations depending on avg. temperature (values in days)
+  mode-duration-temperatures
+  female-dev-durations
+  female-adult-longevities
+  male-dev-durations
+  male-adult-longevities
 
-  ; life expectancy of flies (fly dies if age reaches this number of ticks)
-  life-expectancy
+  current-female-dev-duration
+  current-female-adult-longevity
+  current-male-dev-duration
+  current-male-adult-longevity
 
   ; mortality rates (arrays for every mode depending on avg. temperature)
   ; mortality-temperatures => array of temperatures (10-days avg. temp) in steps of 1°C (min and max serve as reference values for temperatures below and above the range)
   ; egg-mortality-rates-temp => array of mortality-rate per day (affects the flies at the beginning of the day)
   mortality-temperatures
-  egg-mortality-rates-temp
-  larva-mortality-rates-temp
-  pupa-mortality-rates-temp
-  immature-adult-mortality-rates-temp
-  mature-adult-mortality-rates-temp
+  dev-mortality-rates-temp
+  adult-mortality-rates-temp
 
   ; interval for mortality rates in days
   mortality-interval
@@ -71,6 +71,14 @@ globals [
 
   ; resistance rate
   resistance-rate
+
+  ; fitness
+  fitness-PP
+  fitness-PR
+  fitness-RR
+  fitness-MM
+  fitness-MR
+  fitness-MP
 
   ; weather (precipitation, temperature)
   precipitation-list
@@ -109,30 +117,30 @@ to setup
   set yummy-plant-width 1
   set yummy-plant-margin 5
 
-  set yummy-fruits-per-plant 150
+  set yummy-fruits-per-plant 2
 
   set visibility 15
 
   set eggs-per-cycle 10
-  set egg-development-duration 5
-
-  set egg-duration 2
-  set larva-duration 3
-  set pupa-duration 4
-  set immature-adult-duration 5
-
-  set life-expectancy 80 * ticks-per-day
+  set egg-dev-duration 5
 
   ; mortality interval: 6 weeks
   set mortality-interval 6 * 7
 
-  set mortality-off-season 0.9
+  set mortality-off-season 0.8
   set season-start-temp 10
   set season-end-temp 9
   set season FALSE
   set season-number 0
 
   set resistance-rate 0.2
+
+  set fitness-PP 1
+  set fitness-PR 1
+  set fitness-RR 1
+  set fitness-MM 0.6
+  set fitness-MR 0.8
+  set fitness-MP 0.8
 
   set total-cherries 0
 
@@ -157,7 +165,10 @@ to setup
   set-mortality-rates
 
   ; set eggs-per-day rates
-  eggs-per-day-rates
+  set-eggs-per-day-rates
+
+  ; set mode durations
+  set-mode-durations
 
   ask patches [
     set pcolor [0 41 0]
@@ -175,20 +186,26 @@ to go
   get-current-weather
   calculate-mean-temperatures
 
-  if season = FALSE and mean-10d-temp >= season-start-temp [
+  if season = FALSE and round ( mean-10d-temp ) >= season-start-temp [
     ; start season
     ifelse season-number = 0 [
       fly-init-pop
     ] [
       kill-flies-off-season
       ; reset the age of the starting population otherwise they get killed immediately due to reached life expectancy
-      ask flies [ set total-age 0 ]
+      ask flies [
+        set total-age 0
+        set mode "adult"
+        set mode-duration 0
+        set partner-search TRUE
+        set color red
+      ]
     ]
     set season TRUE
     set season-number ( season-number + 1 )
   ]
 
-  if season = TRUE and mean-10d-temp <= season-end-temp [
+  if season = TRUE and round ( mean-10d-temp ) <= season-end-temp [
     ; end season
     set season FALSE
   ]
@@ -207,7 +224,10 @@ to go
   if season [
 
     ; kill flies at beginning of the day ( mortality rate per tick is unefficient )
-    if ticks mod ticks-per-day = 0 [ kill-flies ]
+    if ticks mod ticks-per-day = 0 [
+      get-current-mode-durations
+      kill-flies
+    ]
 
     calculate-current-eggs-per-tick-rate
     fly-activities
@@ -280,8 +300,8 @@ GRAPHICS-WINDOW
 79
 0
 57
-0
-0
+1
+1
 1
 ticks
 30.0
@@ -312,7 +332,7 @@ init-pop
 init-pop
 0
 1000
-508.0
+200.0
 1
 1
 NIL
@@ -367,7 +387,7 @@ MONITOR
 1134
 67
 wild flies
-count flies with [genotype = \"wild\" ]
+count flies with [\n  genotype = \"++\" or\n  genotype = \"R+\" or\n  genotype = \"+R\"\n]
 17
 1
 11
@@ -378,7 +398,7 @@ MONITOR
 1230
 67
 resistant flies
-count flies with [ genotype = \"resistant\" ]
+count flies with [ \n  genotype = \"RR\" \n]
 17
 1
 11
@@ -389,7 +409,7 @@ MONITOR
 1325
 67
 modified flies
-count flies with [ genotype = \"modified\" ]
+count flies with [ member? \"M\" genotype ]
 17
 1
 11
@@ -479,7 +499,7 @@ mean-cherries
 mean-cherries
 0
 4000
-1008.0
+1099.0
 1
 1
 NIL
@@ -494,7 +514,7 @@ sd-cherries
 sd-cherries
 0
 1000
-99.0
+178.0
 1
 1
 NIL
@@ -508,8 +528,8 @@ SLIDER
 cherries-growth-start
 cherries-growth-start
 0
-5475
-1316.0
+365
+101.0
 1
 1
 NIL
@@ -523,8 +543,8 @@ SLIDER
 cherries-growth-period
 cherries-growth-period
 0
-1000
-603.0
+180
+45.0
 1
 1
 NIL
@@ -546,11 +566,8 @@ true
 true
 "" ""
 PENS
-"eggs" 1.0 0 -1184463 true "" "plot count flies with [mode = \"egg\"]"
-"larvs" 1.0 0 -955883 true "" "plot count flies with [mode = \"larva\"]"
-"pupas" 1.0 0 -2064490 true "" "plot count flies with [mode = \"pupa\"]"
-"imm.-ad." 1.0 0 -5825686 true "" "plot count flies with [mode = \"immature-adult\"]"
-"adult" 1.0 0 -2674135 true "" "plot count flies with [mode = \"mature-adult\"]"
+"dev" 1.0 0 -1184463 true "" "plot count flies with [mode = \"dev\"]"
+"adult" 1.0 0 -2674135 true "" "plot count flies with [mode = \"adult\"]"
 
 PLOT
 918
@@ -614,7 +631,7 @@ release-day
 release-day
 1
 365
-32.0
+58.0
 1
 1
 NIL
@@ -629,7 +646,7 @@ release-amount
 release-amount
 0
 10000
-1000.0
+100.0
 10
 1
 NIL

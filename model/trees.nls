@@ -29,7 +29,7 @@ to plant-trees
       
       if ( tree-width > 1 ) [ set x-coordinate ( x-coordinate + ceiling ( tree-width / 2 ) ) ]
       if ( tree-width > 1 ) [ set y-coordinate ( y-coordinate + ceiling ( tree-width / 2 ) ) ]
-
+      
       create-trees 1 [
         set shape "circle"
         set color green
@@ -55,9 +55,22 @@ end
 
 to grow-cherries
   
-  if ( ticks >= cherries-growth-start ) and ( ticks <= cherries-growth-start + cherries-growth-period ) [
+  let day 1
+  if ( ticks > 0 ) [
+    set day ( ceiling ( ticks / ticks-per-day ) mod 365 )
+  ]
+  
+  if day = 1 [
+    ask trees [
+      set grown-cherries 0
+      set occupied-cherries 0
+      update-tree-label
+    ]
+  ]
+  
+  if ( day >= cherries-growth-start ) and ( day <= cherries-growth-start + cherries-growth-period ) [
     
-    ifelse ( ticks = cherries-growth-start + cherries-growth-period ) [
+    ifelse ( day = cherries-growth-start + cherries-growth-period ) [
       ask trees [
         if ( max-cherries - occupied-cherries ) > grown-cherries [
           set grown-cherries ( max-cherries - occupied-cherries ) 
@@ -65,8 +78,14 @@ to grow-cherries
       ]
     ] [
       ask trees [
-        let new-cherries round ( max-cherries / cherries-growth-period )
-        set grown-cherries ( grown-cherries + new-cherries ) 
+        let new-cherries ceiling ( max-cherries / ( cherries-growth-period * ticks-per-day ) )
+        ifelse ( grown-cherries + new-cherries ) < ( max-cherries - occupied-cherries ) [
+          set grown-cherries ( grown-cherries + new-cherries ) 
+        ] [
+          if ( max-cherries - occupied-cherries ) > grown-cherries [
+            set grown-cherries ( max-cherries - occupied-cherries ) 
+          ]
+        ]  
       ]
     ]  
     
