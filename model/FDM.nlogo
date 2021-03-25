@@ -44,7 +44,10 @@ globals [
   larva-mortality-rates-temp
   pupa-mortality-rates-temp
   immature-adult-mortality-rates-temp
-  adult-mortality-rates-temp
+  mature-adult-mortality-rates-temp
+
+  ; interval for mortality rates in days
+  mortality-interval
 
   ; mortality rate between two seasons
   mortality-off-season
@@ -64,6 +67,7 @@ globals [
   ; eggs-per-day => array of eggs-per-day rate at given avg. temperature
   eggs-per-day-temperatures
   eggs-per-day
+  current-eggs-per-tick
 
   ; resistance rate
   resistance-rate
@@ -109,7 +113,7 @@ to setup
 
   set visibility 15
 
-  set eggs-per-cycle 30
+  set eggs-per-cycle 10
   set egg-development-duration 5
 
   set egg-duration 2
@@ -119,9 +123,12 @@ to setup
 
   set life-expectancy 80 * ticks-per-day
 
+  ; mortality interval: 6 weeks
+  set mortality-interval 6 * 7
+
   set mortality-off-season 0.9
-  set season-start-temp 11
-  set season-end-temp 10
+  set season-start-temp 10
+  set season-end-temp 9
   set season FALSE
   set season-number 0
 
@@ -174,6 +181,8 @@ to go
       fly-init-pop
     ] [
       kill-flies-off-season
+      ; reset the age of the starting population otherwise they get killed immediately due to reached life expectancy
+      ask flies [ set total-age 0 ]
     ]
     set season TRUE
     set season-number ( season-number + 1 )
@@ -194,10 +203,15 @@ to go
     ]
   ]
 
-  kill-flies
-
   ; if off-season => freeze
-  if season [ fly-activities ]
+  if season [
+
+    ; kill flies at beginning of the day ( mortality rate per tick is unefficient )
+    if ticks mod ticks-per-day = 0 [ kill-flies ]
+
+    calculate-current-eggs-per-tick-rate
+    fly-activities
+  ]
 
   tick
 
@@ -298,7 +312,7 @@ init-pop
 init-pop
 0
 1000
-591.0
+508.0
 1
 1
 NIL
@@ -465,7 +479,7 @@ mean-cherries
 mean-cherries
 0
 4000
-315.0
+1008.0
 1
 1
 NIL
@@ -495,7 +509,7 @@ cherries-growth-start
 cherries-growth-start
 0
 5475
-127.0
+1316.0
 1
 1
 NIL
@@ -510,7 +524,7 @@ cherries-growth-period
 cherries-growth-period
 0
 1000
-278.0
+603.0
 1
 1
 NIL
@@ -644,9 +658,9 @@ max-years
 Number
 
 MONITOR
-1218
+1216
 73
-1298
+1296
 118
 yummy-fruits
 sum [grown-fruits] of yummy-plants
@@ -655,12 +669,33 @@ sum [grown-fruits] of yummy-plants
 11
 
 MONITOR
-1307
-75
-1373
-120
+1303
+73
+1369
+118
 10d temp
 mean-10d-temp
+17
+1
+11
+
+TEXTBOX
+1542
+75
+1709
+95
+NIL
+11
+0.0
+1
+
+MONITOR
+1594
+73
+1644
+118
+season
+season
 17
 1
 11

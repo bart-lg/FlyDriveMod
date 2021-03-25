@@ -51,26 +51,27 @@ to set-mortality-rates
     if item 0 headers = "temperature" and item 1 headers = "mortalityRate" [
     
       ; create arrays
-      set mortality-temperatures array:from-list []
-      set egg-mortality-rates-temp array:from-list []
-      set larva-mortality-rates-temp array:from-list []
-      set pupa-mortality-rates-temp array:from-list []
+      set mortality-temperatures              array:from-list []
+      set egg-mortality-rates-temp            array:from-list []
+      set larva-mortality-rates-temp          array:from-list []
+      set pupa-mortality-rates-temp           array:from-list []
       set immature-adult-mortality-rates-temp array:from-list []
-      set adult-mortality-rates-temp array:from-list []
+      set mature-adult-mortality-rates-temp   array:from-list []
       
       ; read data
-      foreach csv:from-file file-path [
-        row ->
+      while [ not file-at-end? ] [
+        
+        let row csv:from-row file-read-line
         
         ; set temperature steps
         set mortality-temperatures array:from-list lput item 0 row array:to-list mortality-temperatures
         
         ; set mortality-rates depending on temperature
-        set egg-mortality-rates-temp array:from-list lput item 1 row array:to-list egg-mortality-rates-temp
-        set larva-mortality-rates-temp array:from-list lput item 1 row array:to-list larva-mortality-rates-temp
-        set pupa-mortality-rates-temp array:from-list lput item 1 row array:to-list pupa-mortality-rates-temp
+        set egg-mortality-rates-temp            array:from-list lput item 1 row array:to-list egg-mortality-rates-temp
+        set larva-mortality-rates-temp          array:from-list lput item 1 row array:to-list larva-mortality-rates-temp
+        set pupa-mortality-rates-temp           array:from-list lput item 1 row array:to-list pupa-mortality-rates-temp
         set immature-adult-mortality-rates-temp array:from-list lput item 1 row array:to-list immature-adult-mortality-rates-temp
-        set adult-mortality-rates-temp array:from-list lput item 1 row array:to-list adult-mortality-rates-temp
+        set mature-adult-mortality-rates-temp   array:from-list lput item 1 row array:to-list mature-adult-mortality-rates-temp
         
       ]
       
@@ -99,15 +100,15 @@ to eggs-per-day-rates
       set eggs-per-day array:from-list []
       
       ; read data
-      foreach csv:from-file file-path [
-        row ->
+      while [ not file-at-end? ] [
+        
+        let row csv:from-row file-read-line
         
         ; set temperature steps
         set eggs-per-day-temperatures array:from-list lput item 0 row array:to-list eggs-per-day-temperatures
         
         ; set eggs-per-day-rates depending on temperature
         set eggs-per-day array:from-list lput item 1 row array:to-list eggs-per-day
-
         
       ]
       
@@ -116,6 +117,28 @@ to eggs-per-day-rates
     file-close
     
   ]
+  
+end
+
+to calculate-current-eggs-per-tick-rate
+  
+  ; determine index for array
+  let i 0
+  let stop-flag FALSE
+  while [ not stop-flag ] [
+    ifelse ( array:item eggs-per-day-temperatures i ) >= ( round mean-10d-temp ) [ 
+      set stop-flag TRUE
+    ] [
+      ifelse i < ( array:length eggs-per-day-temperatures - 1 ) [
+        set i ( i + 1 ) 
+      ] [
+        set stop-flag TRUE 
+      ]
+    ]
+  ]  
+  
+  ; calculate current eggs-per-tick-rate
+  set current-eggs-per-tick ( array:item eggs-per-day i ) / ticks-per-day
   
 end
 
@@ -151,45 +174,66 @@ end
 
 to kill-flies
   
+  ; ### death due to life-expectancy ###
+  
   ask flies [
     if total-age > life-expectancy [ die ]
   ]
   
-;  ; ##TODO## unclear if this is working properly
-;  if (ticks mod ticks-per-day) mod 2 = 0 [
-;    let i ( array:length mortality-temperatures - 1 )
-;    while [ i >= 0 ] [
-;      
-;      ifelse current-temp >= array:item mortality-temperatures i or i = 0 [
-;        
-;        ask n-of ( ceiling ( count flies with [mode = "egg"] * array:item egg-mortality-rates-temp i ) ) flies with [mode = "egg"] [
-;          die 
-;        ]
-;        
-;        ask n-of ( ceiling ( count flies with [mode = "larva"] * array:item larva-mortality-rates-temp i ) ) flies with [mode = "larva"] [
-;          die 
-;        ]
-;        
-;        ask n-of ( ceiling ( count flies with [mode = "pupa"] * array:item pupa-mortality-rates-temp i ) ) flies with [mode = "pupa"] [
-;          die 
-;        ]
-;        
-;        ask n-of ( ceiling ( count flies with [mode = "immature-adult"] * array:item immature-adult-mortality-rates-temp i ) ) flies with [mode = "immature-adult"] [
-;          die 
-;        ]
-;        
-;        ask n-of ( ceiling ( count flies with [mode = "mature-adult"] * array:item adult-mortality-rates-temp i ) ) flies with [mode = "mature-adult"] [
-;          die 
-;        ]
-;        
-;        set i -1
-;        
-;      ] [
-;        set i ( i - 1 ) 
-;      ]
-;      
-;    ]
-;  ]
+  ; ### death due to mortality rate ###
+  
+  ; determine index for arrays
+  let i 0
+  let stop-flag FALSE
+  while [ not stop-flag ] [
+    ifelse ( array:item mortality-temperatures i ) >= ( round mean-10d-temp ) [ 
+      set stop-flag TRUE
+    ] [
+      ifelse i < ( array:length mortality-temperatures - 1 ) [
+        set i ( i + 1 ) 
+      ] [
+        set stop-flag TRUE 
+      ]
+    ]
+  ]
+  
+  ; calculate mortality rates for current day
+  ; endpop = startpop * exp^(k * t)
+  ; t => 1 (one day)
+  ; k = ln(1 - mortality-rate) / interval
+  
+  ; we need to "let" a variable outside of if statement...
+  let egg-mortality-rate 1
+  if array:item egg-mortality-rates-temp i            < 1 [
+    set egg-mortality-rate            1 - ( e ^ ( ln ( 1 - array:item egg-mortality-rates-temp i )            / mortality-interval ) )
+  ]
+  
+  let larva-mortality-rate 1
+  if array:item larva-mortality-rates-temp i          < 1 [
+    set larva-mortality-rate          1 - ( e ^ ( ln ( 1 - array:item larva-mortality-rates-temp i )          / mortality-interval ) )
+  ]
+  
+  let pupa-mortality-rate 1
+  if array:item pupa-mortality-rates-temp i           < 1 [
+    set pupa-mortality-rate           1 - ( e ^ ( ln ( 1 - array:item pupa-mortality-rates-temp i )           / mortality-interval ) )
+  ]
+  
+  let immature-adult-mortality-rate 1
+  if array:item immature-adult-mortality-rates-temp i < 1 [
+    set immature-adult-mortality-rate 1 - ( e ^ ( ln ( 1 - array:item immature-adult-mortality-rates-temp i ) / mortality-interval ) )
+  ]
+  
+  let mature-adult-mortality-rate 1
+  if array:item mature-adult-mortality-rates-temp i   < 1 [
+    set mature-adult-mortality-rate   1 - ( e ^ ( ln ( 1 - array:item mature-adult-mortality-rates-temp i )   / mortality-interval ) )
+  ]
+  
+  ; kill flies due to mortality rate
+  ask n-of ( ceiling ( count flies with [mode = "egg"]            * egg-mortality-rate ) )            flies with [mode = "egg"]            [ die ]
+  ask n-of ( ceiling ( count flies with [mode = "larva"]          * larva-mortality-rate ) )          flies with [mode = "larva"]          [ die ]
+  ask n-of ( ceiling ( count flies with [mode = "pupa"]           * pupa-mortality-rate ) )           flies with [mode = "pupa"]           [ die ]
+  ask n-of ( ceiling ( count flies with [mode = "immature-adult"] * immature-adult-mortality-rate ) ) flies with [mode = "immature-adult"] [ die ]
+  ask n-of ( ceiling ( count flies with [mode = "mature-adult"]   * mature-adult-mortality-rate ) )   flies with [mode = "mature-adult"]   [ die ]
   
 end
 
@@ -209,85 +253,86 @@ to fly-activities
     ]
     
     ; lay egg
-    ; ##TODO## => maybe more than one egg per tick??
     if sex = "f" and eggs > 0 and ticks-since-fertilization > egg-development-duration [ 
-      ; OLD IF-CLAUSE
-;      ( count (trees-on patches in-radius floor ( tree-width / 2 )) with [grown-cherries > 0] > 0 
-;      or 
-;      count (yummy-plants-on patch-here with [grown-fruits > 0] ) [
-        
+
       let cherries-here ( trees-on patches in-radius floor ( tree-width / 2 ) ) with [grown-cherries > 0]
       let fruits-here ( yummy-plants-on patch-here ) with [grown-fruits > 0]
       
       if any? cherries-here or any? fruits-here [
         
-        ; save generation number in separate variable to make it accessible in sprout statement
-        let generation-temp generation
+        ; check duration to last egg...
+        if ( ticks - last-egg-tick ) >= round ( 1 / current-eggs-per-tick ) [
         
-        let genotype-temp new-genotype genotype genotype-of-partner
-        
-        ; FEMALE: M+ or MR => ++ or R+ DIE
-        ; FEMALE: M+ or MR => RR DIE with certain prob. due to resistance
-        let lay-egg TRUE
-        if member? "M" genotype [
-          if genotype-temp = "++" or genotype-temp = "R+" or genotype-temp = "+R" [ set lay-egg FALSE ]
-          if genotype-temp = "RR" [
-            if random-float 1 > resistance-rate [
-              set lay-egg FALSE
-            ]
-          ] 
-        ]
-        
-        if lay-egg [
+          ; save generation number in separate variable to make it accessible in sprout statement
+          let generation-temp generation
           
-          ask patch-here [
-            sprout-flies 1 [
-              set color yellow
-              set mode "egg"
-              set mode-duration 0
-              set generation generation-temp + 1
-              ifelse ( random 2 ) = 1 [ set sex "f" ][ set sex "m" ]
-              set partner-search FALSE
-              set eggs 0
-              set genotype genotype-temp
-              set total-age 0
-              ; ##TODO## get appropriate life-expectancy depending on month
-              set life-expectancy ( random 20 ) + ( 70 * ticks-per-day )
-              set ticks-since-fertilization 0
-            ]
+          let genotype-temp new-genotype genotype genotype-of-partner
+          
+          ; FEMALE: M+ or MR => ++ or R+ DIE
+          ; FEMALE: M+ or MR => RR DIE with certain prob. due to resistance
+          let lay-egg TRUE
+          if member? "M" genotype [
+            if genotype-temp = "++" or genotype-temp = "R+" or genotype-temp = "+R" [ set lay-egg FALSE ]
+            if genotype-temp = "RR" [
+              if random-float 1 > resistance-rate [
+                set lay-egg FALSE
+              ]
+            ] 
           ]
           
-          ifelse any? cherries-here [
+          if lay-egg [
             
-            ask one-of cherries-here [
-              set grown-cherries ( grown-cherries - 1 )
-              set occupied-cherries ( occupied-cherries + 1 )
-              update-tree-label
+            ask patch-here [
+              sprout-flies 1 [
+                set color yellow
+                set mode "egg"
+                set mode-duration 0
+                set generation generation-temp + 1
+                ifelse ( random 2 ) = 1 [ set sex "f" ][ set sex "m" ]
+                set partner-search FALSE
+                set eggs 0
+                set genotype genotype-temp
+                set total-age 0
+                ; ##TODO## get appropriate life-expectancy depending on month
+                set life-expectancy ( random 20 ) + ( 70 * ticks-per-day )
+                set ticks-since-fertilization 0
+              ]
             ]
             
-          ] [
-           
-            ifelse any? fruits-here [
+            ifelse any? cherries-here [
               
-              ask one-of fruits-here [
-                set grown-fruits ( grown-fruits - 1 ) 
-                set occupied-fruits ( occupied-fruits + 1 )
+              ask one-of cherries-here [
+                set grown-cherries ( grown-cherries - 1 )
+                set occupied-cherries ( occupied-cherries + 1 )
+                update-tree-label
               ]
               
             ] [
-              user-message "Laid egg on patch with no cherries and no fruit (should not happen!)" 
+              
+              ifelse any? fruits-here [
+                
+                ask one-of fruits-here [
+                  set grown-fruits ( grown-fruits - 1 ) 
+                  set occupied-fruits ( occupied-fruits + 1 )
+                ]
+                
+              ] [
+                user-message "Laid egg on patch with no cherries and no fruit (should not happen!)" 
+              ]
+              
             ]
             
           ]
           
+          set eggs ( eggs - 1 )
+          set last-egg-tick ticks
+          
+          if eggs = 0 [
+            set partner-search TRUE
+            set color red
+          ] 
+          
         ]
-        
-        set eggs ( eggs - 1 )
-        
-        if eggs = 0 [
-          set partner-search TRUE
-          set color red
-        ] 
         
       ]
       
