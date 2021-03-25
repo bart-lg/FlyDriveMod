@@ -530,9 +530,9 @@ to update-egg-laying-mode
     set inverse-current-eggs-per-tick round ( 1 / current-eggs-per-tick )
   ]
  
-  ask flies [
+  ask flies with [ sex = "f" and eggs > 0 ] [
     
-    ifelse current-eggs-per-tick > 0 and sex = "f" and eggs > 0 and ticks-since-fertilization > egg-dev-duration and ( ticks - last-egg-tick ) >= inverse-current-eggs-per-tick [
+    ifelse current-eggs-per-tick > 0 and ticks-since-fertilization > egg-dev-duration and ( ticks - last-egg-tick ) >= inverse-current-eggs-per-tick [
       set ready-to-lay-egg TRUE
     ] [
       set ready-to-lay-egg FALSE
@@ -560,6 +560,7 @@ to fly-activities
       set fertilization-tick ticks
       set eggs eggs-per-cycle
       let partner n-of 1 flies-here with [ sex = "m" ]
+      ; "[genotype] of partner" and "[fitness] of partner" return lists
       set genotype-of-partner first [genotype] of partner
       set fitness-of-partner first [fitness] of partner
       set combined-fitness ( fitness * fitness-of-partner )
@@ -753,6 +754,7 @@ to release-gene-drive
       if gd-gender = "male" [
         set sex "m"
       ]
+      set ready-to-lay-egg FALSE
       ; set partner-search TRUE => controlled by start-immature-state and end-immature-state
       set eggs 0
       set genotype "MM"
@@ -781,17 +783,19 @@ end
 
 to female-attract-male-flies
   
-  ask flies with [ mode = "adult" and sex = "m" and partner-search = TRUE ] [
-   
-    let target-fly min-one-of flies with [ mode = "adult" and sex = "f" and partner-search = TRUE ] in-radius visibility [ distance myself ]
+  ask flies with [ mode = "adult" and sex = "f" and partner-search = TRUE ] [
+    
+    let target-fly min-one-of flies with [ mode = "adult" and sex = "m" and partner-search = TRUE and ( target-tick < ticks or distance myself < target-distance ) ] in-radius visibility [ distance myself ]
 
     if is-turtle? target-fly [
-      let destination-x ( [xcor] of target-fly )
-      let destination-y ( [ycor] of target-fly )
+      let destination-x xcor
+      let destination-y ycor
       
-      facexy destination-x destination-y
-      set target-tick ticks
-      set target-distance distance patch destination-x destination-y
+      ask target-fly [
+        facexy destination-x destination-y
+        set target-tick ticks
+        set target-distance distance patch destination-x destination-y
+      ]
     ]    
   ]
   

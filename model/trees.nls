@@ -60,6 +60,7 @@ to grow-cherries
     set day ( ceiling ( ticks / ticks-per-day ) mod 365 )
   ]
   
+  ; remove cherries on 1st jan of every year
   if day = 1 [
     ask trees [
       set grown-cherries 0
@@ -109,14 +110,18 @@ to cherries-attract-closest-flies
         set flies-in-radius min-n-of grown-cherries flies-in-radius [ distance myself ]
       ]
       
-      let target-x xcor
-      let target-y ycor
+      if any? flies-in-radius [
       
-      ask flies-in-radius [
-       
-        facexy target-x target-y
-        set target-tick ticks
-        set target-distance distance patch target-x target-y
+        let target-x xcor
+        let target-y ycor
+        
+        ask flies-in-radius [
+          
+          facexy target-x target-y
+          set target-tick ticks
+          set target-distance distance patch target-x target-y
+          
+        ]
         
       ]
       

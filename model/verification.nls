@@ -2088,11 +2088,13 @@ to-report test-female-attract-male-flies [ verification-file ]
     ask one-of [ flies-here ] of patch 0 0 [
       set sex "m"
       setxy 10 10
-    ]    
-    
+    ]   
+   
+    ; ticks > 0 is needed for if statement in female-attract-male-flies
+    tick
     female-attract-male-flies
     fly-activities
-    
+
     if not any? ( [ flies-here ] of patch x y ) with [ sex = "m" ] [
       set wrong-direction TRUE 
     ]
