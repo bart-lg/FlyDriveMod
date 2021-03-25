@@ -6,6 +6,7 @@ trees-own [
   max-cherries
   grown-cherries
   occupied-cherries
+  targeted-from
   
 ]
 
@@ -93,5 +94,7 @@ to grow-cherries
     set total-cherries sum [grown-cherries] of trees
     
   ]
+  
+  set total-grown-cherries sum [ grown-cherries ] of trees
     
 end

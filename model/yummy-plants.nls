@@ -5,6 +5,7 @@ yummy-plants-own [
   
   grown-fruits
   occupied-fruits
+  targeted-from
   
 ]
 
@@ -83,5 +84,7 @@ to grow-yummy-fruits
   ask yummy-plants with [ ( grown-fruits + count flies-here with [ mode = "dev" ] ) < yummy-fruits-per-plant ] [
     set grown-fruits ( grown-fruits + 1 ) 
   ]
+  
+  set total-grown-fruits sum [ grown-fruits ] of yummy-plants
   
 end

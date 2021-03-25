@@ -20,6 +20,9 @@ flies-own [
   ; number of eggs in body
   eggs
   
+  ; temporary variable for fly activities
+  ready-to-lay-egg
+  
   ; tick of last egg laying
   last-egg-tick
   
@@ -302,6 +305,7 @@ to fly-init-pop
       ifelse ( random 2 ) = 1 [ set sex "f" ][ set sex "m" ]
       set partner-search TRUE
       set eggs 0
+      set ready-to-lay-egg FALSE
       set genotype "++"
       set total-age 0
       set ticks-since-fertilization 0
@@ -462,34 +466,37 @@ end
 to fly-activities
   
   let inverse-current-eggs-per-tick round ( 1 / current-eggs-per-tick )
+  let cherries-available FALSE
+  let fruits-available FALSE
+  
+  if total-grown-cherries > 0 [ set cherries-available TRUE ]
+  if total-grown-fruits > 0   [ set fruits-available TRUE ]
+  
+  ; reset number of targeting flies
+  ask trees        [ set targeted-from 0 ]
+  ask yummy-plants [ set targeted-from 0 ]
   
   ask flies [
 
     ; upgrade mode of fly
     upgrade-fly
     
-    let ready-to-lay-egg FALSE
-    if current-eggs-per-tick > 0 and sex = "f" and eggs > 0 and ticks-since-fertilization > egg-dev-duration and ( ticks - last-egg-tick ) >= inverse-current-eggs-per-tick [
+    ifelse current-eggs-per-tick > 0 and sex = "f" and eggs > 0 and ticks-since-fertilization > egg-dev-duration and ( ticks - last-egg-tick ) >= inverse-current-eggs-per-tick [
       set ready-to-lay-egg TRUE
+    ] [
+      set ready-to-lay-egg FALSE
     ]
     
-    ; if female fly detects male fly on same patch => start fertilization
-    if sex = "f" and mode = "adult" and partner-search = TRUE and any? flies-here with [sex = "m"] [
-      set partner-search FALSE
-      set ticks-since-fertilization 0
-      set eggs eggs-per-cycle
-      set genotype-of-partner first [genotype] of n-of 1 flies-here with [sex = "m"] 
-      set color blue
-    ]
-    
-    ; lay egg
-    if ready-to-lay-egg [ 
+    if ( cherries-available or fruits-available ) and ready-to-lay-egg [
 
-      let cherries-here ( trees-on patches in-radius tree-radius ) with [grown-cherries > 0]
-      let fruits-here ( yummy-plants-on patch-here ) with [grown-fruits > 0]
+      let cherries-here no-turtles
+      if cherries-available [ set cherries-here ( trees-on patches in-radius tree-radius ) with [grown-cherries > 0] ]
+      
+      let fruits-here no-turtles
+      if fruits-available [ set fruits-here ( yummy-plants-on patch-here ) with [grown-fruits > 0] ]
       
       if any? cherries-here or any? fruits-here [
-      
+        
         ; save generation number in separate variable to make it accessible in sprout statement
         let generation-temp generation
         
@@ -518,6 +525,7 @@ to fly-activities
               ifelse ( random 2 ) = 1 [ set sex "f" ][ set sex "m" ]
               set partner-search FALSE
               set eggs 0
+              set ready-to-lay-egg FALSE
               set genotype genotype-temp
               set total-age 0
               set ticks-since-fertilization 0
@@ -564,8 +572,17 @@ to fly-activities
         ] 
         
       ]
-      
+        
     ]
+    
+    ; if female fly detects male fly on same patch => start fertilization
+    if sex = "f" and mode = "adult" and partner-search = TRUE and any? flies-here with [sex = "m"] [
+      set partner-search FALSE
+      set ticks-since-fertilization 0
+      set eggs eggs-per-cycle
+      set genotype-of-partner first [genotype] of n-of 1 flies-here with [sex = "m"] 
+      set color blue
+    ]    
     
     ; in case of fertilization => increase ticks since fertilization
     if partner-search = FALSE and sex = "f" [ set ticks-since-fertilization ( ticks-since-fertilization + 1 ) ]
@@ -574,17 +591,32 @@ to fly-activities
     set mode-duration ( mode-duration + 1 )
     set total-age ( total-age + 1 )
     
+  ]
+  
+  ; moving section
+  ask flies [
+    
     ; female flies with eggs can sens cherries and fruits in a distance of 15m
     ifelse ready-to-lay-egg [
       
-      let visible-cherries trees with [grown-cherries > 0] in-radius visibility
-      let visible-fruits yummy-plants with [grown-fruits > 0] in-radius visibility
+      ; only scan world for cherries/fruits if enough left
+      ; only 2x number of cherries/fruits of targeting flies are allowed per plant to optimize the simulation speed
+      if not any? trees        with [ ( 2 * grown-cherries ) > targeted-from ] [ set cherries-available FALSE ] 
+      if not any? yummy-plants with [ ( 2 * grown-fruits   ) > targeted-from ] [ set fruits-available   FALSE ]
+      
+      let visible-cherries no-turtles
+      if cherries-available [ set visible-cherries trees with [grown-cherries > 0] in-radius visibility ]
+      
+      let visible-fruits no-turtles
+      if fruits-available [ set visible-fruits yummy-plants with [grown-fruits > 0] in-radius visibility ]
       
       ifelse any? visible-cherries [
         
         ; do not move if cherries an same patch
         if not any? trees-here with [grown-cherries > 0] [
-          face min-one-of visible-cherries [ distance myself ]
+          let nearest-cherry-tree min-one-of visible-cherries [ distance myself ]
+          face nearest-cherry-tree
+          ask nearest-cherry-tree [ set targeted-from ( targeted-from + 1 ) ]
           fd 1
         ]
         
@@ -594,7 +626,9 @@ to fly-activities
           
           ; do not move if fruits on same patch
           if not any? yummy-plants-here with [grown-fruits > 0] [
-            face min-one-of visible-fruits [ distance myself ]
+            let nearest-yummy-plant min-one-of visible-fruits [ distance myself ]
+            face nearest-yummy-plant
+            ask nearest-yummy-plant [ set targeted-from ( targeted-from + 1 ) ]
             fd 1
           ]
           

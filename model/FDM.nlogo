@@ -95,6 +95,9 @@ globals [
   mean-10d-temp
   rounded-mean-10d-temp
 
+  total-grown-cherries
+  total-grown-fruits
+
   total-cherries ; TODO: guess we dont need this
 
   pesticide-concentration ; TODO: we dont need this for now
