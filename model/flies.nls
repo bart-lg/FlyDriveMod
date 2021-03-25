@@ -370,7 +370,7 @@ to fly-init-pop
     ]
   ]
 
-  ask n-of ( init-pop * ( resistant-ratio / 100 ) ) flies [
+  ask n-of ( init-pop * resistant-ratio ) flies [
     set genotype "RR"
     set fitness fitness-RR
   ]

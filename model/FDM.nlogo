@@ -82,9 +82,6 @@ globals [
   eggs-per-day
   current-eggs-per-tick
 
-  ; resistance rate
-  resistance-rate
-
   ; fitness
   fitness-PP
   fitness-PR
@@ -159,8 +156,6 @@ to setup
   set season-end-temp 10
   set season FALSE
   set season-number 0
-
-  set resistance-rate 0.2
 
   set fitness-PP 1
   set fitness-PR 1
@@ -393,18 +388,18 @@ SLIDER
 init-pop
 init-pop
 0
-1000
-2.0
+10000
+3000.0
 1
 1
 NIL
 HORIZONTAL
 
 MONITOR
-1006
-22
-1064
-67
+999
+21
+1057
+66
 flies
 count(flies)
 17
@@ -429,24 +424,24 @@ NIL
 1
 
 SLIDER
-1008
-119
-1181
-152
+1471
+77
+1644
+110
 resistant-ratio
 resistant-ratio
 0
-100
-50.0
 1
+0.5
+0.01
 1
 NIL
 HORIZONTAL
 
 MONITOR
-1074
+1059
 22
-1134
+1119
 67
 wild flies
 count flies with [\n  genotype = \"++\" or\n  genotype = \"R+\" or\n  genotype = \"+R\"\n]
@@ -455,9 +450,9 @@ count flies with [\n  genotype = \"++\" or\n  genotype = \"R+\" or\n  genotype =
 11
 
 MONITOR
-1142
+1122
 22
-1230
+1210
 67
 resistant flies
 count flies with [ \n  genotype = \"RR\" \n]
@@ -466,9 +461,9 @@ count flies with [ \n  genotype = \"RR\" \n]
 11
 
 MONITOR
-1239
+1213
 22
-1325
+1299
 67
 modified flies
 count flies with [ member? \"M\" genotype ]
@@ -477,10 +472,10 @@ count flies with [ member? \"M\" genotype ]
 11
 
 MONITOR
-1558
-24
-1642
-69
+1517
+22
+1601
+67
 NIL
 current-date
 17
@@ -488,10 +483,10 @@ current-date
 11
 
 MONITOR
-1336
-22
-1432
-67
+1303
+23
+1399
+68
 grown-cherries
 total-grown-cherries
 17
@@ -499,9 +494,9 @@ total-grown-cherries
 11
 
 MONITOR
-1440
+1402
 23
-1550
+1512
 68
 occupied-cherries
 sum [occupied-cherries] of trees
@@ -704,10 +699,10 @@ NIL
 HORIZONTAL
 
 MONITOR
-1145
-72
-1208
-117
+1140
+71
+1203
+116
 max-gen
 max [ generation ] of flies
 17
@@ -726,10 +721,10 @@ max-years
 Number
 
 MONITOR
-1216
-73
-1296
-118
+1208
+71
+1288
+116
 wildberries
 sum [grown-wildberries] of wildberry-plants
 17
@@ -737,10 +732,10 @@ sum [grown-wildberries] of wildberry-plants
 11
 
 MONITOR
-1303
-73
-1369
-118
+1068
+69
+1134
+114
 10d temp
 mean-10d-temp
 17
@@ -748,20 +743,20 @@ mean-10d-temp
 11
 
 TEXTBOX
-1542
-75
-1709
-95
+1408
+78
+1575
+98
 NIL
 11
 0.0
 1
 
 MONITOR
-1594
-73
-1644
-118
+1605
+22
+1655
+67
 season
 season
 17
@@ -769,14 +764,14 @@ season
 11
 
 SLIDER
-1377
-73
-1556
-106
+1008
+121
+1187
+154
 wildberries-per-plant
 wildberries-per-plant
 0
-15
+100
 50.0
 1
 1
@@ -809,6 +804,21 @@ gd-gender
 gd-gender
 "female" "mixed" "male"
 2
+
+SLIDER
+1292
+77
+1464
+110
+resistance-rate
+resistance-rate
+0
+1
+0.2
+0.01
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?

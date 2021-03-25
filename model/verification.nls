@@ -109,7 +109,7 @@ to-report test-start-season [ verification-file ]
   refresh-world
   
   set init-pop 3000
-  set resistant-ratio 50
+  set resistant-ratio 0.50
   
   let log-header "test-start-season: "
   let log-content ""
