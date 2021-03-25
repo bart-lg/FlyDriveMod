@@ -20,7 +20,10 @@ flies-own [
   ; number of eggs in body
   eggs
   
-  ; own genotype: modified, wild, resistant
+  ; own genotype: ++ | M+ | MM | R+ | RM | RR
+  ; + => wild type
+  ; M => modified type
+  ; R => resistant type
   genotype
   
   ; genotype of partner (important for determining genotype of next generation)
@@ -80,7 +83,7 @@ to fly-init-pop
       ifelse ( random 2 ) = 1 [ set sex "f" ][ set sex "m" ]
       set partner-search TRUE
       set eggs 0
-      set genotype "wild"
+      set genotype "++"
       set total-age 0
       set life-expectancy ( random 20 ) + ( 70 * ticks-per-day )
       set ticks-since-fertilization 0
@@ -88,7 +91,7 @@ to fly-init-pop
   ]
 
   ask n-of ( init-pop * ( resistant-ratio / 100 ) ) flies [
-    set genotype "resistant"
+    set genotype "RR"
   ]
   
 end
@@ -148,7 +151,7 @@ to fly-activities
       set partner-search FALSE
       set ticks-since-fertilization 0
       set eggs eggs-per-cycle
-      set genotype-of-partner [genotype] of n-of 1 flies-here with [sex = "m"] 
+      set genotype-of-partner first [genotype] of n-of 1 flies-here with [sex = "m"] 
       set color blue
     ]
     
@@ -160,31 +163,47 @@ to fly-activities
       ; save generation number in separate variable to make it accessible in sprout statement
       let generation-temp generation
       
-      ; ##TODO## determine new genotype
-      let genotype-temp genotype
+      let genotype-temp new-genotype genotype genotype-of-partner
       
-      ask patch-here [
-        sprout-flies 1 [
-          set color yellow
-          set mode "egg"
-          set mode-duration 0
-          set generation generation-temp + 1
-          ifelse ( random 2 ) = 1 [ set sex "f" ][ set sex "m" ]
-          set partner-search FALSE
-          set eggs 0
-          set genotype genotype-temp
-          set total-age 0
-          ; ##TODO## get appropriate life-expectancy depending on month
-          set life-expectancy ( random 20 ) + ( 70 * ticks-per-day )
-          set ticks-since-fertilization 0
+      ; FEMALE: M+ or MR => ++ or R+ DIE
+      ; FEMALE: M+ or MR => RR DIE with certain prob. due to resistance
+      let lay-egg TRUE
+      if member? "M" genotype [
+        if genotype-temp = "++" or genotype-temp = "R+" or genotype-temp = "+R" [ set lay-egg FALSE ]
+        if genotype-temp = "RR" [
+          if random-float 1 > resistance-rate [
+            set lay-egg FALSE
+          ]
+        ] 
+      ]
+        
+      if lay-egg [
+        
+        ask patch-here [
+          sprout-flies 1 [
+            set color yellow
+            set mode "egg"
+            set mode-duration 0
+            set generation generation-temp + 1
+            ifelse ( random 2 ) = 1 [ set sex "f" ][ set sex "m" ]
+            set partner-search FALSE
+            set eggs 0
+            set genotype genotype-temp
+            set total-age 0
+            ; ##TODO## get appropriate life-expectancy depending on month
+            set life-expectancy ( random 20 ) + ( 70 * ticks-per-day )
+            set ticks-since-fertilization 0
+          ]
         ]
+        
+        ask n-of 1 (trees-on patches in-radius floor ( tree-width / 2 )) with [grown-cherries > 0] [
+          set grown-cherries ( grown-cherries - 1 )
+          set occupied-cherries ( occupied-cherries + 1 )
+          update-tree-label
+        ]
+        
       ]
       
-      ask n-of 1 (trees-on patches in-radius floor ( tree-width / 2 )) with [grown-cherries > 0] [
-        set grown-cherries ( grown-cherries - 1 )
-        set occupied-cherries ( occupied-cherries + 1 )
-        update-tree-label
-      ]
       set eggs ( eggs - 1 )
      
       if eggs = 0 [
@@ -233,4 +252,52 @@ to upgrade-fly
     set mode-duration 0
     set color orange
   ]   
+end
+
+; calculates new genotype
+; M+ => 50% prob. M; 50% prob. +
+to-report new-genotype [genotype1 genotype2]
+  
+  let temp1 ""
+  let temp2 ""
+  
+  if genotype1 = "++" [ set temp1 "+" ]
+  if genotype1 = "MM" [ set temp1 "M" ]
+  if genotype1 = "RR" [ set temp1 "R" ]
+  
+  if genotype1 = "M+" or genotype1 = "+M" [ ifelse random 2 = 1 [ set temp1 "M" ] [ set temp1 "+" ] ]
+  if genotype1 = "R+" or genotype1 = "+R" [ ifelse random 2 = 1 [ set temp1 "R" ] [ set temp1 "+" ] ]
+  if genotype1 = "MR" or genotype1 = "RM" [ ifelse random 2 = 1 [ set temp1 "M" ] [ set temp1 "R" ] ]
+  
+  if genotype2 = "++" [ set temp2 "+" ]
+  if genotype2 = "MM" [ set temp2 "M" ]
+  if genotype2 = "RR" [ set temp2 "R" ]
+  
+  if genotype2 = "M+" or genotype2 = "+M" [ ifelse random 2 = 1 [ set temp2 "M" ] [ set temp2 "+" ] ]
+  if genotype2 = "R+" or genotype2 = "+R" [ ifelse random 2 = 1 [ set temp2 "R" ] [ set temp2 "+" ] ]
+  if genotype2 = "MR" or genotype2 = "RM" [ ifelse random 2 = 1 [ set temp2 "M" ] [ set temp2 "R" ] ]
+  
+  report (word temp1 temp2)
+  
+end
+
+to release-gene-drive
+  
+  ask patch ( max-pxcor / 2 ) ( max-pycor / 2 ) [
+    sprout-flies release-amount [
+      set color red
+      set mode "mature-adult"
+      set mode-duration 0
+      set generation 1
+      ; ifelse ( random 2 ) = 1 [ set sex "f" ][ set sex "m" ]
+      set sex "f"
+      set partner-search TRUE
+      set eggs 0
+      set genotype "MM"
+      set total-age 0
+      set life-expectancy ( random 20 ) + ( 70 * ticks-per-day )
+      set ticks-since-fertilization 0
+    ] 
+  ]  
+  
 end

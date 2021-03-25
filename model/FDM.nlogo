@@ -48,6 +48,9 @@ globals [
   immature-adult-mortality-rates-temp
   adult-mortality-rates-temp
 
+  ; resistance rate
+  resistance-rate
+
   ; weather (precipitation, temperature)
   precipitation-list
   temperature-list
@@ -83,6 +86,8 @@ to setup
   set larva-duration 3
   set pupa-duration 4
   set immature-adult-duration 5
+
+  set resistance-rate 0.2
 
   set total-cherries 0
 
@@ -120,6 +125,13 @@ to go
   get-current-weather
 
   grow-cherries
+
+  ; gene-drive: on/off switch
+  if gene-drive [
+    if ticks = release-day * ticks-per-day [
+      release-gene-drive
+    ]
+  ]
 
   kill-flies
   fly-activities
@@ -255,7 +267,7 @@ resistant-ratio
 resistant-ratio
 0
 100
-11.0
+50.0
 1
 1
 NIL
@@ -328,10 +340,10 @@ sum [occupied-cherries] of trees
 11
 
 PLOT
-1309
-467
-1656
-636
+1310
+512
+1657
+681
 Weather data
 tick
 NIL
@@ -431,10 +443,10 @@ NIL
 HORIZONTAL
 
 PLOT
-922
-203
-1658
-467
+920
+246
+1308
+510
 flies
 tick
 NIL
@@ -453,10 +465,10 @@ PENS
 "adult" 1.0 0 -2674135 true "" "plot count flies with [mode = \"mature-adult\"]"
 
 PLOT
-922
-468
-1310
-638
+918
+512
+1306
+682
 cherries
 tick
 NIL
@@ -470,6 +482,81 @@ true
 PENS
 "grown" 1.0 0 -2674135 true "" "plot sum [grown-cherries] of trees"
 "occupied" 1.0 0 -13840069 true "" "plot sum [occupied-cherries] of trees"
+
+PLOT
+1308
+247
+1654
+511
+genotypes
+tick
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"M/M" 1.0 0 -5825686 true "" "plot count flies with [ genotype = \"MM\" ]"
+"M/+" 1.0 0 -2064490 true "" "plot count flies with [ genotype = \"M+\" or genotype = \"+M\" ]"
+"M/R" 1.0 0 -8630108 true "" "plot count flies with [ genotype = \"MR\" or genotype = \"RM\" ]"
+"+/+" 1.0 0 -13345367 true "" "plot count flies with [ genotype = \"++\" ]"
+"R/R" 1.0 0 -10899396 true "" "plot count flies with [ genotype = \"RR\" ]"
+"R/+" 1.0 0 -11221820 true "" "plot count flies with [ genotype = \"R+\" or genotype = \"+R\" ]"
+
+SWITCH
+920
+207
+1034
+240
+gene-drive
+gene-drive
+0
+1
+-1000
+
+SLIDER
+1036
+206
+1209
+239
+release-day
+release-day
+1
+365
+32.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+1216
+206
+1653
+239
+release-amount
+release-amount
+0
+10000
+1000.0
+10
+1
+NIL
+HORIZONTAL
+
+MONITOR
+1145
+72
+1208
+118
+max-gen
+max [ generation ] of flies
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
