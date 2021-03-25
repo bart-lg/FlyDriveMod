@@ -116,7 +116,7 @@ to setup
   file-close
   __clear-all-and-reset-ticks
 
-  set model-version "V0.502"
+  set model-version "V0.504"
 
   if behaviorspace-run-number > 0 [ random-seed behaviorspace-run-number ]
 
@@ -141,9 +141,9 @@ to setup
   ; mortality interval: 6 weeks
   set mortality-interval 6 * 7
 
-  set mortality-off-season 0.8
-  set season-start-temp 10
-  set season-end-temp 9
+  set mortality-off-season 0.9
+  set season-start-temp 11
+  set season-end-temp 10
   set season FALSE
   set season-number 0
 
@@ -208,14 +208,14 @@ to go
     ifelse season-number = 0 [
       fly-init-pop
     ] [
-      kill-flies-off-season
       ; reset the age of the starting population otherwise they get killed immediately due to reached life expectancy
       ask flies [
         set total-age 0
-        set mode "adult"
         set mode-duration 0
         set partner-search TRUE
-        set color red
+        set eggs 0
+        set ready-to-lay-egg FALSE
+        set ticks-since-fertilization 0
       ]
     ]
     set season TRUE
@@ -225,6 +225,7 @@ to go
   if season = TRUE and round ( mean-10d-temp ) <= season-end-temp [
     ; end season
     set season FALSE
+    kill-flies-off-season
   ]
 
   grow-cherries
@@ -695,7 +696,7 @@ INPUTBOX
 1002
 204
 max-years
-3.0
+5.0
 1
 0
 Number
@@ -747,7 +748,7 @@ SLIDER
 1377
 73
 1556
-107
+106
 yummy-fruits-per-plant
 yummy-fruits-per-plant
 0
@@ -1105,37 +1106,172 @@ NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 <experiments>
-  <experiment name="combination-test1" repetitions="1" runMetricsEveryStep="false">
+  <experiment name="boundary-test-fruits" repetitions="3" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>go</go>
-    <enumeratedValueSet variable="yummy-fruits-per-plant">
-      <value value="2"/>
-    </enumeratedValueSet>
     <enumeratedValueSet variable="cherries-growth-period">
       <value value="45"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="gene-drive">
       <value value="true"/>
     </enumeratedValueSet>
+    <steppedValueSet variable="yummy-fruits-per-plant" first="1" step="1" last="20"/>
     <enumeratedValueSet variable="resistant-ratio">
       <value value="50"/>
     </enumeratedValueSet>
+    <enumeratedValueSet variable="release-day">
+      <value value="58"/>
+    </enumeratedValueSet>
     <enumeratedValueSet variable="init-pop">
-      <value value="100"/>
       <value value="500"/>
-      <value value="1000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-years">
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-amount">
+      <value value="500"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-start">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sd-cherries">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mean-cherries">
+      <value value="0"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="boundary-test-cherries" repetitions="3" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <enumeratedValueSet variable="cherries-growth-period">
+      <value value="45"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gene-drive">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="yummy-fruits-per-plant">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistant-ratio">
+      <value value="50"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="release-day">
       <value value="58"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="init-pop">
+      <value value="500"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-years">
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-amount">
+      <value value="500"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-start">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sd-cherries">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <steppedValueSet variable="mean-cherries" first="500" step="500" last="12000"/>
+  </experiment>
+  <experiment name="boundary-test-cherries2" repetitions="1" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <enumeratedValueSet variable="cherries-growth-period">
+      <value value="45"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gene-drive">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="yummy-fruits-per-plant">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistant-ratio">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-day">
+      <value value="58"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="init-pop">
+      <value value="500"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-years">
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-amount">
+      <value value="500"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-start">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sd-cherries">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <steppedValueSet variable="mean-cherries" first="6000" step="1000" last="12000"/>
+  </experiment>
+  <experiment name="boundary-test-combined" repetitions="1" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <enumeratedValueSet variable="cherries-growth-period">
+      <value value="45"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gene-drive">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="yummy-fruits-per-plant">
+      <value value="15"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="init-pop">
+      <value value="500"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-day">
+      <value value="58"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistant-ratio">
+      <value value="50"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="max-years">
       <value value="5"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="release-amount">
-      <value value="0"/>
-      <value value="100"/>
       <value value="500"/>
-      <value value="1000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-start">
+      <value value="101"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sd-cherries">
+      <value value="500"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mean-cherries">
+      <value value="12000"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="winter-survival" repetitions="1" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <enumeratedValueSet variable="cherries-growth-period">
+      <value value="45"/>
+    </enumeratedValueSet>
+    <steppedValueSet variable="yummy-fruits-per-plant" first="20" step="10" last="100"/>
+    <enumeratedValueSet variable="gene-drive">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="init-pop">
+      <value value="501"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-day">
+      <value value="58"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistant-ratio">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-amount">
+      <value value="500"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-years">
+      <value value="5"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="cherries-growth-start">
       <value value="101"/>
@@ -1145,7 +1281,43 @@ NetLogo 6.1.1
     </enumeratedValueSet>
     <enumeratedValueSet variable="mean-cherries">
       <value value="250"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="winter-survival2" repetitions="1" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <enumeratedValueSet variable="cherries-growth-period">
+      <value value="45"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="yummy-fruits-per-plant">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gene-drive">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="init-pop">
       <value value="500"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-day">
+      <value value="58"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistant-ratio">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-amount">
+      <value value="500"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-years">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-start">
+      <value value="101"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sd-cherries">
+      <value value="500"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mean-cherries">
+      <value value="12000"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>

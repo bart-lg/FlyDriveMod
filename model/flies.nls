@@ -32,8 +32,14 @@ flies-own [
   ; R => resistant type
   genotype
   
+  ; fitness of fly
+  fitness
+  
   ; genotype of partner (important for determining genotype of next generation)
   genotype-of-partner
+  
+  fitness-of-partner
+  combined-fitness
   
   ; following properties in ticks
   total-age
@@ -312,6 +318,7 @@ to fly-init-pop
       set eggs 0
       set ready-to-lay-egg FALSE
       set genotype "++"
+      set fitness fitness-PP
       set total-age 0
       set ticks-since-fertilization 0
     ] 
@@ -324,6 +331,7 @@ to fly-init-pop
 end
 
 to kill-flies-off-season
+  ask flies with [ mode = "stationary" ] [ die ]
   ask n-of ( ceiling ( count flies * mortality-off-season ) ) flies [ die ]
 end
 
@@ -368,7 +376,7 @@ to kill-flies
   ; we need to "let" a variable outside of if statement...
   let stat-mortality-rate 1
   if array:item stat-mortality-rates-temp i   < 1 [
-    set stat-mortality-rate   1 - ( e ^ ( ln ( 1 - array:item stat-mortality-rates-temp i )   / mortality-interval ) )
+    set stat-mortality-rate   1 - ( e ^ ( ln ( 1 - array:item stat-mortality-rates-temp i ) / mortality-interval ) )
   ]
   ; log
   array:set output-values 46 stat-mortality-rate
@@ -401,67 +409,67 @@ to kill-flies
   
   ; kill flies due to mortality rate
   
-  let kill-num ( ceiling ( PP-stat-flies   * stat-mortality-rate   * ( 1 + ( 1 - fitness-PP ) ) ) )   
+  let kill-num ( ceiling ( PP-stat-flies   * stat-mortality-rate ) )   
   ask n-of kill-num flies with [mode = "stationary"   and genotype = "++" ] [ die ]
   ; log
   array:set output-values 50 kill-num
   
-  set kill-num ( ceiling ( PP-adult-flies * adult-mortality-rate * ( 1 + ( 1 - fitness-PP ) ) ) )
+  set kill-num ( ceiling ( PP-adult-flies * adult-mortality-rate ) )
   ask n-of kill-num flies with [mode = "adult" and genotype = "++" ] [ die ]
   ; log
   array:set output-values 51 kill-num
 
 
-  set kill-num ( ceiling ( PR-stat-flies   * stat-mortality-rate   * ( 1 + ( 1 - fitness-PR ) ) ) )
+  set kill-num ( ceiling ( PR-stat-flies   * stat-mortality-rate ) )
   ask n-of kill-num flies with [mode = "stationary"   and ( genotype = "R+" or genotype = "+R" ) ] [ die ]
   ; log
   array:set output-values 52 kill-num
   
-  set kill-num ( ceiling ( PR-adult-flies * adult-mortality-rate * ( 1 + ( 1 - fitness-PR ) ) ) )
+  set kill-num ( ceiling ( PR-adult-flies * adult-mortality-rate ) )
   ask n-of kill-num flies with [mode = "adult" and ( genotype = "R+" or genotype = "+R" ) ] [ die ]
   ; log
   array:set output-values 53 kill-num
   
 
-  set kill-num ( ceiling ( RR-stat-flies   * stat-mortality-rate   * ( 1 + ( 1 - fitness-RR ) ) ) )
+  set kill-num ( ceiling ( RR-stat-flies   * stat-mortality-rate ) )
   ask n-of kill-num flies with [mode = "stationary"   and genotype = "RR" ] [ die ]
   ; log
   array:set output-values 54 kill-num
   
-  set kill-num ( ceiling ( RR-adult-flies * adult-mortality-rate * ( 1 + ( 1 - fitness-RR ) ) ) )
+  set kill-num ( ceiling ( RR-adult-flies * adult-mortality-rate ) )
   ask n-of kill-num flies with [mode = "adult" and genotype = "RR" ] [ die ]
   ; log
   array:set output-values 55 kill-num
   
 
-  set kill-num ( ceiling ( MM-stat-flies   * stat-mortality-rate   * ( 1 + ( 1 - fitness-MM ) ) ) )
+  set kill-num ( ceiling ( MM-stat-flies   * stat-mortality-rate ) )
   ask n-of kill-num flies with [mode = "stationary"   and genotype = "MM" ] [ die ]
   ; log
   array:set output-values 56 kill-num
   
-  set kill-num ( ceiling ( MM-adult-flies * adult-mortality-rate * ( 1 + ( 1 - fitness-MM ) ) ) )
+  set kill-num ( ceiling ( MM-adult-flies * adult-mortality-rate ) )
   ask n-of kill-num flies with [mode = "adult" and genotype = "MM" ] [ die ]
   ; log
   array:set output-values 57 kill-num
 
 
-  set kill-num ( ceiling ( MP-stat-flies   * stat-mortality-rate   * ( 1 + ( 1 - fitness-PP ) ) ) )
+  set kill-num ( ceiling ( MP-stat-flies   * stat-mortality-rate ) )
   ask n-of kill-num flies with [mode = "stationary"   and ( genotype = "M+" or genotype = "+M" ) ] [ die ]
   ; log
   array:set output-values 58 kill-num  
   
-  set kill-num ( ceiling ( MP-adult-flies * adult-mortality-rate * ( 1 + ( 1 - fitness-PP ) ) ) )
+  set kill-num ( ceiling ( MP-adult-flies * adult-mortality-rate ) )
   ask n-of kill-num flies with [mode = "adult" and ( genotype = "M+" or genotype = "+M" ) ] [ die ]  
   ; log
   array:set output-values 59 kill-num  
   
 
-  set kill-num ( ceiling ( MR-stat-flies   * stat-mortality-rate   * ( 1 + ( 1 - fitness-MR ) ) ) )
+  set kill-num ( ceiling ( MR-stat-flies   * stat-mortality-rate ) )
   ask n-of kill-num flies with [mode = "stationary"   and ( genotype = "MR" or genotype = "RM" ) ] [ die ]
   ; log
   array:set output-values 60 kill-num
   
-  set kill-num ( ceiling ( MR-adult-flies * adult-mortality-rate * ( 1 + ( 1 - fitness-MR ) ) ) )
+  set kill-num ( ceiling ( MR-adult-flies * adult-mortality-rate ) )
   ask n-of kill-num flies with [mode = "adult" and ( genotype = "MR" or genotype = "RM" ) ] [ die ]  
   ; log
   array:set output-values 61 kill-num  
@@ -506,6 +514,9 @@ to fly-activities
         
         let genotype-temp new-genotype genotype genotype-of-partner
         
+        ; TODO: is this OK? right now the poison of eggs or the non-production of eggs due to fitness rate has an impact on frequency of egg laying, 
+        ; because variables eggs and last-egg-tick get updated
+        
         ; FEMALE: M+ or MR => ++ or R+ DIE
         ; FEMALE: M+ or MR => RR DIE with certain prob. due to resistance
         let lay-egg TRUE
@@ -517,6 +528,9 @@ to fly-activities
             ]
           ] 
         ]
+        
+        ; fitness rate
+        if random-float 1 > combined-fitness [ set lay-egg FALSE ]
         
         ifelse lay-egg [
           
@@ -531,6 +545,7 @@ to fly-activities
               set eggs 0
               set ready-to-lay-egg FALSE
               set genotype genotype-temp
+              set fitness ( get-fitness-for-genotype genotype-temp )
               set total-age 0
               set ticks-since-fertilization 0
             ]
@@ -588,7 +603,10 @@ to fly-activities
       set partner-search FALSE
       set ticks-since-fertilization 0
       set eggs eggs-per-cycle
-      set genotype-of-partner first [genotype] of n-of 1 flies-here with [sex = "m"] 
+      let partner n-of 1 flies-here with [ sex = "m" ]
+      set genotype-of-partner first [genotype] of partner
+      set fitness-of-partner first [fitness] of partner
+      set combined-fitness ( fitness * fitness-of-partner )
       set color blue
     ]    
     
@@ -673,9 +691,22 @@ to release-gene-drive
       set partner-search TRUE
       set eggs 0
       set genotype "MM"
+      set fitness fitness-MM
       set total-age 0
       set ticks-since-fertilization 0
     ] 
   ]  
+  
+end
+
+to-report get-fitness-for-genotype [ temp-genotype ]
+  
+  if temp-genotype = "++" [ report fitness-PP ]
+  if temp-genotype = "RR" [ report fitness-RR ]
+  if temp-genotype = "MM" [ report fitness-MM ]
+
+  if temp-genotype = "R+" or temp-genotype = "+R" [ report fitness-PR ]
+  if temp-genotype = "MR" or temp-genotype = "RM" [ report fitness-MR ]
+  if temp-genotype = "M+" or temp-genotype = "+M" [ report fitness-MP ]
   
 end
