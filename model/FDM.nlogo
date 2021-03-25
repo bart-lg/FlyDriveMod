@@ -1,10 +1,13 @@
 extensions [ csv array ]
 
 ; include files for environment and agents
-__includes [ "environment.nls" "trees.nls" "yummy-plants.nls" "flies.nls" ]
+__includes [ "environment.nls" "trees.nls" "yummy-plants.nls" "flies.nls" "write-results.nls" ]
 
 ; global parameters
 globals [
+
+  output-file-name
+  output-values
 
   ; ticks-per-day is also max. meters per day per fly
   ticks-per-day
@@ -81,18 +84,18 @@ globals [
   fitness-MP
 
   ; weather (precipitation, temperature)
-  precipitation-list
+  precipitation-list ; TODO: remove
   temperature-list
-  current-prec
+  current-prec ; TODO: remove
   current-temp
   ; list of temperatures of last 10 days in ticks
   temp-10d-log
   ; mean temperature of the last 10 days
   mean-10d-temp
 
-  total-cherries
+  total-cherries ; TODO: guess we dont need this
 
-  pesticide-concentration
+  pesticide-concentration ; TODO: we dont need this for now
 
   ; path for input csv files
   path-csv-input
@@ -148,6 +151,9 @@ to setup
 
   set mean-10d-temp 0
   set temp-10d-log []
+
+  ; create output file
+  create-file
 
   ; world area setup
   env-setworld
@@ -232,6 +238,8 @@ to go
     calculate-current-eggs-per-tick-rate
     fly-activities
   ]
+
+  write-values-to-file
 
   tick
 
@@ -499,7 +507,7 @@ mean-cherries
 mean-cherries
 0
 4000
-1099.0
+252.0
 1
 1
 NIL
@@ -514,7 +522,7 @@ sd-cherries
 sd-cherries
 0
 1000
-178.0
+18.0
 1
 1
 NIL

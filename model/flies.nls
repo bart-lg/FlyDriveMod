@@ -283,6 +283,10 @@ to calculate-current-eggs-per-tick-rate
   ; calculate current eggs-per-tick-rate
   set current-eggs-per-tick ( array:item eggs-per-day i ) / ticks-per-day
   
+  ; log values
+  array:set output-values 38 ( array:item eggs-per-day i )
+  array:set output-values 39 current-eggs-per-tick
+  
 end
 
 to fly-init-pop
@@ -317,11 +321,17 @@ end
 to kill-flies
   
   ; ### death due to life-expectancy ###
+
+  let female-adult-flies count flies with [ sex = "f" and mode = "adult" ]
+  let male-adult-flies   count flies with [ sex = "m" and mode = "adult" ]
   
   ask flies [
     if sex = "f" and mode = "adult" and current-female-adult-longevity < ( mode-duration / ticks-per-day ) [ die ]
     if sex = "m" and mode = "adult" and current-male-adult-longevity   < ( mode-duration / ticks-per-day ) [ die ]
   ]
+  ; log
+  array:set output-values 48 ( female-adult-flies - ( count flies with [ sex = "f" and mode = "adult" ] ) )
+  array:set output-values 49 ( male-adult-flies   - ( count flies with [ sex = "m" and mode = "adult" ] ) )
   
   ; ### death due to mortality rate ###
   
@@ -350,11 +360,15 @@ to kill-flies
   if array:item dev-mortality-rates-temp i   < 1 [
     set dev-mortality-rate   1 - ( e ^ ( ln ( 1 - array:item dev-mortality-rates-temp i )   / mortality-interval ) )
   ]
+  ; log
+  array:set output-values 46 dev-mortality-rate
   
   let adult-mortality-rate 1
   if array:item adult-mortality-rates-temp i < 1 [
     set adult-mortality-rate 1 - ( e ^ ( ln ( 1 - array:item adult-mortality-rates-temp i ) / mortality-interval ) )
   ]
+  ; log
+  array:set output-values 47 adult-mortality-rate
   
   let PP-dev-flies   count flies with [ mode = "dev"   and genotype = "++" ]
   let PP-adult-flies count flies with [ mode = "adult" and genotype = "++" ]
@@ -376,23 +390,71 @@ to kill-flies
   
   
   ; kill flies due to mortality rate
-  ask n-of ( ceiling ( PP-dev-flies   * dev-mortality-rate   * ( 1 + ( 1 - fitness-PP ) ) ) ) flies with [mode = "dev"   and genotype = "++" ] [ die ]
-  ask n-of ( ceiling ( PP-adult-flies * adult-mortality-rate * ( 1 + ( 1 - fitness-PP ) ) ) ) flies with [mode = "adult" and genotype = "++" ] [ die ]
+  
+  let kill-num ( ceiling ( PP-dev-flies   * dev-mortality-rate   * ( 1 + ( 1 - fitness-PP ) ) ) )   
+  ask n-of kill-num flies with [mode = "dev"   and genotype = "++" ] [ die ]
+  ; log
+  array:set output-values 50 kill-num
+  
+  set kill-num ( ceiling ( PP-adult-flies * adult-mortality-rate * ( 1 + ( 1 - fitness-PP ) ) ) )
+  ask n-of kill-num flies with [mode = "adult" and genotype = "++" ] [ die ]
+  ; log
+  array:set output-values 51 kill-num
 
-  ask n-of ( ceiling ( PR-dev-flies   * dev-mortality-rate   * ( 1 + ( 1 - fitness-PR ) ) ) ) flies with [mode = "dev"   and ( genotype = "R+" or genotype = "+R" ) ] [ die ]
-  ask n-of ( ceiling ( PR-adult-flies * adult-mortality-rate * ( 1 + ( 1 - fitness-PR ) ) ) ) flies with [mode = "adult" and ( genotype = "R+" or genotype = "+R" ) ] [ die ]
-  
-  ask n-of ( ceiling ( RR-dev-flies   * dev-mortality-rate   * ( 1 + ( 1 - fitness-RR ) ) ) ) flies with [mode = "dev"   and genotype = "RR" ] [ die ]
-  ask n-of ( ceiling ( RR-adult-flies * adult-mortality-rate * ( 1 + ( 1 - fitness-RR ) ) ) ) flies with [mode = "adult" and genotype = "RR" ] [ die ]
 
-  ask n-of ( ceiling ( MM-dev-flies   * dev-mortality-rate   * ( 1 + ( 1 - fitness-MM ) ) ) ) flies with [mode = "dev"   and genotype = "MM" ] [ die ]
-  ask n-of ( ceiling ( MM-adult-flies * adult-mortality-rate * ( 1 + ( 1 - fitness-MM ) ) ) ) flies with [mode = "adult" and genotype = "MM" ] [ die ]
+  set kill-num ( ceiling ( PR-dev-flies   * dev-mortality-rate   * ( 1 + ( 1 - fitness-PR ) ) ) )
+  ask n-of kill-num flies with [mode = "dev"   and ( genotype = "R+" or genotype = "+R" ) ] [ die ]
+  ; log
+  array:set output-values 52 kill-num
   
-  ask n-of ( ceiling ( MR-dev-flies   * dev-mortality-rate   * ( 1 + ( 1 - fitness-MR ) ) ) ) flies with [mode = "dev"   and ( genotype = "MR" or genotype = "RM" ) ] [ die ]
-  ask n-of ( ceiling ( MR-adult-flies * adult-mortality-rate * ( 1 + ( 1 - fitness-MR ) ) ) ) flies with [mode = "adult" and ( genotype = "MR" or genotype = "RM" ) ] [ die ]  
+  set kill-num ( ceiling ( PR-adult-flies * adult-mortality-rate * ( 1 + ( 1 - fitness-PR ) ) ) )
+  ask n-of kill-num flies with [mode = "adult" and ( genotype = "R+" or genotype = "+R" ) ] [ die ]
+  ; log
+  array:set output-values 53 kill-num
   
-  ask n-of ( ceiling ( MP-dev-flies   * dev-mortality-rate   * ( 1 + ( 1 - fitness-PP ) ) ) ) flies with [mode = "dev"   and ( genotype = "M+" or genotype = "+M" ) ] [ die ]
-  ask n-of ( ceiling ( MP-adult-flies * adult-mortality-rate * ( 1 + ( 1 - fitness-PP ) ) ) ) flies with [mode = "adult" and ( genotype = "M+" or genotype = "+M" ) ] [ die ]  
+
+  set kill-num ( ceiling ( RR-dev-flies   * dev-mortality-rate   * ( 1 + ( 1 - fitness-RR ) ) ) )
+  ask n-of kill-num flies with [mode = "dev"   and genotype = "RR" ] [ die ]
+  ; log
+  array:set output-values 54 kill-num
+  
+  set kill-num ( ceiling ( RR-adult-flies * adult-mortality-rate * ( 1 + ( 1 - fitness-RR ) ) ) )
+  ask n-of kill-num flies with [mode = "adult" and genotype = "RR" ] [ die ]
+  ; log
+  array:set output-values 55 kill-num
+  
+
+  set kill-num ( ceiling ( MM-dev-flies   * dev-mortality-rate   * ( 1 + ( 1 - fitness-MM ) ) ) )
+  ask n-of kill-num flies with [mode = "dev"   and genotype = "MM" ] [ die ]
+  ; log
+  array:set output-values 56 kill-num
+  
+  set kill-num ( ceiling ( MM-adult-flies * adult-mortality-rate * ( 1 + ( 1 - fitness-MM ) ) ) )
+  ask n-of kill-num flies with [mode = "adult" and genotype = "MM" ] [ die ]
+  ; log
+  array:set output-values 57 kill-num
+
+
+  set kill-num ( ceiling ( MP-dev-flies   * dev-mortality-rate   * ( 1 + ( 1 - fitness-PP ) ) ) )
+  ask n-of kill-num flies with [mode = "dev"   and ( genotype = "M+" or genotype = "+M" ) ] [ die ]
+  ; log
+  array:set output-values 58 kill-num  
+  
+  set kill-num ( ceiling ( MP-adult-flies * adult-mortality-rate * ( 1 + ( 1 - fitness-PP ) ) ) )
+  ask n-of kill-num flies with [mode = "adult" and ( genotype = "M+" or genotype = "+M" ) ] [ die ]  
+  ; log
+  array:set output-values 59 kill-num  
+  
+
+  set kill-num ( ceiling ( MR-dev-flies   * dev-mortality-rate   * ( 1 + ( 1 - fitness-MR ) ) ) )
+  ask n-of kill-num flies with [mode = "dev"   and ( genotype = "MR" or genotype = "RM" ) ] [ die ]
+  ; log
+  array:set output-values 60 kill-num
+  
+  set kill-num ( ceiling ( MR-adult-flies * adult-mortality-rate * ( 1 + ( 1 - fitness-MR ) ) ) )
+  ask n-of kill-num flies with [mode = "adult" and ( genotype = "MR" or genotype = "RM" ) ] [ die ]  
+  ; log
+  array:set output-values 61 kill-num  
   
 end
 
@@ -441,7 +503,7 @@ to fly-activities
           ] 
         ]
         
-        if lay-egg [
+        ifelse lay-egg [
           
           ask patch-here [
             sprout-flies 1 [
@@ -481,6 +543,12 @@ to fly-activities
             
           ]
           
+          ; log
+          array:set output-values 40 ( ( array:item output-values 40 ) + 1 )
+          
+        ] [
+          ; log
+          array:set output-values 41 ( ( array:item output-values 41 ) + 1 )
         ]
         
         set eggs ( eggs - 1 )
@@ -552,18 +620,25 @@ end
 ; upgrade mode of fly if appropriate mode duration reached
 to upgrade-fly
   
-  if ( sex = "f" and mode = "dev" and round (mode-duration / ticks-per-day) >= current-female-dev-duration ) [
-    set mode "adult"
-    set mode-duration 0
-    set partner-search TRUE
-    set color red
-  ]
-  
-  if ( sex = "m" and mode = "dev" and round (mode-duration / ticks-per-day) >= current-male-dev-duration ) [
-    set mode "adult"
-    set mode-duration 0
-    set partner-search TRUE
-    set color red
+  if mode = "dev" [
+    
+    if ( sex = "f" and mode = "dev" and round (mode-duration / ticks-per-day) >= current-female-dev-duration ) [
+      set mode "adult"
+      set mode-duration 0
+      set partner-search TRUE
+      set color red
+    ]
+    
+    if ( sex = "m" and mode = "dev" and round (mode-duration / ticks-per-day) >= current-male-dev-duration ) [
+      set mode "adult"
+      set mode-duration 0
+      set partner-search TRUE
+      set color red
+    ]
+    
+    ; increase log-value
+    if mode = "adult" [ array:set output-values 37 ( ( array:item output-values 37 ) + 1 ) ]
+    
   ]
 
 end
