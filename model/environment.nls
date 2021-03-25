@@ -41,8 +41,6 @@ to get-current-weather
   if ( length temperature-list > 0 ) [ set temperature-list but-first temperature-list ]
   
   set-current-plot "Weather data"
-  set-current-plot-pen "prec"
-  plotxy ( ticks mod (365 * ticks-per-day) ) current-prec  
   set-current-plot-pen "temp"
   plotxy ( ticks mod (365 * ticks-per-day) ) current-temp
   

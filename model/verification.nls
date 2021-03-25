@@ -836,16 +836,22 @@ to-report test-mode-durations [ verification-file ]
   let log-content ""  
   let new-log-content ""
   
-  set-mode-durations
+  let files-loaded FALSE
   
-  set new-log-content ( test-mode-duration "femaleEggsToAdult" )
-  if length new-log-content > 0 [ set log-content word log-content new-log-content ]
-  set new-log-content ( test-mode-duration "femaleAdultLongevity" )
-  if length new-log-content > 0 [ set log-content word log-content new-log-content ]
-  set new-log-content ( test-mode-duration "maleEggsToAdult" )
-  if length new-log-content > 0 [ set log-content word log-content new-log-content ]
-  set new-log-content ( test-mode-duration "maleAdultLongevity" )
-  if length new-log-content > 0 [ set log-content word log-content new-log-content ]  
+  set files-loaded set-mode-durations
+  
+  ifelse files-loaded [
+    set new-log-content ( test-mode-duration "femaleEggsToAdult" )
+    if length new-log-content > 0 [ set log-content word log-content new-log-content ]
+    set new-log-content ( test-mode-duration "femaleAdultLongevity" )
+    if length new-log-content > 0 [ set log-content word log-content new-log-content ]
+    set new-log-content ( test-mode-duration "maleEggsToAdult" )
+    if length new-log-content > 0 [ set log-content word log-content new-log-content ]
+    set new-log-content ( test-mode-duration "maleAdultLongevity" )
+    if length new-log-content > 0 [ set log-content word log-content new-log-content ]  
+  ] [
+    set log-content word log-content "SOME CSV FILES MISSING; "
+  ]
   
   write-verification-result-to-file verification-file log-header log-content
   ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]  
@@ -1216,9 +1222,6 @@ to-report test-kill-flies [ verification-file ]
   array:set adult-mortality-rates-temp 1 0.2
   array:set adult-mortality-rates-temp 2 0
   
-  ; TODO: seems not really to act right for multiple days, because the reference population changes (in the excel file the reference population stays at day 1)
-  set mortality-interval 1
-  
   set rounded-mean-10d-temp 20
   
   set temp-female count flies with [ sex = "f" ]
@@ -1257,7 +1260,7 @@ to-report test-kill-flies [ verification-file ]
   array:set adult-mortality-rates-temp 1 0.2
   array:set adult-mortality-rates-temp 2 0  
   
-  set mortality-interval 1  
+  ;set mortality-interval 1  
   
   set init-pop 10000
   start-season  
@@ -1278,11 +1281,13 @@ to-report test-kill-flies [ verification-file ]
   
   kill-flies
   
-  if count flies with [ mode = "adult" ] < 7190 or count flies with [ mode = "adult" ] > 7210 [
+  ; expected: 8952 (see excel file with calculation examples)
+  if count flies with [ mode = "adult" ] < 8950 or count flies with [ mode = "adult" ] > 8954 [
     set log-content ( word log-content "kill-flies [mortality-rate temp 10]: WRONG NUMBER OF ADULT FLIES LEFT [" count flies with [ mode = "adult" ] "]; " )
   ]    
   
-  if count flies with [ mode = "stationary" ] < 499 or count flies with [ mode = "stationary" ] > 501 [
+  ; expected: 983 (see excel file with calculation examples)
+  if count flies with [ mode = "stationary" ] < 981 or count flies with [ mode = "stationary" ] > 985 [
     set log-content ( word log-content "kill-flies [mortality-rate temp 10]: WRONG NUMBER OF STATIONARY FLIES LEFT [" count flies with [ mode = "stationary" ] "]; " )
   ]    
   
@@ -1305,7 +1310,7 @@ to-report test-kill-flies [ verification-file ]
   array:set adult-mortality-rates-temp 1 0.2
   array:set adult-mortality-rates-temp 2 0  
 
-  set mortality-interval 1    
+  ;set mortality-interval 1    
   
   set init-pop 10000
   start-season  
@@ -1326,12 +1331,14 @@ to-report test-kill-flies [ verification-file ]
   
   kill-flies
   
-  if count flies with [ mode = "adult" ] < 4490 or count flies with [ mode = "adult" ] > 4510 [
-    set log-content word log-content "kill-flies [mortality-rate temp 20]: WRONG NUMBER OF ADULT FLIES LEFT; "
+  ; expected: 8852 (see excel file with calculation examples)
+  if count flies with [ mode = "adult" ] < 8850 or count flies with [ mode = "adult" ] > 8854 [
+    set log-content word log-content "kill-flies [mortality-rate temp 0]: WRONG NUMBER OF ADULT FLIES LEFT; "
   ]    
   
-  if count flies with [ mode = "stationary" ] < 299 or count flies with [ mode = "stationary" ] > 301 [
-    set log-content word log-content "kill-flies [mortality-rate temp 20]: WRONG NUMBER OF STATIONARY FLIES LEFT; "
+  ; expected: 971 (see excel file with calculation examples)
+  if count flies with [ mode = "stationary" ] < 969 or count flies with [ mode = "stationary" ] > 973 [
+    set log-content word log-content "kill-flies [mortality-rate temp 0]: WRONG NUMBER OF STATIONARY FLIES LEFT; "
   ]   
   
   

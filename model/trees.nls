@@ -90,7 +90,6 @@ to grow-cherries
     ]  
     
     ask trees [ update-tree-label ]
-    set total-cherries sum [grown-cherries] of trees
     
   ]
   

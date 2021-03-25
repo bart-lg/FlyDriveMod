@@ -138,21 +138,40 @@ to set-eggs-per-day-rates
   
 end
 
-to set-mode-durations
+to-report set-mode-durations
   
   let allFilesExist TRUE
   
   ; check if all csv files exist
   let file-path (word path-csv-input "femaleEggsToAdult.csv")
-  if not file-exists? file-path [ set allFilesExist FALSE ]
-  set file-path (word path-csv-input "femaleAdultLongevity.csv")
-  if not file-exists? file-path [ set allFilesExist FALSE ]
-  set file-path (word path-csv-input "maleEggsToAdult.csv")
-  if not file-exists? file-path [ set allFilesExist FALSE ]
-  set file-path (word path-csv-input "maleAdultLongevity.csv")
-  if not file-exists? file-path [ set allFilesExist FALSE ]
+  if not file-exists? file-path [ 
+    set allFilesExist FALSE 
+    output-print "femaleEggsToAdult.csv missing!"
+  ]
   
-  ; TODO: do something if allFilesExist is FALSE
+  set file-path (word path-csv-input "femaleAdultLongevity.csv")
+  if not file-exists? file-path [ 
+    set allFilesExist FALSE 
+    output-print "femaleAdultLongevity.csv missing!"
+  ]
+  
+  set file-path (word path-csv-input "maleEggsToAdult.csv")
+  if not file-exists? file-path [ 
+    set allFilesExist FALSE 
+    output-print "maleEggsToAdult.csv missing!"
+  ]
+  
+  set file-path (word path-csv-input "maleAdultLongevity.csv")
+  if not file-exists? file-path [ 
+    set allFilesExist FALSE 
+    output-print "maleAdultLongevity.csv missing!"
+  ]
+  
+  if not allFilesExist [
+    output-print "PLEASE CHECK CSV FILES!!!"
+    output-print "Setup aborted."
+    report FALSE
+  ]
   
   ; ### TEMPERATURES
   ; ### FEMALE EGGS TO ADULT
@@ -263,6 +282,8 @@ to set-mode-durations
   
   file-close  
   
+  report TRUE
+  
 end
 
 to get-current-mode-durations
@@ -310,8 +331,8 @@ to calculate-current-eggs-per-tick-rate
   set current-eggs-per-tick ( array:item eggs-per-day i ) / ticks-per-day
   
   ; log values
-  array:set output-values 38 ( array:item eggs-per-day i )
-  array:set output-values 39 current-eggs-per-tick
+  array:set output-values 37 ( array:item eggs-per-day i )
+  array:set output-values 38 current-eggs-per-tick
   
 end
 
@@ -370,14 +391,12 @@ to kill-flies
   let female-adult-flies count flies with [ sex = "f" and mode = "adult" ]
   let male-adult-flies   count flies with [ sex = "m" and mode = "adult" ]
   
-  ; TODO: optimize: ask flies with [ ... ] [ ]
-  ask flies [
-    if sex = "f" and mode = "adult" and current-female-adult-longevity < mode-duration [ die ]
-    if sex = "m" and mode = "adult" and current-male-adult-longevity   < mode-duration [ die ]
-  ]
+  ask flies with [ sex = "f" and mode = "adult" and current-female-adult-longevity < mode-duration ] [ die ]
+  ask flies with [ sex = "m" and mode = "adult" and current-male-adult-longevity   < mode-duration ] [ die ]
+
   ; log
-  array:set output-values 48 ( female-adult-flies - ( count flies with [ sex = "f" and mode = "adult" ] ) )
-  array:set output-values 49 ( male-adult-flies   - ( count flies with [ sex = "m" and mode = "adult" ] ) )
+  array:set output-values 47 ( female-adult-flies - ( count flies with [ sex = "f" and mode = "adult" ] ) )
+  array:set output-values 48 ( male-adult-flies   - ( count flies with [ sex = "m" and mode = "adult" ] ) )
   
   ; ### death due to mortality rate ###
   
@@ -402,22 +421,22 @@ to kill-flies
   ; t => 1 (one day)
   ; k = ln(1 - mortality-rate) / interval
   
-  ; we need to "let" a variable outside of if statement...
+  ; we need to "let" (define) a variable outside of if statement...
   let stat-mortality-rate 1
   if array:item stat-mortality-rates-temp i   < 1 [
     set stat-mortality-rate   1 - ( e ^ ( ln ( 1 - array:item stat-mortality-rates-temp i ) / mortality-interval ) )
   ]
   ; log
-  array:set output-values 46 stat-mortality-rate
+  array:set output-values 45 stat-mortality-rate
   
   let adult-mortality-rate 1
   if array:item adult-mortality-rates-temp i < 1 [
     set adult-mortality-rate 1 - ( e ^ ( ln ( 1 - array:item adult-mortality-rates-temp i ) / mortality-interval ) )
   ]
   ; log
-  array:set output-values 47 adult-mortality-rate
+  array:set output-values 46 adult-mortality-rate
   
-  ; TODO: since fitness has no effect on mortality anymore the killing-algorithmus shall not depend on genotypes!!
+  ; preparation for future versions: different mortality depending on genotype
   
   let PP-stat-flies  count flies with [ mode = "stationary" and genotype = "++" ]
   let PP-adult-flies count flies with [ mode = "adult"      and genotype = "++" ]
@@ -443,67 +462,62 @@ to kill-flies
   let kill-num ( ceiling ( PP-stat-flies   * stat-mortality-rate ) )   
   ask n-of kill-num flies with [mode = "stationary"   and genotype = "++" ] [ die ]
   ; log
-  array:set output-values 50 kill-num
+  array:set output-values 49 kill-num
   
   set kill-num ( ceiling ( PP-adult-flies * adult-mortality-rate ) )
   ask n-of kill-num flies with [mode = "adult" and genotype = "++" ] [ die ]
   ; log
-  array:set output-values 51 kill-num
-
+  array:set output-values 50 kill-num
 
   set kill-num ( ceiling ( PR-stat-flies   * stat-mortality-rate ) )
   ask n-of kill-num flies with [mode = "stationary"   and ( genotype = "R+" or genotype = "+R" ) ] [ die ]
   ; log
-  array:set output-values 52 kill-num
+  array:set output-values 51 kill-num
   
   set kill-num ( ceiling ( PR-adult-flies * adult-mortality-rate ) )
   ask n-of kill-num flies with [mode = "adult" and ( genotype = "R+" or genotype = "+R" ) ] [ die ]
   ; log
-  array:set output-values 53 kill-num
-  
+  array:set output-values 52 kill-num
 
   set kill-num ( ceiling ( RR-stat-flies   * stat-mortality-rate ) )
   ask n-of kill-num flies with [mode = "stationary"   and genotype = "RR" ] [ die ]
   ; log
-  array:set output-values 54 kill-num
+  array:set output-values 53 kill-num
   
   set kill-num ( ceiling ( RR-adult-flies * adult-mortality-rate ) )
   ask n-of kill-num flies with [mode = "adult" and genotype = "RR" ] [ die ]
   ; log
-  array:set output-values 55 kill-num
-  
+  array:set output-values 54 kill-num
 
   set kill-num ( ceiling ( MM-stat-flies   * stat-mortality-rate ) )
   ask n-of kill-num flies with [mode = "stationary"   and genotype = "MM" ] [ die ]
   ; log
-  array:set output-values 56 kill-num
+  array:set output-values 55 kill-num
   
   set kill-num ( ceiling ( MM-adult-flies * adult-mortality-rate ) )
   ask n-of kill-num flies with [mode = "adult" and genotype = "MM" ] [ die ]
   ; log
-  array:set output-values 57 kill-num
-
+  array:set output-values 56 kill-num
 
   set kill-num ( ceiling ( MP-stat-flies   * stat-mortality-rate ) )
   ask n-of kill-num flies with [mode = "stationary"   and ( genotype = "M+" or genotype = "+M" ) ] [ die ]
   ; log
-  array:set output-values 58 kill-num  
+  array:set output-values 57 kill-num  
   
   set kill-num ( ceiling ( MP-adult-flies * adult-mortality-rate ) )
   ask n-of kill-num flies with [mode = "adult" and ( genotype = "M+" or genotype = "+M" ) ] [ die ]  
   ; log
-  array:set output-values 59 kill-num  
-  
+  array:set output-values 58 kill-num  
 
   set kill-num ( ceiling ( MR-stat-flies   * stat-mortality-rate ) )
   ask n-of kill-num flies with [mode = "stationary"   and ( genotype = "MR" or genotype = "RM" ) ] [ die ]
   ; log
-  array:set output-values 60 kill-num
+  array:set output-values 59 kill-num
   
   set kill-num ( ceiling ( MR-adult-flies * adult-mortality-rate ) )
   ask n-of kill-num flies with [mode = "adult" and ( genotype = "MR" or genotype = "RM" ) ] [ die ]  
   ; log
-  array:set output-values 61 kill-num  
+  array:set output-values 60 kill-num  
   
 end
 
@@ -570,8 +584,8 @@ to fly-activities
         
         let genotype-temp new-genotype genotype genotype-of-partner
         
-        ; TODO: is this OK? right now the poison of eggs or the non-production of eggs due to fitness rate has an impact on frequency of egg laying, 
-        ; because variables eggs and last-egg-tick get updated
+        ; Notice: egg poisioning or the non-production of eggs due to fitness rate have impact on frequency of egg laying, 
+        ; due to the updated variables eggs and last-egg-tick 
         
         ; FEMALE: M+ or MR => ++ or R+ DIE
         ; FEMALE: M+ or MR => RR DIE with certain prob. due to resistance
@@ -636,11 +650,11 @@ to fly-activities
           ]
           
           ; log
-          array:set output-values 40 ( ( array:item output-values 40 ) + 1 )
+          array:set output-values 39 ( ( array:item output-values 39 ) + 1 )
           
         ] [
           ; log
-          array:set output-values 41 ( ( array:item output-values 41 ) + 1 )
+          array:set output-values 40 ( ( array:item output-values 40 ) + 1 )
         ]
         
         set eggs ( eggs - 1 )
@@ -688,7 +702,7 @@ to upgrade-fly
     ]
     
     ; increase log-value
-    if mode = "adult" [ array:set output-values 37 ( ( array:item output-values 37 ) + 1 ) ]
+    if mode = "adult" [ array:set output-values 36 ( ( array:item output-values 36 ) + 1 ) ]
     
   ]
 

@@ -14,6 +14,9 @@ globals [
   ; set no-output to "YES" to prevent CSV ouptut (e.g. for verification purpose)
   no-output
 
+  ; checks if all files have been loaded
+  all-files-loaded
+
   ; ticks-per-day is also max. meters per day per fly
   ticks-per-day
 
@@ -91,9 +94,7 @@ globals [
   fitness-MP
 
   ; weather (precipitation, temperature)
-  precipitation-list ; TODO: remove
   temperature-list
-  current-prec ; TODO: remove
   current-temp
   ; list of temperatures of last 10 days in ticks
   temp-10d-log
@@ -107,9 +108,7 @@ globals [
   cherries-available
   wildberries-available
 
-  total-cherries ; TODO: guess we dont need this
-
-  pesticide-concentration ; TODO: we dont need this for now
+  ; pesticide-concentration (idea for future versions)
 
   ; path for input csv files
   path-csv-input
@@ -128,7 +127,7 @@ to setup
 
   set no-output temp-no-output
 
-  set model-version "V0.702"
+  set model-version "V0.703"
 
   if behaviorspace-run-number > 0 [ random-seed behaviorspace-run-number ]
 
@@ -170,8 +169,6 @@ to setup
   set fitness-MR 0.8
   set fitness-MP 0.8
 
-  set total-cherries 0
-
   set path-csv-input "../params/"
 
   set mean-10d-temp 0
@@ -202,7 +199,7 @@ to setup
   set-eggs-per-day-rates
 
   ; set mode durations
-  set-mode-durations
+  set all-files-loaded set-mode-durations
 
   ask patches [
     set pcolor [0 41 0]
@@ -397,7 +394,7 @@ init-pop
 init-pop
 0
 1000
-5.0
+2.0
 1
 1
 NIL
@@ -493,18 +490,18 @@ current-date
 MONITOR
 1336
 22
-1424
+1432
 67
-NIL
-total-cherries
+grown-cherries
+total-grown-cherries
 17
 1
 11
 
 MONITOR
-1432
+1440
 23
-1542
+1550
 68
 occupied-cherries
 sum [occupied-cherries] of trees
@@ -540,17 +537,6 @@ MONITOR
 115
 temp
 current-temp
-17
-1
-11
-
-MONITOR
-1074
-70
-1132
-115
-prec
-current-prec
 17
 1
 11
