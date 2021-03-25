@@ -543,35 +543,53 @@ to update-egg-laying-mode
 end
 
 to fly-activities
-  
-  ; limit number of matings for male fly (current limit: 1 mating per tick)
-  ask flies with [ sex = "m" and mode = "adult" and partner-search = FALSE and ticks-since-fertilization > 0 ] [ 
-    set partner-search TRUE 
-  ]
-  
-  ask flies [
 
+  ask flies [
     ; upgrade mode of fly
     upgrade-fly
     
+    ; increase age and mode-duration
+    set mode-duration ( mode-duration + 1 )
+    set total-age ( total-age + 1 )    
+  ]
+  
+  let male-adult-flies flies with [ sex = "m" and mode = "adult" ]
+  let female-adult-flies flies with [ sex = "f" and mode = "adult" ]
+  
+  ; limit number of matings for male fly (current limit: 1 mating per tick)
+  ask male-adult-flies with [ partner-search = FALSE and ticks-since-fertilization > 0 ] [ 
+    set partner-search TRUE 
+  ]
+  
+  let fertile-male-adult-flies male-adult-flies with [ partner-search = TRUE ]
+  let fertile-female-adult-flies female-adult-flies with [ partner-search = TRUE ]
+
+  ask fertile-female-adult-flies [
+
+    let fertile-male-adult-flies-here flies-here with [ sex = "m" and mode = "adult" and partner-search = TRUE ]
+    
     ; if female fly detects male fly on same patch => start fertilization
-    if sex = "f" and mode = "adult" and partner-search = TRUE and any? flies-here with [sex = "m" and mode = "adult" and partner-search = TRUE] [
+    if any? fertile-male-adult-flies-here [
       set partner-search FALSE
       set fertilization-tick ticks
       set eggs eggs-per-cycle
-      let partner n-of 1 flies-here with [ sex = "m" ]
+      let partner n-of 1 fertile-male-adult-flies-here 
       ; "[genotype] of partner" and "[fitness] of partner" return lists
       set genotype-of-partner first [genotype] of partner
       set fitness-of-partner first [fitness] of partner
       set combined-fitness ( fitness * fitness-of-partner )
       set color orange
-      ask one-of flies-here with [sex = "m" and mode = "adult" and partner-search = TRUE] [
+      ask partner [
         set partner-search FALSE
         set fertilization-tick ticks 
       ]
-    ]        
+    ]     
+ 
+  ]
+  
+  ask female-adult-flies with [ ready-to-lay-egg = TRUE ] [  
     
-    if ( cherries-available or wildberries-available ) and ready-to-lay-egg [
+    if ( cherries-available or wildberries-available ) [
 
       let cherries-here no-turtles
       if cherries-available [ set cherries-here ( trees-on patches in-radius tree-radius ) with [grown-cherries > 0] ]
@@ -672,16 +690,18 @@ to fly-activities
         
     ]
     
-    ; increase age and mode-duration
-    set mode-duration ( mode-duration + 1 )
-    set total-age ( total-age + 1 )
-
-    if mode = "adult" [
-      if not ( target-tick = ticks ) [ rt random 360 ]
-      fd 1
-    ]
-    
+  ]
+  
+  ask female-adult-flies [
+    if not ( target-tick = ticks ) [ rt random 360 ]
+    fd 1
   ]  
+  
+  ask male-adult-flies [
+    if not ( target-tick = ticks ) [ rt random 360 ]
+    fd 1
+  ]  
+  
 end
 
 ; upgrade mode of fly if appropriate mode duration reached
@@ -783,9 +803,11 @@ end
 
 to female-attract-male-flies
   
+  let fertile-male-adult-flies flies with [ sex = "m" and mode = "adult" and partner-search = TRUE ]
+  
   ask flies with [ mode = "adult" and sex = "f" and partner-search = TRUE ] [
     
-    let target-fly min-one-of flies with [ mode = "adult" and sex = "m" and partner-search = TRUE and ( target-tick < ticks or distance myself < target-distance ) ] in-radius visibility [ distance myself ]
+    let target-fly min-one-of fertile-male-adult-flies with [ target-tick < ticks or distance myself < target-distance ] in-radius visibility [ distance myself ]
 
     if is-turtle? target-fly [
       let destination-x xcor

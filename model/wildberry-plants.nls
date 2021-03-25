@@ -93,9 +93,11 @@ to wildberries-attract-closest-flies
   
   if wildberries-available [
     
+    let female-flies-with-eggs flies with [ ready-to-lay-egg ]
+    
     ask wildberry-plants with [ grown-wildberries > 0 ] [
      
-      let flies-in-radius flies with [ ready-to-lay-egg and ( target-tick < ticks or distance myself < target-distance ) ] in-radius visibility
+      let flies-in-radius female-flies-with-eggs with [ target-tick < ticks or distance myself < target-distance ] in-radius visibility
       if count flies-in-radius > grown-wildberries [
         set flies-in-radius min-n-of grown-wildberries flies-in-radius [ distance myself ]
       ]

@@ -103,9 +103,11 @@ to cherries-attract-closest-flies
   
   if cherries-available [
     
+    let female-flies-with-eggs flies with [ ready-to-lay-egg ]
+    
     ask trees with [ grown-cherries > 0 ] [
      
-      let flies-in-radius flies with [ ready-to-lay-egg and ( target-tick < ticks or distance myself < target-distance ) ] in-radius visibility
+      let flies-in-radius female-flies-with-eggs with [ target-tick < ticks or distance myself < target-distance ] in-radius visibility
       if count flies-in-radius > grown-cherries [
         set flies-in-radius min-n-of grown-cherries flies-in-radius [ distance myself ]
       ]

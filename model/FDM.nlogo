@@ -135,7 +135,7 @@ to setup
 
   set no-output temp-no-output
 
-  set model-version "V1.2.0"
+  set model-version "V1.3.0"
 
   if behaviorspace-run-number > 0 [ random-seed behaviorspace-run-number ]
 
@@ -595,7 +595,7 @@ sd-cherries
 sd-cherries
 0
 1000
-0.0
+50.0
 1
 1
 NIL
@@ -610,7 +610,7 @@ cherries-growth-start
 cherries-growth-start
 0
 365
-100.0
+105.0
 1
 1
 NIL
