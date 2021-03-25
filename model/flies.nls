@@ -753,3 +753,21 @@ to-report get-fitness-for-genotype [ temp-genotype ]
   if temp-genotype = "M+" or temp-genotype = "+M" [ report fitness-MP ]
   
 end
+
+to female-attract-male-flies
+  
+  ask flies with [ mode = "adult" and sex = "m" and partner-search = TRUE ] [
+   
+    let destination min-one-of flies with [ mode = "adult" and sex = "f" and partner-search = TRUE ] in-radius visibility [ distance myself ]
+    
+    let destination-x ( [xcor] of destination )
+    let destination-y ( [ycor] of destination )
+    
+    facexy destination-x destination-y
+    set target-tick ticks
+    set target-distance distance patch destination-x destination-y
+    
+  ]
+  
+end  
+

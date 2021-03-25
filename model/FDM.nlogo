@@ -125,7 +125,7 @@ to setup
 
   set no-output temp-no-output
 
-  set model-version "V0.700"
+  set model-version "V0.701"
 
   if behaviorspace-run-number > 0 [ random-seed behaviorspace-run-number ]
 
@@ -242,6 +242,8 @@ to go
 
     fruits-attract-closest-flies
     cherries-attract-closest-flies
+
+    female-attract-male-flies
 
     fly-activities
 

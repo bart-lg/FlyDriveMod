@@ -35,6 +35,7 @@ to verification-tests
   if not test-gene-drive                           verification-file [ set total-check FALSE ]
   if not test-fertilization                        verification-file [ set total-check FALSE ]
   if not test-male-mating-interval                 verification-file [ set total-check FALSE ]
+  if not test-female-attract-male-flies            verification-file [ set total-check FALSE ]
   
   
   refresh-world
@@ -2011,3 +2012,59 @@ to-report test-male-mating-interval [ verification-file ]
   ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]
   
 end
+
+to-report test-female-attract-male-flies [ verification-file ]
+  
+  let log-header "test-female-attract-male-flies: "
+  let log-content ""
+  
+  let wrong-direction FALSE
+  let i 0
+  
+  while [ i < 5 ] [
+  
+    refresh-world
+    
+    set init-pop 5
+    start-season
+    
+    ; modify flies
+    ask flies [
+      set sex "f"
+      set partner-search TRUE
+      setxy 0 0 
+    ]
+
+    random-seed new-seed
+    let x 9 + ( random 2 )
+    let y 9
+    
+    ask one-of [ flies-here ] of patch 0 0 [ setxy x  y  ]    
+    ask one-of [ flies-here ] of patch 0 0 [ setxy 8  11 ]    
+    ask one-of [ flies-here ] of patch 0 0 [ setxy 12 12 ]    
+    ask one-of [ flies-here ] of patch 0 0 [ setxy 9  12 ]
+
+    ask one-of [ flies-here ] of patch 0 0 [
+      set sex "m"
+      setxy 10 10
+    ]    
+    
+    female-attract-male-flies
+    fly-activities
+    
+    if not any? ( [ flies-here ] of patch x y ) with [ sex = "m" ] [
+      set wrong-direction TRUE 
+    ]
+    
+    set i ( i + 1 )
+    
+  ]
+  
+  if wrong-direction = TRUE [
+    set log-content word log-content "male fly moved in wrong direction; " 
+  ]
+
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]
+  
+end  
