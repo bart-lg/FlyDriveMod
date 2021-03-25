@@ -1,5 +1,3 @@
-extensions [ csv ]
-
 to env-setworld
   
   let world-x ( trees-per-row * tree-width + ( trees-per-row - 1 ) * tree-margin-x + 2 * border-margin )

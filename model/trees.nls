@@ -56,21 +56,23 @@ end
 to grow-cherries
   
   if ( ticks >= cherries-growth-start ) and ( ticks <= cherries-growth-start + cherries-growth-period ) [
+    
     ifelse ( ticks = cherries-growth-start + cherries-growth-period ) [
       ask trees [
-        set grown-cherries ( max-cherries - occupied-cherries )  
-        update-tree-label
+        if ( max-cherries - occupied-cherries ) > grown-cherries [
+          set grown-cherries ( max-cherries - occupied-cherries ) 
+        ]
       ]
     ] [
       ask trees [
-        set grown-cherries ( grown-cherries + round ( random-normal ( max-cherries / cherries-growth-period ) ( max-cherries / cherries-growth-period ) ) )
-        if ( grown-cherries + occupied-cherries ) > max-cherries [
-          set grown-cherries ( max-cherries - occupied-cherries )
-        ]
-        update-tree-label
+        let new-cherries round ( max-cherries / cherries-growth-period )
+        set grown-cherries ( grown-cherries + new-cherries ) 
       ]
-    ]
+    ]  
+    
+    ask trees [ update-tree-label ]
     set total-cherries sum [grown-cherries] of trees
+    
   ]
-  
+    
 end

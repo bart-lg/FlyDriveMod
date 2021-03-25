@@ -8,6 +8,9 @@ flies-own [
   ; days since last mode change
   mode-duration
   
+  ; generation (1 (initial population), 2, 3, ...)
+  generation
+  
   ; sex: f,m
   sex
   
@@ -17,15 +20,52 @@ flies-own [
   ; number of eggs in body
   eggs
   
-  ; genotype: modified, wild, resistant
+  ; own genotype: modified, wild, resistant
   genotype
   
-  ; following properties in days
+  ; genotype of partner (important for determining genotype of next generation)
+  genotype-of-partner
+  
+  ; following properties in ticks
   total-age
   life-expectancy
-  days-since-fertilization
+  ticks-since-fertilization
   
 ]
+
+to set-life-expectancies
+  ; life-expectancy (in days) for birth months
+  let life-expectancy-ticks [
+    60 ;jan
+    60 ;feb
+    70 ;mar
+    80 ;apr
+    80 ;may
+    90 ;jun
+    100 ;jul
+    90 ;aug
+    80 ;sep
+    70 ;okt
+    60 ;nov
+    60 ;dez
+  ]
+  set life-expectancy-ticks map [ i -> i * ticks-per-day ] life-expectancy-ticks
+  set life-expectancies array:from-list life-expectancy-ticks
+end
+
+to set-mortality-rates
+  
+  ; set temperature steps
+  set mortality-temperatures array:from-list [0 12 30 99]
+  
+  ; set mortality-rates depending on temperature
+  set egg-mortality-rates-temp array:from-list [0.005 0.002 0.001 0.02]
+  set larva-mortality-rates-temp array:from-list [0.005 0.002 0.001 0.02]
+  set pupa-mortality-rates-temp array:from-list [0.005 0.002 0.001 0.02]
+  set immature-adult-mortality-rates-temp array:from-list [0.005 0.002 0.001 0.02]
+  set adult-mortality-rates-temp array:from-list [0.005 0.002 0.001 0.02]
+  
+end
 
 to fly-init-pop
   
@@ -36,13 +76,14 @@ to fly-init-pop
       set color red
       set mode "mature-adult"
       set mode-duration 0
+      set generation 1
       ifelse ( random 2 ) = 1 [ set sex "f" ][ set sex "m" ]
       set partner-search TRUE
       set eggs 0
       set genotype "wild"
       set total-age 0
-      set life-expectancy ( random 20 ) + 70
-      set days-since-fertilization 0
+      set life-expectancy ( random 20 ) + ( 70 * ticks-per-day )
+      set ticks-since-fertilization 0
     ] 
   ]
 
@@ -50,4 +91,146 @@ to fly-init-pop
     set genotype "resistant"
   ]
   
+end
+
+to kill-flies
+  
+  ask flies [
+    if total-age > life-expectancy [ die ]
+  ]
+  
+  ; ##TODO## unclear if this is working properly
+  if (ticks mod ticks-per-day) mod 2 = 0 [
+    let i ( array:length mortality-temperatures - 1 )
+    while [ i >= 0 ] [
+      
+      ifelse current-temp >= array:item mortality-temperatures i or i = 0 [
+        
+        ask n-of ( ceiling ( count flies with [mode = "egg"] * array:item egg-mortality-rates-temp i ) ) flies with [mode = "egg"] [
+          die 
+        ]
+        
+        ask n-of ( ceiling ( count flies with [mode = "larva"] * array:item larva-mortality-rates-temp i ) ) flies with [mode = "larva"] [
+          die 
+        ]
+        
+        ask n-of ( ceiling ( count flies with [mode = "pupa"] * array:item pupa-mortality-rates-temp i ) ) flies with [mode = "pupa"] [
+          die 
+        ]
+        
+        ask n-of ( ceiling ( count flies with [mode = "immature-adult"] * array:item immature-adult-mortality-rates-temp i ) ) flies with [mode = "immature-adult"] [
+          die 
+        ]
+        
+        ask n-of ( ceiling ( count flies with [mode = "mature-adult"] * array:item adult-mortality-rates-temp i ) ) flies with [mode = "mature-adult"] [
+          die 
+        ]
+        
+        set i -1
+        
+      ] [
+        set i ( i - 1 ) 
+      ]
+      
+    ]
+  ]
+  
+end
+
+to fly-activities
+  ask flies [
+
+    ; upgrade mode of fly
+    upgrade-fly
+    
+    ; if female fly detects male fly on same patch => start fertilization
+    if sex = "f" and mode = "mature-adult" and partner-search = TRUE and any? flies-here with [sex = "m"] [
+      set partner-search FALSE
+      set ticks-since-fertilization 0
+      set eggs eggs-per-cycle
+      set genotype-of-partner [genotype] of n-of 1 flies-here with [sex = "m"] 
+      set color blue
+    ]
+    
+    ; lay egg
+    ; ##TODO## => maybe more than one egg per tick??
+    if sex = "f" and eggs > 0 and ticks-since-fertilization > egg-development-duration and count (trees-on patches in-radius floor ( tree-width / 2 )) with [grown-cherries > 0] > 0 [
+    ;any? trees-here with [grown-cherries > 0] [
+      
+      ; save generation number in separate variable to make it accessible in sprout statement
+      let generation-temp generation
+      
+      ; ##TODO## determine new genotype
+      let genotype-temp genotype
+      
+      ask patch-here [
+        sprout-flies 1 [
+          set color yellow
+          set mode "egg"
+          set mode-duration 0
+          set generation generation-temp + 1
+          ifelse ( random 2 ) = 1 [ set sex "f" ][ set sex "m" ]
+          set partner-search FALSE
+          set eggs 0
+          set genotype genotype-temp
+          set total-age 0
+          ; ##TODO## get appropriate life-expectancy depending on month
+          set life-expectancy ( random 20 ) + ( 70 * ticks-per-day )
+          set ticks-since-fertilization 0
+        ]
+      ]
+      
+      ask n-of 1 (trees-on patches in-radius floor ( tree-width / 2 )) with [grown-cherries > 0] [
+        set grown-cherries ( grown-cherries - 1 )
+        set occupied-cherries ( occupied-cherries + 1 )
+        update-tree-label
+      ]
+      set eggs ( eggs - 1 )
+     
+      if eggs = 0 [
+        set partner-search TRUE
+        set color red
+      ] 
+      
+    ]
+    
+    ; in case of fertilization => increase ticks since fertilization
+    if partner-search = FALSE and sex = "f" [ set ticks-since-fertilization ( ticks-since-fertilization + 1 ) ]
+
+    ; increase age and mode-duration
+    set mode-duration ( mode-duration + 1 )
+    set total-age ( total-age + 1 )
+    
+    ; move randomly
+    if mode = "immature-adult" or mode = "mature-adult" [
+      rt random 360
+      fd 1
+    ]
+    
+  ]  
+end
+
+; upgrade mode of fly if appropriate mode duration reached
+to upgrade-fly
+  if ( mode = "immature-adult" and round (mode-duration / ticks-per-day) >= immature-adult-duration ) [
+    set mode "mature-adult"
+    set mode-duration 0
+    set partner-search TRUE
+    set color red
+  ]
+  if ( mode = "pupa" and round (mode-duration / ticks-per-day) >= pupa-duration ) [
+    set mode "immature-adult"
+    set mode-duration 0
+    set color magenta
+  ]
+  if ( mode = "larva" and round (mode-duration / ticks-per-day) >= larva-duration ) [
+    set mode "pupa"
+    set mode-duration 0
+    set color pink
+  ]   
+  if ( mode = "egg" and round (mode-duration / ticks-per-day) >= egg-duration ) [
+    set mode "larva"
+    set mode-duration 0
+    set color orange
+  ]   
 end

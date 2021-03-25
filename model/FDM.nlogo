@@ -1,3 +1,5 @@
+extensions [ csv array ]
+
 ; include files for environment and agents
 __includes [ "environment.nls" "trees.nls" "flies.nls" ]
 
@@ -15,11 +17,36 @@ globals [
   trees-per-row
   tree-rows
 
-  ; mode-durations of flies
+  ; eggs (duration values in days)
+  eggs-per-cycle
+  egg-development-duration
+
+  ; mode-durations of flies (values in days)
   egg-duration
   larva-duration
   pupa-duration
   immature-adult-duration
+
+  ; life expectancy of fly depending on month born
+  ; array => every element represents one month
+  life-expectancies
+
+  ; mortality rates (arrays for every mode depending on temperature)
+  ; example:
+  ; mortality-temperatures =>
+  ; [0] => 15 (first entry of arrays reflect the mortality rates for temperatures until 15°C)
+  ; [1] => 30 (second entry of arrays reflect the mortality rate for temperatures between 15.1°C and 30°C)
+  ; [2] => 99 (last entry of arrays reflect the mortality rate for temperatures above 30.1°C)
+  ; egg-mortality-rates-temp =>
+  ; [0] => 0.05 (5% of flies die per tick)
+  ; [1] => 0.01 (1% of flies die per tick)
+  ; [2] => 0.2 (20% of flies die per tick)
+  mortality-temperatures
+  egg-mortality-rates-temp
+  larva-mortality-rates-temp
+  pupa-mortality-rates-temp
+  immature-adult-mortality-rates-temp
+  adult-mortality-rates-temp
 
   ; weather (precipitation, temperature)
   precipitation-list
@@ -49,10 +76,13 @@ to setup
   set trees-per-row 10
   set tree-rows 5
 
-  set egg-duration 10
-  set larva-duration 10
-  set pupa-duration 10
-  set immature-adult-duration 10
+  set eggs-per-cycle 30
+  set egg-development-duration 5
+
+  set egg-duration 2
+  set larva-duration 3
+  set pupa-duration 4
+  set immature-adult-duration 5
 
   set total-cherries 0
 
@@ -64,6 +94,12 @@ to setup
 
   ; plant trees
   plant-trees
+
+  ; set life-expectancies
+  set-life-expectancies
+
+  ; set mortality rates for modes
+  set-mortality-rates
 
   ; initial population
   fly-init-pop
@@ -85,10 +121,8 @@ to go
 
   grow-cherries
 
-  ask flies [
-    rt random 360
-    fd 1
-  ]
+  kill-flies
+  fly-activities
 
   tick
 
@@ -134,13 +168,13 @@ GRAPHICS-WINDOW
 -1
 13.0
 1
-10
+13
 1
 1
 1
 0
-1
-1
+0
+0
 1
 0
 67
@@ -178,7 +212,7 @@ init-pop
 init-pop
 0
 1000
-148.0
+624.0
 1
 1
 NIL
@@ -288,7 +322,7 @@ MONITOR
 1542
 68
 occupied-cherries
-0
+sum [occupied-cherries] of trees
 17
 1
 11
@@ -340,12 +374,12 @@ SLIDER
 1009
 163
 1166
-197
+196
 mean-cherries
 mean-cherries
 0
 4000
-2857.0
+315.0
 1
 1
 NIL
@@ -355,37 +389,37 @@ SLIDER
 1169
 163
 1308
-197
+196
 sd-cherries
 sd-cherries
 0
 1000
-136.0
+99.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-1320
-165
-1480
-199
+1322
+164
+1482
+197
 cherries-growth-start
 cherries-growth-start
 0
 5475
-156.0
+127.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-1484
-165
-1646
-199
+1485
+164
+1647
+197
 cherries-growth-period
 cherries-growth-period
 0
@@ -395,6 +429,47 @@ cherries-growth-period
 1
 NIL
 HORIZONTAL
+
+PLOT
+922
+203
+1658
+467
+flies
+tick
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"eggs" 1.0 0 -1184463 true "" "plot count flies with [mode = \"egg\"]"
+"larvs" 1.0 0 -955883 true "" "plot count flies with [mode = \"larva\"]"
+"pupas" 1.0 0 -2064490 true "" "plot count flies with [mode = \"pupa\"]"
+"imm.-ad." 1.0 0 -5825686 true "" "plot count flies with [mode = \"immature-adult\"]"
+"adult" 1.0 0 -2674135 true "" "plot count flies with [mode = \"mature-adult\"]"
+
+PLOT
+922
+468
+1310
+638
+cherries
+tick
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"grown" 1.0 0 -2674135 true "" "plot sum [grown-cherries] of trees"
+"occupied" 1.0 0 -13840069 true "" "plot sum [occupied-cherries] of trees"
 
 @#$#@#$#@
 ## WHAT IS IT?
