@@ -46,6 +46,19 @@ globals [
   immature-adult-mortality-rates-temp
   adult-mortality-rates-temp
 
+  ; mortality rate between two seasons
+  mortality-off-season
+
+  ; mean 10d temperature for season start and end
+  season-start-temp
+  season-end-temp
+
+  ; season trigger (on: true, off: false)
+  season
+
+  ; number of season (counts seasons)
+  season-number
+
   ; eggs-per-day (array for eggs-per-day depending on avg. temperature)
   ; eggs-per-day-temperatures => array of temperatures (10-days avg. temp) in steps of 1°C (min and max serve as reference values for temperatures below and above the range)
   ; eggs-per-day => array of eggs-per-day rate at given avg. temperature
@@ -60,6 +73,10 @@ globals [
   temperature-list
   current-prec
   current-temp
+  ; list of temperatures of last 10 days in ticks
+  temp-10d-log
+  ; mean temperature of the last 10 days
+  mean-10d-temp
 
   total-cherries
 
@@ -102,11 +119,20 @@ to setup
 
   set life-expectancy 80 * ticks-per-day
 
+  set mortality-off-season 0.9
+  set season-start-temp 11
+  set season-end-temp 10
+  set season FALSE
+  set season-number 0
+
   set resistance-rate 0.2
 
   set total-cherries 0
 
   set path-csv-input "../params/"
+
+  set mean-10d-temp 0
+  set temp-10d-log []
 
   ; world area setup
   env-setworld
@@ -126,9 +152,6 @@ to setup
   ; set eggs-per-day rates
   eggs-per-day-rates
 
-  ; initial population
-  fly-init-pop
-
   ask patches [
     set pcolor [0 41 0]
   ]
@@ -143,6 +166,23 @@ to go
   ]
 
   get-current-weather
+  calculate-mean-temperatures
+
+  if season = FALSE and mean-10d-temp >= season-start-temp [
+    ; start season
+    ifelse season-number = 0 [
+      fly-init-pop
+    ] [
+      kill-flies-off-season
+    ]
+    set season TRUE
+    set season-number ( season-number + 1 )
+  ]
+
+  if season = TRUE and mean-10d-temp <= season-end-temp [
+    ; end season
+    set season FALSE
+  ]
 
   grow-cherries
   grow-yummy-fruits
@@ -155,7 +195,9 @@ to go
   ]
 
   kill-flies
-  fly-activities
+
+  ; if off-season => freeze
+  if season [ fly-activities ]
 
   tick
 
@@ -206,8 +248,8 @@ end
 GRAPHICS-WINDOW
 18
 18
-907
-666
+906
+665
 -1
 -1
 11.0
@@ -256,7 +298,7 @@ init-pop
 init-pop
 0
 1000
-226.0
+591.0
 1
 1
 NIL
@@ -605,9 +647,20 @@ MONITOR
 1218
 73
 1298
-119
+118
 yummy-fruits
 sum [grown-fruits] of yummy-plants
+17
+1
+11
+
+MONITOR
+1307
+75
+1373
+120
+10d temp
+mean-10d-temp
 17
 1
 11

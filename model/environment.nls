@@ -47,3 +47,20 @@ to get-current-weather
   plotxy ( ticks mod (365 * ticks-per-day) ) current-temp
   
 end
+
+to calculate-mean-temperatures 
+  
+  ; ### calculate mean of last 10 days ###
+  
+  ; remove first entry (latest entries are at the end of the list) if log is long enough (equal or greather than 10 days)
+  if length temp-10d-log >= ( 10 * ticks-per-day ) [
+    set temp-10d-log but-first temp-10d-log 
+  ]
+  
+  ; add current-temp to list
+  set temp-10d-log lput current-temp temp-10d-log
+  
+  ; calculates the mean of the list with a precision of 1
+  set mean-10d-temp precision ( mean temp-10d-log ) 1
+  
+end

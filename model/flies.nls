@@ -145,6 +145,10 @@ to fly-init-pop
   
 end
 
+to kill-flies-off-season
+  ask n-of ( ceiling ( count flies * mortality-off-season ) ) flies [ die ]
+end
+
 to kill-flies
   
   ask flies [
