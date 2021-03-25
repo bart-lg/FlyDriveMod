@@ -1,7 +1,7 @@
 to env-setworld
   
-  let world-x ( trees-per-row * tree-width + ( trees-per-row - 1 ) * tree-margin-x + 2 * yummy-plant-width + 2 * yummy-plant-margin + 2 * border-margin )
-  let world-y ( tree-rows * tree-width + ( tree-rows - 1 ) * tree-margin-y + 2 * yummy-plant-width + 2 * yummy-plant-margin + 2 * border-margin )
+  let world-x ( trees-per-row * tree-width + ( trees-per-row - 1 ) * tree-margin-x + 2 * wildberry-plant-width + 2 * wildberry-plant-margin + 2 * border-margin )
+  let world-y ( tree-rows * tree-width + ( tree-rows - 1 ) * tree-margin-y + 2 * wildberry-plant-width + 2 * wildberry-plant-margin + 2 * border-margin )
   
   resize-world 0 world-x 0 world-y
   

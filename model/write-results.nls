@@ -60,9 +60,9 @@ to write-configs-to-file
   file-print ( word "trees-per-row" " " trees-per-row )
   file-print ( word "tree-rows" " " tree-rows )
   
-  file-print ( word "yummy-plant-width" " " yummy-plant-width )
-  file-print ( word "yummy-plant-margin" " " yummy-plant-margin )
-  file-print ( word "yummy-fruits-per-plant" " " yummy-fruits-per-plant )
+  file-print ( word "wildberry-plant-width" " " wildberry-plant-width )
+  file-print ( word "wildberry-plant-margin" " " wildberry-plant-margin )
+  file-print ( word "wildberries-per-plant" " " wildberries-per-plant )
   
   file-print ( word "visibility" " " visibility )
   file-print ( word "eggs-per-cycle" " " eggs-per-cycle )
@@ -107,8 +107,8 @@ to write-headers-to-file
   set headers lput "max-cherries" headers                     ; #7
   set headers lput "grown-cherries" headers                   ; #8
   set headers lput "occupied-cherries" headers                ; #9
-  set headers lput "grown-fruits" headers                     ; #10
-  set headers lput "occupied-fruits" headers                  ; #11
+  set headers lput "grown-wildberries" headers                     ; #10
+  set headers lput "occupied-wildberries" headers                  ; #11
   set headers lput "stationary-flies" headers                 ; #12
   set headers lput "adult-flies" headers                      ; #13
   set headers lput "female-flies" headers                     ; #14
@@ -189,8 +189,8 @@ to write-values-to-file
     array:set output-values 7 sum [ max-cherries ] of trees
     array:set output-values 8 sum [ grown-cherries ] of trees
     array:set output-values 9 sum [ occupied-cherries ] of trees
-    array:set output-values 10 sum [ grown-fruits ] of yummy-plants
-    array:set output-values 11 sum [ occupied-fruits ] of yummy-plants
+    array:set output-values 10 sum [ grown-wildberries ] of wildberry-plants
+    array:set output-values 11 sum [ occupied-wildberries ] of wildberry-plants
     array:set output-values 12 count flies with [ mode = "stationary" ]
     array:set output-values 13 count flies with [ mode = "adult" ]
     array:set output-values 14 count flies with [ sex = "f" ]

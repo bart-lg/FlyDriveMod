@@ -1,7 +1,7 @@
 extensions [ csv array ]
 
 ; include files for environment and agents
-__includes [ "environment.nls" "trees.nls" "yummy-plants.nls" "flies.nls" "write-results.nls" "verification.nls" ]
+__includes [ "environment.nls" "trees.nls" "wildberry-plants.nls" "flies.nls" "write-results.nls" "verification.nls" ]
 
 ; global parameters
 globals [
@@ -25,14 +25,17 @@ globals [
   border-margin
   trees-per-row
   tree-rows
-  yummy-plant-width
-  yummy-plant-margin
+  wildberry-plant-width
+  wildberry-plant-margin
 
   visibility
 
   ; eggs (duration values in days)
   eggs-per-cycle
   egg-dev-duration
+
+  ; duration of immature state in days
+  immature-duration
 
   ; mode durations depending on avg. temperature (values in days)
   mode-duration-temperatures
@@ -99,10 +102,10 @@ globals [
   rounded-mean-10d-temp
 
   total-grown-cherries
-  total-grown-fruits
+  total-grown-wildberries
 
   cherries-available
-  fruits-available
+  wildberries-available
 
   total-cherries ; TODO: guess we dont need this
 
@@ -125,7 +128,7 @@ to setup
 
   set no-output temp-no-output
 
-  set model-version "V0.701"
+  set model-version "V0.702"
 
   if behaviorspace-run-number > 0 [ random-seed behaviorspace-run-number ]
 
@@ -139,13 +142,15 @@ to setup
   set border-margin 5
   set trees-per-row 10
   set tree-rows 5
-  set yummy-plant-width 1
-  set yummy-plant-margin 5
+  set wildberry-plant-width 1
+  set wildberry-plant-margin 5
 
   set visibility 15
 
   set eggs-per-cycle 10
   set egg-dev-duration 5
+
+  set immature-duration 2
 
   ; mortality interval: 6 weeks
   set mortality-interval 6 * 7
@@ -173,7 +178,7 @@ to setup
   set temp-10d-log []
 
   set cherries-available FALSE
-  set fruits-available FALSE
+  set wildberries-available FALSE
 
   ; create output file
   create-file
@@ -187,8 +192,8 @@ to setup
   ; plant trees
   plant-trees
 
-  ; plant yummy-plants
-  plant-yummy-plants
+  ; plant wildberry-plants
+  plant-wildberry-plants
 
   ; set mortality rates for modes
   set-mortality-rates
@@ -218,7 +223,7 @@ to go
   check-season
 
   grow-cherries
-  grow-yummy-fruits
+  grow-wildberries
 
   ; gene-drive: on/off switch
   if gene-drive [
@@ -240,7 +245,9 @@ to go
 
     update-egg-laying-mode
 
-    fruits-attract-closest-flies
+    check-immature-state
+
+    wildberries-attract-closest-flies
     cherries-attract-closest-flies
 
     female-attract-male-flies
@@ -280,6 +287,7 @@ to start-season
       set eggs 0
       set ready-to-lay-egg FALSE
       set fertilization-tick 0
+      set immature-state FALSE
     ]
   ]
   set season TRUE
@@ -389,7 +397,7 @@ init-pop
 init-pop
 0
 1000
-2.0
+5.0
 1
 1
 NIL
@@ -736,8 +744,8 @@ MONITOR
 73
 1296
 118
-yummy-fruits
-sum [grown-fruits] of yummy-plants
+wildberries
+sum [grown-wildberries] of wildberry-plants
 17
 1
 11
@@ -779,8 +787,8 @@ SLIDER
 73
 1556
 106
-yummy-fruits-per-plant
-yummy-fruits-per-plant
+wildberries-per-plant
+wildberries-per-plant
 0
 15
 50.0

@@ -8,6 +8,11 @@ flies-own [
   ; days since last mode change
   mode-duration
   
+  ; immature-state after egg laying and after release: TRUE, FALSE
+  ; immature-start: tick of immature start
+  immature-state
+  immature-start
+  
   ; generation (1 (initial population), 2, 3, ...)
   generation
   
@@ -339,6 +344,7 @@ to fly-init-pop
         set fitness fitness-PP
         set total-age 0
         set fertilization-tick 0
+        set immature-state FALSE
       ] 
     ]
   ]
@@ -549,15 +555,15 @@ to fly-activities
       ]
     ]        
     
-    if ( cherries-available or fruits-available ) and ready-to-lay-egg [
+    if ( cherries-available or wildberries-available ) and ready-to-lay-egg [
 
       let cherries-here no-turtles
       if cherries-available [ set cherries-here ( trees-on patches in-radius tree-radius ) with [grown-cherries > 0] ]
       
-      let fruits-here no-turtles
-      if fruits-available [ set fruits-here ( yummy-plants-on patch-here ) with [grown-fruits > 0] ]
+      let wildberries-here no-turtles
+      if wildberries-available [ set wildberries-here ( wildberry-plants-on patch-here ) with [grown-wildberries > 0] ]
       
-      if any? cherries-here or any? fruits-here [
+      if any? cherries-here or any? wildberries-here [
         
         ; save generation number in separate variable to make it accessible in sprout statement
         let generation-temp generation
@@ -598,6 +604,7 @@ to fly-activities
               set fitness ( get-fitness-for-genotype genotype-temp )
               set total-age 0
               set fertilization-tick 0
+              set immature-state FALSE
             ]
           ]
           
@@ -613,14 +620,14 @@ to fly-activities
             
           ] [
             
-            ifelse any? fruits-here [
+            ifelse any? wildberries-here [
               
-              ask one-of fruits-here [
-                set grown-fruits ( grown-fruits - 1 ) 
-                set occupied-fruits ( occupied-fruits + 1 )
+              ask one-of wildberries-here [
+                set grown-wildberries ( grown-wildberries - 1 ) 
+                set occupied-wildberries ( occupied-wildberries + 1 )
               ]
               
-              if sum [ grown-fruits ] of yummy-plants = 0 [ set fruits-available FALSE ]
+              if sum [ grown-wildberries ] of wildberry-plants = 0 [ set wildberries-available FALSE ]
               
             ] [
               print "Laid egg on patch with no cherries and no fruit (should not happen!)" 
@@ -640,7 +647,8 @@ to fly-activities
         set last-egg-tick ticks
         
         if eggs = 0 [
-          set partner-search TRUE
+          ; set partner-search TRUE => controlled by start-immature-state and end-immature-state
+          start-immature-state
           set color red
         ] 
         
@@ -731,12 +739,13 @@ to release-gene-drive
       if gd-gender = "male" [
         set sex "m"
       ]
-      set partner-search TRUE
+      ; set partner-search TRUE => controlled by start-immature-state and end-immature-state
       set eggs 0
       set genotype "MM"
       set fitness fitness-MM
       set total-age 0
       set fertilization-tick 0
+      start-immature-state
     ] 
   ]  
   
@@ -770,4 +779,29 @@ to female-attract-male-flies
   ]
   
 end  
+
+to start-immature-state
+  
+  set immature-state TRUE
+  set immature-start ticks
+  set partner-search FALSE
+  
+end
+
+to end-immature-state
+  
+  set immature-state FALSE
+  set partner-search TRUE
+  
+end
+
+to check-immature-state
+  
+  if ticks > ( immature-duration * ticks-per-day ) [
+    ask flies with [ immature-state = TRUE and immature-start <= ( ticks - ( immature-duration * ticks-per-day ) ) ] [
+      end-immature-state    
+    ]
+  ]
+  
+end
 

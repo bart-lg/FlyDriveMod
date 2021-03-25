@@ -1,6 +1,4 @@
 
-; TODO: prevent creation of output csvs except for testing
-
 to verification-tests
   
   ; prevents CSV-output
@@ -17,7 +15,7 @@ to verification-tests
   if not test-upgrade-fly                          verification-file [ set total-check FALSE ]
   if not test-new-genotype                         verification-file [ set total-check FALSE ]
   if not test-grow-cherries                        verification-file [ set total-check FALSE ]
-  if not test-grow-yummy-fruits                    verification-file [ set total-check FALSE ]
+  if not test-grow-wildberries                     verification-file [ set total-check FALSE ]
   if not test-get-current-weather                  verification-file [ set total-check FALSE ]
   if not test-calculate-mean-temp                  verification-file [ set total-check FALSE ]
   if not test-release-gene-drive                   verification-file [ set total-check FALSE ]
@@ -28,7 +26,7 @@ to verification-tests
   if not test-kill-flies                           verification-file [ set total-check FALSE ]
   if not test-calculate-current-eggs-per-tick-rate verification-file [ set total-check FALSE ]
   if not test-update-egg-laying-mode               verification-file [ set total-check FALSE ]
-  if not test-fruits-attract-closest-flies         verification-file [ set total-check FALSE ]
+  if not test-wildberries-attract-closest-flies    verification-file [ set total-check FALSE ]
   if not test-cherries-attract-closest-flies       verification-file [ set total-check FALSE ]
   if not test-egg-laying                           verification-file [ set total-check FALSE ]
   if not test-fitness                              verification-file [ set total-check FALSE ]
@@ -36,6 +34,7 @@ to verification-tests
   if not test-fertilization                        verification-file [ set total-check FALSE ]
   if not test-male-mating-interval                 verification-file [ set total-check FALSE ]
   if not test-female-attract-male-flies            verification-file [ set total-check FALSE ]
+  if not test-immature-state                       verification-file [ set total-check FALSE ]
   
   
   refresh-world
@@ -404,55 +403,55 @@ to-report test-grow-cherries [ verification-file ]
     
 end
 
-to-report test-grow-yummy-fruits [ verification-file ]
+to-report test-grow-wildberries [ verification-file ]
   
-  set yummy-fruits-per-plant 50
+  set wildberries-per-plant 50
   
   refresh-world
   
-  let log-header "test-grow-yummy-fruits: "
+  let log-header "test-grow-wildberries: "
   let log-content ""    
     
-  if sum [ grown-fruits ] of yummy-plants != count yummy-plants * yummy-fruits-per-plant [
-    set log-content word log-content "FAILURE IN GROW-YUMMY-FRUITS; " 
+  if sum [ grown-wildberries ] of wildberry-plants != count wildberry-plants * wildberries-per-plant [
+    set log-content word log-content "FAILURE IN GROW-WILDBERRIES; " 
   ]
   
-  ask yummy-plants [ set grown-fruits ( grown-fruits - 10 ) ]
+  ask wildberry-plants [ set grown-wildberries ( grown-wildberries - 10 ) ]
   
   while [ ticks < 10 ] [
     
-    grow-yummy-fruits
+    grow-wildberries
     
-    if ticks = 4 and sum [ grown-fruits ] of yummy-plants != count yummy-plants * ( yummy-fruits-per-plant - 5 ) [
-      set log-content word log-content "FAILURE IN GROW-YUMMY-FRUITS (GROW-RATE); " 
+    if ticks = 4 and sum [ grown-wildberries ] of wildberry-plants != count wildberry-plants * ( wildberries-per-plant - 5 ) [
+      set log-content word log-content "FAILURE IN GROW-WILDBERRIES (GROW-RATE); " 
     ]
     
     tick
     
   ]
   
-  if sum [ grown-fruits ] of yummy-plants != count yummy-plants * yummy-fruits-per-plant [
-    set log-content word log-content "FAILURE IN GROW-YUMMY-FRUITS; " 
+  if sum [ grown-wildberries ] of wildberry-plants != count wildberry-plants * wildberries-per-plant [
+    set log-content word log-content "FAILURE IN GROW-WILDBERRIES; " 
   ]
 
-  ask patches with [ count yummy-plants-here > 0 ] [
+  ask patches with [ count wildberry-plants-here > 0 ] [
     sprout-flies 5 [
       set mode "stationary"
     ] 
   ]
   
-  ask yummy-plants [ set grown-fruits ( grown-fruits - 10 ) ]
+  ask wildberry-plants [ set grown-wildberries ( grown-wildberries - 10 ) ]
   
   while [ ticks < 20 ] [
     
-    grow-yummy-fruits
+    grow-wildberries
     
     tick
     
   ]
   
-  if sum [ grown-fruits ] of yummy-plants != count yummy-plants * ( yummy-fruits-per-plant - 5 ) [
-    set log-content word log-content "FAILURE IN GROW-YUMMY-FRUITS (STATIONARY FLIES); "
+  if sum [ grown-wildberries ] of wildberry-plants != count wildberry-plants * ( wildberries-per-plant - 5 ) [
+    set log-content word log-content "FAILURE IN GROW-WILDBERRIES (STATIONARY FLIES); "
   ]
   
   ask flies [ die ]
@@ -548,8 +547,8 @@ to-report test-release-gene-drive [ verification-file ]
     set log-content word log-content "GENERATION NOT 1; "
   ]
 
-  if count flies with [ partner-search = TRUE ] != count flies [
-    set log-content word log-content "FLIES NOT SEARCHING FOR PARTNERS; "
+  if count flies with [ immature-state = TRUE ] != count flies [
+    set log-content word log-content "WRONG IMMATURE-STATE [A]; "
   ]
 
   if count flies with [ eggs = 0 ] != count flies [
@@ -571,6 +570,22 @@ to-report test-release-gene-drive [ verification-file ]
   if count flies with [ ticks-since-fertilization = 0 ] != count flies [
     set log-content word log-content "TICKS SINCE FERTILIZATION NOT 0; "
   ]
+  
+  ; test immature-duration
+  while [ ticks < ( ticks-per-day * immature-duration ) ] [
+    tick
+    check-immature-state
+    fly-activities
+    if count flies with [ immature-state = TRUE ] != count flies [
+      set log-content word log-content "WRONG IMMATURE-STATE [B]; "
+    ]
+  ]
+  tick
+  check-immature-state
+  fly-activities  
+  if count flies with [ immature-state = FALSE and partner-search = TRUE ] != count flies [
+    set log-content word log-content "FLIES NOT SEARCHING FOR PARTNERS; "
+  ]  
   
   ; test gender switch
   
@@ -1423,11 +1438,11 @@ to-report test-update-egg-laying-mode [ verification-file ]
   
 end
 
-to-report test-fruits-attract-closest-flies [ verification-file ] ; raise to double fly attraction
+to-report test-wildberries-attract-closest-flies [ verification-file ] ; raise to double fly attraction
   
   refresh-world
   
-  let log-header "test-fruits-attract-closest-flies: "
+  let log-header "test-wildberries-attract-closest-flies: "
   let log-content ""
   
   let i 0
@@ -1460,12 +1475,12 @@ to-report test-fruits-attract-closest-flies [ verification-file ] ; raise to dou
     set i ( i + 1 )
   ] 
   
-  ; grow 3 fruits
-  grow-yummy-fruits 
-  grow-yummy-fruits 
-  grow-yummy-fruits 
+  ; grow 3 wildberries
+  grow-wildberries 
+  grow-wildberries 
+  grow-wildberries 
   
-  fruits-attract-closest-flies
+  wildberries-attract-closest-flies
   ask flies [ fd 1 ]
     
   if count flies-on patch x-coordinate y-coordinate != 0 [
@@ -1473,7 +1488,7 @@ to-report test-fruits-attract-closest-flies [ verification-file ] ; raise to dou
   ]
   
   if count flies-on patch x-coordinate ( y-coordinate + 1 ) != 3 [
-    set log-content word log-content "FLIES NOT ATTRACTED BY YUMMY-PLANT; "
+    set log-content word log-content "FLIES NOT ATTRACTED BY WILDBERRY-PLANT; "
   ]
   
   write-verification-result-to-file verification-file log-header log-content
@@ -1494,8 +1509,8 @@ to-report test-cherries-attract-closest-flies [ verification-file ]
   start-season   
  
   ; coordinates in world
-  let x-coordinate ( border-margin + yummy-plant-width + yummy-plant-margin )
-  let y-coordinate ( border-margin + yummy-plant-width + yummy-plant-margin ) - 2
+  let x-coordinate ( border-margin + wildberry-plant-width + wildberry-plant-margin )
+  let y-coordinate ( border-margin + wildberry-plant-width + wildberry-plant-margin ) - 2
   
   ; convert flies to flies with eggs
   ask flies [
@@ -1573,12 +1588,12 @@ to-report test-egg-laying [ verification-file ]
     set occupied-cherries 0
   ]
   set cherries-available TRUE
-  ; grow fruits
-  ask yummy-plants [
-    set grown-fruits 5
-    set occupied-fruits 0
+  ; grow wildberries
+  ask wildberry-plants [
+    set grown-wildberries 5
+    set occupied-wildberries 0
   ]
-  set fruits-available TRUE
+  set wildberries-available TRUE
   ; create flies
   set init-pop 2
   start-season
@@ -1597,7 +1612,7 @@ to-report test-egg-laying [ verification-file ]
     move-to min-one-of trees [who] ; move to tree with lowest id
   ]
   ask one-of flies [
-    move-to min-one-of yummy-plants [who] ; move to yummy-plant with lowest id
+    move-to min-one-of wildberry-plants [who] ; move to wildberry-plant with lowest id
   ]
   ; lay eggs
   fly-activities
@@ -1643,7 +1658,7 @@ to-report test-egg-laying [ verification-file ]
     move-to min-one-of trees [who] ; move to tree with lowest id
   ]
   ask one-of flies [
-    move-to min-one-of yummy-plants [who] ; move to yummy-plant with lowest id
+    move-to min-one-of wildberry-plants [who] ; move to wildberry-plant with lowest id
   ]
   
   tick
@@ -1657,7 +1672,7 @@ to-report test-egg-laying [ verification-file ]
     move-to min-one-of trees [who] ; move to tree with lowest id
   ]
   ask one-of flies [
-    move-to min-one-of yummy-plants [who] ; move to yummy-plant with lowest id
+    move-to min-one-of wildberry-plants [who] ; move to wildberry-plant with lowest id
   ]
 
   tick
@@ -1668,10 +1683,10 @@ to-report test-egg-laying [ verification-file ]
     set log-content word log-content "CHECK EGG LAYING DELAY (second tick): wrong number of flies; "
   ]
   
-  ; 3.TEST check partner-search flag when all eggs had been layed
+  ; 3.TEST check immature-state when all eggs had been layed
   ask flies with [ mode = "adult" ] [
-    if partner-search != TRUE [
-      set log-content word log-content "LAY EGG: wrong partner-search flag after eggs had been layed; "
+    if immature-state != TRUE [
+      set log-content word log-content "LAY EGG: wrong immature-state after eggs had been layed; "
     ]
   ]
   
@@ -1695,7 +1710,7 @@ to-report test-egg-laying [ verification-file ]
     ]
   ]
   ask flies with [ mode = "stationary" ] [
-    if count trees-here = 0 and count yummy-plants-here = 0 [
+    if count trees-here = 0 and count wildberry-plants-here = 0 [
       set log-content word log-content "LAY EGG: movement of stationary flies detected; "
     ]
     die
@@ -1722,12 +1737,12 @@ to-report test-fitness [ verification-file ]
     set occupied-cherries 0
   ]
   set cherries-available TRUE
-  ; grow fruits
-  ask yummy-plants [
-    set grown-fruits 5
-    set occupied-fruits 0
+  ; grow wildberries
+  ask wildberry-plants [
+    set grown-wildberries 5
+    set occupied-wildberries 0
   ]
-  set fruits-available TRUE
+  set wildberries-available TRUE
   ; create flies
   set init-pop 1
   start-season
@@ -1781,12 +1796,12 @@ to-report test-gene-drive [ verification-file ]
     set occupied-cherries 0
   ]
   set cherries-available TRUE
-  ; grow fruits
-  ask yummy-plants [
-    set grown-fruits 5
-    set occupied-fruits 0
+  ; grow wildberries
+  ask wildberry-plants [
+    set grown-wildberries 5
+    set occupied-wildberries 0
   ]
-  set fruits-available TRUE
+  set wildberries-available TRUE
   ; create flies
   set init-pop 1000
   start-season
@@ -1818,12 +1833,12 @@ to-report test-gene-drive [ verification-file ]
     set occupied-cherries 0
   ]
   set cherries-available TRUE
-  ; grow fruits
-  ask yummy-plants [
-    set grown-fruits 5
-    set occupied-fruits 0
+  ; grow wildberries
+  ask wildberry-plants [
+    set grown-wildberries 5
+    set occupied-wildberries 0
   ]
-  set fruits-available TRUE
+  set wildberries-available TRUE
   ; create flies
   set init-pop 1000
   start-season
@@ -2064,6 +2079,116 @@ to-report test-female-attract-male-flies [ verification-file ]
     set log-content word log-content "male fly moved in wrong direction; " 
   ]
 
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]
+  
+end  
+
+to-report test-immature-state [ verification-file ]
+  
+  refresh-world
+  
+  let log-header "test-immature-state: "
+  let log-content ""
+  
+  set current-eggs-per-tick 1
+  set egg-dev-duration 0
+  
+  let target-value-immature-start 0 
+  ; temporary index
+  let i 0
+
+  ; TEST: immature-state after egg laying
+  ; see immature-state test after gene-drive release in test-release-gene-drive
+  
+  ; grow cherries
+  ask trees [
+    set grown-cherries 5
+    set occupied-cherries 0
+  ]
+  set cherries-available TRUE
+
+  ; create flies
+  set init-pop 2
+  start-season
+  ; modify flies
+  ask flies [
+    set sex "m"
+  ]
+  ask min-one-of flies [who] [
+    set sex "f"
+    set ready-to-lay-egg TRUE
+    set partner-search FALSE
+    set eggs 2
+    set genotype "++"
+    set genotype-of-partner "++"
+    set fitness 1
+    set fitness-of-partner 1
+    set combined-fitness 1
+    set fertilization-tick 0
+  ]
+
+  ; lay first egg
+  tick
+  ask flies [
+    move-to min-one-of trees [who] ; move to tree with lowest id
+  ]  
+  update-egg-laying-mode
+  check-immature-state  
+  fly-activities
+  tick
+  if count flies != 3 [ 
+    set log-content word log-content "egg laying error (first); " 
+  ]
+  
+  ; lay second egg
+  ask flies [
+    move-to min-one-of trees [who] ; move to tree with lowest id
+  ]  
+  update-egg-laying-mode
+  check-immature-state    
+  fly-activities
+  set target-value-immature-start ticks
+  tick 
+  if count flies != 4 [ 
+    set log-content word log-content "egg laying error (second); " 
+  ]  
+
+  ; test immature-state
+  while [ i < ( ticks-per-day * immature-duration ) ] [
+    ask min-one-of flies [who] [
+      if immature-state != TRUE [
+        set log-content ( word log-content "wrong immature-state [" i "]; " )
+      ]
+      if immature-start != target-value-immature-start [
+        set log-content ( word log-content "wrong immature-start [" i "]; " )
+      ]
+    ]
+    ask flies [
+      move-to min-one-of trees [who] ; move to tree with lowest id
+    ]    
+    update-egg-laying-mode
+    check-immature-state    
+    fly-activities
+    tick 
+    
+    set i ( i + 1 )
+  ]
+
+  ; test fertilization
+  ask min-one-of flies [who] [
+    if immature-state != FALSE [
+      set log-content ( word log-content "wrong immature-state [B]; " )
+    ] 
+    if not ( eggs > 0 ) [ 
+      set log-content ( word log-content "fertilization failure after immature-state [C]; " )
+    ] 
+  ]
+  ask flies [
+    move-to min-one-of trees [who] ; move to tree with lowest id
+  ]    
+
+  
   write-verification-result-to-file verification-file log-header log-content
   ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]
   
