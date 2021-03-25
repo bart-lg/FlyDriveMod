@@ -127,7 +127,7 @@ to setup
 
   set no-output temp-no-output
 
-  set model-version "V0.703"
+  set model-version "V1.0.0"
 
   if behaviorspace-run-number > 0 [ random-seed behaviorspace-run-number ]
 
