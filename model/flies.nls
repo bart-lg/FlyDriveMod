@@ -1,0 +1,53 @@
+breed [ flies fly ]
+
+; properties of fly
+flies-own [
+  
+  ; modes: egg (yellow), larva (orange), pupa (pink), immature-adult (magenta), mature-adult (red)
+  mode
+  ; days since last mode change
+  mode-duration
+  
+  ; sex: f,m
+  sex
+  
+  ; partner-search: TRUE, FALSE (if false => color: blue)
+  partner-search
+  
+  ; number of eggs in body
+  eggs
+  
+  ; genotype: modified, wild, resistant
+  genotype
+  
+  ; following properties in days
+  total-age
+  life-expectancy
+  days-since-fertilization
+  
+]
+
+to fly-init-pop
+  
+  set-default-shape flies "dot"
+  
+  ask n-of init-pop patches [
+    sprout-flies 1 [
+      set color red
+      set mode "mature-adult"
+      set mode-duration 0
+      ifelse ( random 2 ) = 1 [ set sex "f" ][ set sex "m" ]
+      set partner-search TRUE
+      set eggs 0
+      set genotype "wild"
+      set total-age 0
+      set life-expectancy ( random 20 ) + 70
+      set days-since-fertilization 0
+    ] 
+  ]
+
+  ask n-of ( init-pop * ( resistant-ratio / 100 ) ) flies [
+    set genotype "resistant"
+  ]
+  
+end

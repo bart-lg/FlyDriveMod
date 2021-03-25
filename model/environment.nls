@@ -1,0 +1,45 @@
+extensions [ csv ]
+
+to env-setworld
+  
+  let world-x ( trees-per-row * tree-width + ( trees-per-row - 1 ) * tree-margin-x + 2 * border-margin )
+  let world-y ( tree-rows * tree-width + ( tree-rows - 1 ) * tree-margin-y + 2 * border-margin )
+  
+  resize-world 0 world-x 0 world-y
+  
+end
+
+to load-weather-data
+  
+  ; load temperatures (every line represents 1 tick)
+  file-open "temperature-reduced.csv"
+  set temperature-list []
+  set-current-plot "Weather data"
+  set-current-plot-pen "prev-t"
+  let t 1
+  while [file-at-end? = false] [
+    ; read line
+    let value file-read
+    ; plot preview
+    plotxy t value
+    ; add value to the end of list
+    set temperature-list lput value temperature-list 
+    set t ( t + 1 )
+  ]
+  set current-temp first temperature-list
+  file-close
+  
+end
+
+to get-current-weather
+  
+  set current-temp first temperature-list
+  if ( length temperature-list > 1 ) [ set temperature-list but-first temperature-list ]
+  
+  set-current-plot "Weather data"
+  set-current-plot-pen "prec"
+  plotxy ticks current-prec  
+  set-current-plot-pen "temp"
+  plotxy ticks current-temp  
+  
+end

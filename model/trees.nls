@@ -1,0 +1,76 @@
+breed [ trees tree ]
+
+; properties of tree
+trees-own [
+  
+  max-cherries
+  grown-cherries
+  occupied-cherries
+  
+]
+
+to plant-trees
+  
+  ; coordinates in world
+  let x-coordinate 0
+  let y-coordinate 0
+  
+  ; tree indices
+  let i 1
+  let j 1 
+  
+  while [ i <= tree-rows ] [
+    
+    set j 1
+    while [ j <= trees-per-row ] [
+      
+      set x-coordinate ( border-margin + ( j - 1 ) * ( tree-width + tree-margin-x ) )
+      set y-coordinate ( border-margin + ( i - 1 ) * ( tree-width + tree-margin-y ) )
+      
+      if ( tree-width > 1 ) [ set x-coordinate ( x-coordinate + ceiling ( tree-width / 2 ) ) ]
+      if ( tree-width > 1 ) [ set y-coordinate ( y-coordinate + ceiling ( tree-width / 2 ) ) ]
+
+      create-trees 1 [
+        set shape "circle"
+        set color green
+        set size tree-width 
+        setxy x-coordinate y-coordinate
+        set max-cherries round ( random-normal mean-cherries sd-cherries )
+        set grown-cherries 0
+        set occupied-cherries 0
+        update-tree-label     
+      ]
+      
+      set j ( j + 1 ) 
+    ]
+    
+    set i ( i + 1 ) 
+  ]
+  
+end
+
+to update-tree-label
+  set label ( word grown-cherries "|" occupied-cherries )
+end
+
+to grow-cherries
+  
+  if ( ticks >= cherries-growth-start ) and ( ticks <= cherries-growth-start + cherries-growth-period ) [
+    ifelse ( ticks = cherries-growth-start + cherries-growth-period ) [
+      ask trees [
+        set grown-cherries ( max-cherries - occupied-cherries )  
+        update-tree-label
+      ]
+    ] [
+      ask trees [
+        set grown-cherries ( grown-cherries + round ( random-normal ( max-cherries / cherries-growth-period ) ( max-cherries / cherries-growth-period ) ) )
+        if ( grown-cherries + occupied-cherries ) > max-cherries [
+          set grown-cherries ( max-cherries - occupied-cherries )
+        ]
+        update-tree-label
+      ]
+    ]
+    set total-cherries sum [grown-cherries] of trees
+  ]
+  
+end
