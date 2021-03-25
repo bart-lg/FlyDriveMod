@@ -20,9 +20,14 @@ to create-file
   if minute < 10 [ set minute word "0" minute ]
   if second < 10 [ set second word "0" second ]
   
-  set output-file-name ( word "../output/" year "-" month "-" day " " hour "_" minute "_" second " output.csv" )
+  set output-file-name ( word "../output/" year "-" month "-" day " " hour "_" minute "_" second " [" behaviorspace-run-number "] output.csv" )
+  let config-output-file-name ( word "../output/" year "-" month "-" day " " hour "_" minute "_" second " [" behaviorspace-run-number "] config-output.csv" )
   
-  carefully [ file-delete output-file-name ] []
+  file-open config-output-file-name
+  
+  write-configs-to-file
+  
+  file-close
   
   file-open output-file-name
   
@@ -32,9 +37,58 @@ to create-file
   
 end
 
+to write-configs-to-file
+  
+  file-print ( word "max-years" " " max-years )
+  
+  file-print ( word "ticks-per-day" " " ticks-per-day )
+  
+  file-print ( word "tree-width" " " tree-width )
+  file-print ( word "tree-radius" " " tree-radius )
+  file-print ( word "tree-margin-x" " " tree-margin-x )
+  file-print ( word "tree-margin-y" " " tree-margin-y )
+  file-print ( word "border-margin" " " border-margin )
+  file-print ( word "trees-per-row" " " trees-per-row )
+  file-print ( word "tree-rows" " " tree-rows )
+  
+  file-print ( word "yummy-plant-width" " " yummy-plant-width )
+  file-print ( word "yummy-plant-margin" " " yummy-plant-margin )
+  file-print ( word "yummy-fruits-per-plant" " " yummy-fruits-per-plant )
+  
+  file-print ( word "visibility" " " visibility )
+  file-print ( word "eggs-per-cycle" " " eggs-per-cycle )
+  file-print ( word "egg-dev-duration" " " egg-dev-duration )
+  
+  file-print ( word "mortality-interval" " " mortality-interval )
+  file-print ( word "mortality-off-season" " " mortality-off-season )
+  file-print ( word "season-start-temp" " " season-start-temp )
+  file-print ( word "season-end-temp" " " season-end-temp )
+  
+  file-print ( word "resistance-rate" " " resistance-rate )
+  file-print ( word "fitness-PP" " " fitness-PP )
+  file-print ( word "fitness-PR" " " fitness-PR )
+  file-print ( word "fitness-RR" " " fitness-RR )
+  file-print ( word "fitness-MM" " " fitness-MM )
+  file-print ( word "fitness-MR" " " fitness-MR )
+  file-print ( word "fitness-MP" " " fitness-MP )
+  
+  file-print ( word "init-pop" " " init-pop )
+  file-print ( word "resistant-ratio" " " resistant-ratio )
+  
+  file-print ( word "gene-drive" " " gene-drive )
+  file-print ( word "release-amount" " " release-amount )
+  file-print ( word "release-day" " " release-day )
+  
+  file-print ( word "mean-cherries" " " mean-cherries )
+  file-print ( word "sd-cherries" " " sd-cherries )
+  file-print ( word "cherries-growth-start" " " cherries-growth-start )
+  file-print ( word "cherries-growth-period"  " " cherries-growth-period )
+  
+end
+
 to write-headers-to-file
   
-  let number-of-values 72
+  let number-of-values 62
   
   set output-values array:from-list n-values number-of-values [0]
   
@@ -100,16 +154,6 @@ to write-headers-to-file
   set headers lput "killed-M+-adult" headers                  ; #59 => set in procedure kill-flies in flies.nls
   set headers lput "killed-MR-stat" headers                   ; #60 => set in procedure kill-flies in flies.nls
   set headers lput "killed-MR-adult" headers                  ; #61 => set in procedure kill-flies in flies.nls
-  set headers lput "time-01" headers                          ; #62
-  set headers lput "time-02" headers                          ; #63
-  set headers lput "time-03" headers                          ; #64
-  set headers lput "time-04" headers                          ; #65
-  set headers lput "time-05" headers                          ; #66
-  set headers lput "time-06" headers                          ; #67
-  set headers lput "time-07" headers                          ; #68
-  set headers lput "time-08" headers                          ; #69
-  set headers lput "time-09" headers                          ; #70
-  set headers lput "time-10" headers                          ; #71
 
   while [ length headers > 0 ] [
    
@@ -175,16 +219,6 @@ to write-values-to-file
   array:set output-values 44 current-male-stat-duration
   array:set output-values 45 current-male-adult-longevity
   ; 48-61 see procedures...
-  array:set output-values 62 array:item time-measurements 0
-  array:set output-values 63 array:item time-measurements 1
-  array:set output-values 64 array:item time-measurements 2
-  array:set output-values 65 array:item time-measurements 3
-  array:set output-values 66 array:item time-measurements 4
-  array:set output-values 67 array:item time-measurements 5
-  array:set output-values 68 array:item time-measurements 6
-  array:set output-values 69 array:item time-measurements 7
-  array:set output-values 70 array:item time-measurements 8
-  array:set output-values 71 array:item time-measurements 9  
   
   file-open output-file-name
 
@@ -202,6 +236,5 @@ to write-values-to-file
   file-close
   
   set output-values array:from-list n-values array:length output-values [0]
-  set time-measurements array:from-list n-values 10 [0]
   
 end

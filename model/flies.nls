@@ -148,10 +148,10 @@ to set-mode-durations
       let row csv:from-row file-read-line
       
       ; set temperature steps
-      set mode-duration-temperatures array:from-list lput item 0 row array:to-list mode-duration-temperatures
+      set mode-duration-temperatures array:from-list lput   item 0 row                   array:to-list mode-duration-temperatures
       
       ; set female-egg-to-pupa-durations depending on temperature
-      set female-stat-durations      array:from-list lput item 1 row array:to-list female-stat-durations
+      set female-stat-durations      array:from-list lput ( item 1 row * ticks-per-day ) array:to-list female-stat-durations
       
     ]  
     
@@ -177,7 +177,7 @@ to set-mode-durations
       let row csv:from-row file-read-line
       
       ; set female-egg-to-pupa-durations depending on temperature
-      set female-adult-longevities array:from-list lput item 1 row array:to-list female-adult-longevities
+      set female-adult-longevities array:from-list lput ( item 1 row * ticks-per-day ) array:to-list female-adult-longevities
       
     ]  
     
@@ -203,7 +203,7 @@ to set-mode-durations
       let row csv:from-row file-read-line
       
       ; set female-egg-to-pupa-durations depending on temperature
-      set male-stat-durations array:from-list lput item 1 row array:to-list male-stat-durations
+      set male-stat-durations array:from-list lput ( item 1 row * ticks-per-day ) array:to-list male-stat-durations
       
     ]  
     
@@ -229,7 +229,7 @@ to set-mode-durations
       let row csv:from-row file-read-line
       
       ; set female-egg-to-pupa-durations depending on temperature
-      set male-adult-longevities array:from-list lput item 1 row array:to-list male-adult-longevities
+      set male-adult-longevities array:from-list lput ( item 1 row * ticks-per-day ) array:to-list male-adult-longevities
       
     ]  
     
@@ -245,7 +245,7 @@ to get-current-mode-durations
   let i 0
   let stop-flag FALSE
   while [ not stop-flag ] [
-    ifelse ( array:item mode-duration-temperatures i ) >= ( round mean-10d-temp ) [ 
+    ifelse ( array:item mode-duration-temperatures i ) >= rounded-mean-10d-temp [ 
       set stop-flag TRUE
     ] [
       ifelse i < ( array:length mode-duration-temperatures - 1 ) [
@@ -269,7 +269,7 @@ to calculate-current-eggs-per-tick-rate
   let i 0
   let stop-flag FALSE
   while [ not stop-flag ] [
-    ifelse ( array:item eggs-per-day-temperatures i ) >= ( round mean-10d-temp ) [ 
+    ifelse ( array:item eggs-per-day-temperatures i ) >= rounded-mean-10d-temp [ 
       set stop-flag TRUE
     ] [
       ifelse i < ( array:length eggs-per-day-temperatures - 1 ) [
@@ -326,8 +326,8 @@ to kill-flies
   let male-adult-flies   count flies with [ sex = "m" and mode = "adult" ]
   
   ask flies [
-    if sex = "f" and mode = "adult" and current-female-adult-longevity < ( mode-duration / ticks-per-day ) [ die ]
-    if sex = "m" and mode = "adult" and current-male-adult-longevity   < ( mode-duration / ticks-per-day ) [ die ]
+    if sex = "f" and mode = "adult" and current-female-adult-longevity < mode-duration [ die ]
+    if sex = "m" and mode = "adult" and current-male-adult-longevity   < mode-duration [ die ]
   ]
   ; log
   array:set output-values 48 ( female-adult-flies - ( count flies with [ sex = "f" and mode = "adult" ] ) )
@@ -338,8 +338,9 @@ to kill-flies
   ; determine index for arrays
   let i 0
   let stop-flag FALSE
+  
   while [ not stop-flag ] [
-    ifelse ( array:item mortality-temperatures i ) >= ( round mean-10d-temp ) [ 
+    ifelse ( array:item mortality-temperatures i ) >= rounded-mean-10d-temp [ 
       set stop-flag TRUE
     ] [
       ifelse i < ( array:length mortality-temperatures - 1 ) [
@@ -459,17 +460,16 @@ to kill-flies
 end
 
 to fly-activities
+  
+  let inverse-current-eggs-per-tick round ( 1 / current-eggs-per-tick )
+  
   ask flies [
 
-    reset-timer
-    
     ; upgrade mode of fly
     upgrade-fly
     
-    if timer > array:item time-measurements 3 [ array:set time-measurements 3 timer ]
-    
     let ready-to-lay-egg FALSE
-    if current-eggs-per-tick > 0 and sex = "f" and eggs > 0 and ticks-since-fertilization > egg-dev-duration and ( ticks - last-egg-tick ) >= round ( 1 / current-eggs-per-tick ) [
+    if current-eggs-per-tick > 0 and sex = "f" and eggs > 0 and ticks-since-fertilization > egg-dev-duration and ( ticks - last-egg-tick ) >= inverse-current-eggs-per-tick [
       set ready-to-lay-egg TRUE
     ]
     
@@ -485,9 +485,7 @@ to fly-activities
     ; lay egg
     if ready-to-lay-egg [ 
 
-      reset-timer
-      
-      let cherries-here ( trees-on patches in-radius floor ( tree-width / 2 ) ) with [grown-cherries > 0]
+      let cherries-here ( trees-on patches in-radius tree-radius ) with [grown-cherries > 0]
       let fruits-here ( yummy-plants-on patch-here ) with [grown-fruits > 0]
       
       if any? cherries-here or any? fruits-here [
@@ -567,8 +565,6 @@ to fly-activities
         
       ]
       
-      if timer > array:item time-measurements 4 [ array:set time-measurements 4 timer ]
-      
     ]
     
     ; in case of fertilization => increase ticks since fertilization
@@ -577,8 +573,6 @@ to fly-activities
     ; increase age and mode-duration
     set mode-duration ( mode-duration + 1 )
     set total-age ( total-age + 1 )
-    
-    reset-timer
     
     ; female flies with eggs can sens cherries and fruits in a distance of 15m
     ifelse ready-to-lay-egg [
@@ -624,8 +618,6 @@ to fly-activities
       
     ]
     
-    if timer > array:item time-measurements 5 [ array:set time-measurements 5 timer ]
-    
   ]  
 end
 
@@ -634,14 +626,14 @@ to upgrade-fly
   
   if mode = "stationary" [
     
-    if ( sex = "f" and mode = "stationary" and round (mode-duration / ticks-per-day) >= current-female-stat-duration ) [
+    if ( sex = "f" and mode = "stationary" and mode-duration >= current-female-stat-duration ) [
       set mode "adult"
       set mode-duration 0
       set partner-search TRUE
       set color red
     ]
     
-    if ( sex = "m" and mode = "stationary" and round (mode-duration / ticks-per-day) >= current-male-stat-duration ) [
+    if ( sex = "m" and mode = "stationary" and mode-duration >= current-male-stat-duration ) [
       set mode "adult"
       set mode-duration 0
       set partner-search TRUE

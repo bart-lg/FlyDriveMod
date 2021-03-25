@@ -14,6 +14,7 @@ globals [
 
   ; world
   tree-width
+  tree-radius
   tree-margin-x
   tree-margin-y
   border-margin
@@ -92,6 +93,7 @@ globals [
   temp-10d-log
   ; mean temperature of the last 10 days
   mean-10d-temp
+  rounded-mean-10d-temp
 
   total-cherries ; TODO: guess we dont need this
 
@@ -99,9 +101,6 @@ globals [
 
   ; path for input csv files
   path-csv-input
-
-  ; timer
-  time-measurements
 
 ]
 
@@ -115,6 +114,7 @@ to setup
   set ticks-per-day 15
 
   set tree-width 3
+  set tree-radius floor ( tree-width / 2 )
   set tree-margin-x 3
   set tree-margin-y 5
   set border-margin 5
@@ -155,8 +155,6 @@ to setup
   set mean-10d-temp 0
   set temp-10d-log []
 
-  set time-measurements array:from-list n-values 10 [0]
-
   ; create output file
   create-file
 
@@ -194,13 +192,8 @@ to go
     stop
   ]
 
-  reset-timer
-
   get-current-weather
   calculate-mean-temperatures
-
-  array:set time-measurements 0 timer
-  reset-timer
 
   if season = FALSE and round ( mean-10d-temp ) >= season-start-temp [
     ; start season
@@ -236,12 +229,8 @@ to go
     ]
   ]
 
-  array:set time-measurements 1 timer
-
   ; if off-season => freeze
   if season [
-
-    reset-timer
 
     ; kill flies at beginning of the day ( mortality rate per tick is unefficient )
     if ticks mod ticks-per-day = 0 [
@@ -249,17 +238,11 @@ to go
       kill-flies
     ]
 
-    array:set time-measurements 2 timer
-
     calculate-current-eggs-per-tick-rate
     fly-activities
   ]
 
-  reset-timer
-
   write-values-to-file
-
-  if timer > array:item time-measurements 6 [ array:set time-measurements 6 timer ]
 
   tick
 
@@ -360,7 +343,7 @@ init-pop
 init-pop
 0
 1000
-200.0
+501.0
 1
 1
 NIL
@@ -594,7 +577,7 @@ true
 true
 "" ""
 PENS
-"dev" 1.0 0 -1184463 true "" "plot count flies with [mode = \"stationary\"]"
+"stat" 1.0 0 -1184463 true "" "plot count flies with [mode = \"stationary\"]"
 "adult" 1.0 0 -2674135 true "" "plot count flies with [mode = \"adult\"]"
 
 PLOT
@@ -674,7 +657,7 @@ release-amount
 release-amount
 0
 10000
-100.0
+240.0
 10
 1
 NIL
@@ -1125,6 +1108,53 @@ NetLogo 6.1.1
     </enumeratedValueSet>
     <enumeratedValueSet variable="mean-cherries">
       <value value="252"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="combination-test1" repetitions="1" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <enumeratedValueSet variable="random-seed">
+      <value value="1"/>
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-period">
+      <value value="45"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gene-drive">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistant-ratio">
+      <value value="0"/>
+      <value value="25"/>
+      <value value="50"/>
+      <value value="75"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="init-pop">
+      <value value="100"/>
+      <value value="500"/>
+      <value value="1000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-day">
+      <value value="58"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-years">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-amount">
+      <value value="0"/>
+      <value value="100"/>
+      <value value="500"/>
+      <value value="1000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-start">
+      <value value="101"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sd-cherries">
+      <value value="18"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mean-cherries">
+      <value value="252"/>
+      <value value="1000"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>
