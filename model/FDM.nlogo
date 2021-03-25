@@ -83,10 +83,10 @@ globals [
   current-eggs-per-tick
 
   ; fitness
-  fitness-PP
+  ;fitness-PP (slider input)
+  ;fitness-RR (slider input)
+  ;fitness-MM (slider input)
   fitness-PR
-  fitness-RR
-  fitness-MM
   fitness-MR
   fitness-MP
 
@@ -124,7 +124,7 @@ to setup
 
   set no-output temp-no-output
 
-  set model-version "V1.0.0"
+  set model-version "V1.1.0"
 
   if behaviorspace-run-number > 0 [ random-seed behaviorspace-run-number ]
 
@@ -143,8 +143,8 @@ to setup
 
   set visibility 15
 
-  set eggs-per-cycle 10
-  set egg-dev-duration 5
+  set eggs-per-cycle 33
+  set egg-dev-duration 2
 
   set immature-duration 2
 
@@ -157,12 +157,12 @@ to setup
   set season FALSE
   set season-number 0
 
-  set fitness-PP 1
-  set fitness-PR 1
-  set fitness-RR 1
-  set fitness-MM 0.6
-  set fitness-MR 0.8
-  set fitness-MP 0.8
+  ;set fitness-PP 1 (slider input)
+  ;set fitness-RR 1 (slider input)
+  ;set fitness-MM 0.6 (slider input)
+  set fitness-PR ( ( fitness-PP + fitness-RR ) / 2 )
+  set fitness-MR ( ( fitness-MM + fitness-RR ) / 2 )
+  set fitness-MP ( ( fitness-MM + fitness-PP ) / 2 )
 
   set path-csv-input "../params/"
 
@@ -389,7 +389,7 @@ init-pop
 init-pop
 0
 10000
-3000.0
+2.0
 1
 1
 NIL
@@ -597,8 +597,8 @@ NIL
 HORIZONTAL
 
 PLOT
-920
-246
+922
+291
 1308
 510
 flies
@@ -635,8 +635,8 @@ PENS
 "occupied" 1.0 0 -13840069 true "" "plot sum [occupied-cherries] of trees"
 
 PLOT
-1308
-247
+1310
+292
 1654
 511
 genotypes
@@ -814,7 +814,52 @@ resistance-rate
 resistance-rate
 0
 1
-0.2
+0.5
+0.01
+1
+NIL
+HORIZONTAL
+
+SLIDER
+925
+251
+1097
+284
+fitness-PP
+fitness-PP
+0
+1
+1.0
+0.01
+1
+NIL
+HORIZONTAL
+
+SLIDER
+1103
+251
+1275
+284
+fitness-RR
+fitness-RR
+0
+1
+0.8
+0.01
+1
+NIL
+HORIZONTAL
+
+SLIDER
+1279
+253
+1451
+286
+fitness-MM
+fitness-MM
+0
+1
+0.8
 0.01
 1
 NIL
@@ -1342,6 +1387,68 @@ NetLogo 6.1.1
     </enumeratedValueSet>
     <enumeratedValueSet variable="mean-cherries">
       <value value="250"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="sensitivity-analysis" repetitions="3" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <enumeratedValueSet variable="wildberries-per-plant">
+      <value value="50"/>
+      <value value="75"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="init-pop">
+      <value value="500"/>
+      <value value="5000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-day">
+      <value value="50"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-amount">
+      <value value="500"/>
+      <value value="5000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistant-ratio">
+      <value value="0.2"/>
+      <value value="0.8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistance-rate">
+      <value value="0.2"/>
+      <value value="0.8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gd-gender">
+      <value value="&quot;female&quot;"/>
+      <value value="&quot;male&quot;"/>
+      <value value="&quot;mixed&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-RR">
+      <value value="0.2"/>
+      <value value="0.8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-MM">
+      <value value="0.2"/>
+      <value value="0.8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-PP">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mean-cherries">
+      <value value="2000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sd-cherries">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-years">
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-period">
+      <value value="45"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-start">
+      <value value="105"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gene-drive">
+      <value value="true"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>

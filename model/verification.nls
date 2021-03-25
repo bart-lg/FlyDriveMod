@@ -1883,91 +1883,109 @@ to-report test-fertilization [ verification-file ]
   let log-content ""
   
   set current-eggs-per-tick 0.5
-  set egg-dev-duration 0
+  
+  let runs 0
   
   ; temporary variable for intermediate results
   let temp 0 
   ; temporary index
   let i 0
 
-  ; 1: check fertilization process
-  
-  refresh-world
-  set eggs-per-cycle 10  
-  set current-female-stat-duration 20
-  set current-male-stat-duration 20  
-  ask trees [
-    set grown-cherries 10
-    set occupied-cherries 0
-  ]
-  set cherries-available TRUE  
-  ; create flies
-  set init-pop 2
-  start-season
-  ; modify flies
-  ask flies [
-    set sex "f"
-    set partner-search TRUE
-    move-to min-one-of trees [who] ; move to tree with lowest id
-  ]  
-  ask n-of 1 flies [
-    set sex "m"
-  ]
-  fly-activities
-  ask flies with [ sex = "f" ] [
-    if partner-search = TRUE [
-      set log-content word log-content "FERTILIZATION TEST: partner-search flag wrong; " 
-    ] 
-    if eggs != 10 [
-      set log-content word log-content "FERTILIZATION TEST: number of eggs wrong; " 
-    ]
-  ]
-  
-  ; 2: check delay between fertilization and egg laying process
-  set current-eggs-per-tick 0.5
-  set egg-dev-duration 3
-  set i 0
-  while [ i < 3 ] [
-    tick
-    ask flies [ 
-      move-to min-one-of trees [who] ; move to tree with lowest id
-    ]
-    ;calculate-current-eggs-per-tick-rate
-    update-egg-laying-mode
-    fly-activities
-    if count flies with [ mode = "stationary" ] > 0 [
-      set log-content word log-content "FERTILIZATION TEST: egg-dev-duration not working properly [1]; "
-    ]
-    set i ( i + 1 )
-  ]
-
-  set i 0
-  while [ i < 10 ] [
-    tick
-    ask flies [ 
-      move-to min-one-of trees [who] ; move to tree with lowest id
-    ]
-    ;calculate-current-eggs-per-tick-rate
-    update-egg-laying-mode
+  ; run it 10 times, because in previous testing it just sometimes ended up in a failed test
+  while [ runs < 10 ] [
     
+    ; 1: check fertilization process
+    
+    refresh-world
+    
+    set eggs-per-cycle 10  
+    set egg-dev-duration 3
+    set current-eggs-per-tick 0.5
+    set-eggs-per-day-rates
+    set current-female-stat-duration 20
+    set current-male-stat-duration 20  
+    
+    set fitness-PP 1
+    set fitness-RR 1
+    set fitness-MM 1
+    set fitness-PR 1
+    set fitness-MR 1
+    set fitness-MP 1
+    
+    ask trees [
+      set grown-cherries 10
+      set occupied-cherries 0
+    ]
+    set cherries-available TRUE  
+    ; create flies
+    set init-pop 2
+    start-season
+    ; modify flies
+    ask flies [
+      set sex "f"
+      set partner-search TRUE
+      move-to min-one-of trees [who] ; move to tree with lowest id
+    ]  
+    ask n-of 1 flies [
+      set sex "m"
+    ]
     fly-activities
-    if count flies with [ mode = "stationary" ] != ( i + 1 ) [
-      set log-content word log-content "FERTILIZATION TEST: eggs-per-tick-rate not working properly [2]; "
+    ask flies with [ sex = "f" ] [
+      if partner-search = TRUE [
+        set log-content word log-content "FERTILIZATION TEST: partner-search flag wrong; " 
+      ] 
+      if eggs != 10 [
+        set log-content word log-content "FERTILIZATION TEST: number of eggs wrong; " 
+      ]
     ]
     
-    tick
-    ask flies [ 
-      move-to min-one-of trees [who] ; move to tree with lowest id
+    ; 2: check delay between fertilization and egg laying process
+    set i 0
+    while [ i < 3 ] [
+      tick
+      ask flies [ 
+        move-to min-one-of trees [who] ; move to tree with lowest id
+      ]
+      ;calculate-current-eggs-per-tick-rate
+      update-egg-laying-mode
+      fly-activities
+      if count flies with [ mode = "stationary" ] > 0 [
+        set log-content word log-content "FERTILIZATION TEST: egg-dev-duration not working properly [1]; "
+      ]
+      set i ( i + 1 )
     ]
-    ;calculate-current-eggs-per-tick-rate
-    update-egg-laying-mode    
     
-    fly-activities
-    if count flies with [ mode = "stationary" ] != ( i + 1 ) [
-      set log-content word log-content "FERTILIZATION TEST: eggs-per-tick-rate not working properly [3]; "
+    set i 0
+    while [ i < 10 ] [
+      tick
+      ask flies with [ mode = "adult" ] [ 
+        move-to min-one-of trees [who] ; move to tree with lowest id
+      ]
+      ;calculate-current-eggs-per-tick-rate
+      update-egg-laying-mode
+      
+      fly-activities
+      if count flies with [ mode = "stationary" ] != ( i + 1 ) [
+        set log-content word log-content "FERTILIZATION TEST: eggs-per-tick-rate not working properly [2]; "
+      ]
+      
+      tick
+      ask flies [ 
+        move-to min-one-of trees [who] ; move to tree with lowest id
+      ]
+      ;calculate-current-eggs-per-tick-rate
+      update-egg-laying-mode    
+      
+      fly-activities
+      if count flies with [ mode = "stationary" ] != ( i + 1 ) [
+        set log-content word log-content "FERTILIZATION TEST: eggs-per-tick-rate not working properly [3]; "
+      ]
+      
+      set i ( i + 1 )     
     ]
-        
-    set i ( i + 1 )     
+    
+    set runs ( runs + 1 )
+    
   ]
   
   write-verification-result-to-file verification-file log-header log-content

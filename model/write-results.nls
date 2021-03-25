@@ -85,6 +85,7 @@ to write-configs-to-file
   file-print ( word "resistant-ratio" " " resistant-ratio )
   
   file-print ( word "gene-drive" " " gene-drive )
+  file-print ( word "gd-gender" " " gd-gender )
   file-print ( word "release-amount" " " release-amount )
   file-print ( word "release-day" " " release-day )
   
@@ -138,7 +139,7 @@ to write-headers-to-file
   set headers lput "current-eggs-per-tick" headers            ; #38 => set in procedure calculate-current-eggs-per-tick-rate in flies.nls
   set headers lput "eggs-layed" headers                       ; #39 => set in procedure fly-activities in flies.nls
   set headers lput "poisoned-eggs" headers                    ; #40 => set in procedure fly-activities in flies.nls
-  set headers lput "current-female-statv-duration" headers    ; #41
+  set headers lput "current-female-stat-duration" headers     ; #41
   set headers lput "current-female-adult-longevity" headers   ; #42
   set headers lput "current-male-stat-duration" headers       ; #43
   set headers lput "current-male-adult-longevity" headers     ; #44
