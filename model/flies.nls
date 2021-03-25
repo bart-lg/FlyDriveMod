@@ -43,7 +43,7 @@ flies-own [
   
   ; following properties in ticks
   total-age
-  ticks-since-fertilization
+  fertilization-tick
   
   ; for performance reasons plants are looking for closest flies and set their direction
   ; if direction has been set in current tick, the following variable gets updated with the tick-number
@@ -51,6 +51,11 @@ flies-own [
   target-distance
   
 ]
+
+to-report ticks-since-fertilization
+  report ( ticks - fertilization-tick )
+end
+
 
 to set-mortality-rates
   
@@ -333,7 +338,7 @@ to fly-init-pop
         set genotype "++"
         set fitness fitness-PP
         set total-age 0
-        set ticks-since-fertilization 0
+        set fertilization-tick 0
       ] 
     ]
   ]
@@ -347,7 +352,9 @@ end
 
 to kill-flies-off-season
   ask flies with [ mode = "stationary" ] [ die ]
-  ask n-of ( ceiling ( count flies * mortality-off-season ) ) flies [ die ]
+  let surviving-flies count flies - ceiling ( count flies * mortality-off-season )
+  ask n-of ( ceiling ( count flies with [ sex = "f" ] * mortality-off-season ) ) flies with [ sex = "f" ] [ die ]
+  ask n-of ( count flies - surviving-flies ) flies with [ sex = "m" ] [ die ]
 end
 
 to kill-flies
@@ -516,10 +523,31 @@ end
 
 to fly-activities
   
+  ; limit number of matings for male fly (current limit: 1 mating per tick)
+  ask flies with [ sex = "m" and mode = "adult" and partner-search = FALSE and ticks-since-fertilization > 0 ] [ 
+    set partner-search TRUE 
+  ]
+  
   ask flies [
 
     ; upgrade mode of fly
     upgrade-fly
+    
+    ; if female fly detects male fly on same patch => start fertilization
+    if sex = "f" and mode = "adult" and partner-search = TRUE and any? flies-here with [sex = "m" and mode = "adult" and partner-search = TRUE] [
+      set partner-search FALSE
+      set fertilization-tick ticks
+      set eggs eggs-per-cycle
+      let partner n-of 1 flies-here with [ sex = "m" ]
+      set genotype-of-partner first [genotype] of partner
+      set fitness-of-partner first [fitness] of partner
+      set combined-fitness ( fitness * fitness-of-partner )
+      set color blue
+      ask one-of flies-here with [sex = "m" and mode = "adult" and partner-search = TRUE] [
+        set partner-search FALSE
+        set fertilization-tick ticks 
+      ]
+    ]        
     
     if ( cherries-available or fruits-available ) and ready-to-lay-egg [
 
@@ -569,7 +597,7 @@ to fly-activities
               set genotype genotype-temp
               set fitness ( get-fitness-for-genotype genotype-temp )
               set total-age 0
-              set ticks-since-fertilization 0
+              set fertilization-tick 0
             ]
           ]
           
@@ -620,21 +648,6 @@ to fly-activities
         
     ]
     
-    ; if female fly detects male fly on same patch => start fertilization
-    if sex = "f" and mode = "adult" and partner-search = TRUE and any? flies-here with [sex = "m" and mode = "adult"] [
-      set partner-search FALSE
-      set ticks-since-fertilization 0
-      set eggs eggs-per-cycle
-      let partner n-of 1 flies-here with [ sex = "m" ]
-      set genotype-of-partner first [genotype] of partner
-      set fitness-of-partner first [fitness] of partner
-      set combined-fitness ( fitness * fitness-of-partner )
-      set color blue
-    ]    
-    
-    ; in case of fertilization => increase ticks since fertilization
-    if partner-search = FALSE and sex = "f" and mode = "adult" [ set ticks-since-fertilization ( ticks-since-fertilization + 1 ) ]
-
     ; increase age and mode-duration
     set mode-duration ( mode-duration + 1 )
     set total-age ( total-age + 1 )
@@ -708,14 +721,22 @@ to release-gene-drive
       set mode "adult"
       set mode-duration 0
       set generation 1
-      ; ifelse ( random 2 ) = 1 [ set sex "f" ][ set sex "m" ]
-      set sex "f"
+      set sex "f" ; default, if gd-gender not set
+      if gd-gender = "female" [
+        set sex "f"  
+      ]
+      if gd-gender = "mixed" [
+        ifelse ( random 2 ) = 1 [ set sex "f" ][ set sex "m" ]
+      ]
+      if gd-gender = "male" [
+        set sex "m"
+      ]
       set partner-search TRUE
       set eggs 0
       set genotype "MM"
       set fitness fitness-MM
       set total-age 0
-      set ticks-since-fertilization 0
+      set fertilization-tick 0
     ] 
   ]  
   

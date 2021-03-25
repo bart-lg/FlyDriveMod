@@ -125,7 +125,7 @@ to setup
 
   set no-output temp-no-output
 
-  set model-version "V0.600"
+  set model-version "V0.700"
 
   if behaviorspace-run-number > 0 [ random-seed behaviorspace-run-number ]
 
@@ -277,7 +277,7 @@ to start-season
       set partner-search TRUE
       set eggs 0
       set ready-to-lay-egg FALSE
-      set ticks-since-fertilization 0
+      set fertilization-tick 0
     ]
   ]
   set season TRUE
@@ -678,10 +678,10 @@ gene-drive
 -1000
 
 SLIDER
-1036
-206
-1209
-239
+1148
+207
+1321
+240
 release-day
 release-day
 1
@@ -693,10 +693,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-1216
-206
-1653
-239
+1327
+207
+1652
+240
 release-amount
 release-amount
 0
@@ -724,7 +724,7 @@ INPUTBOX
 1002
 204
 max-years
-0.0
+1.0
 1
 0
 Number
@@ -803,6 +803,16 @@ NIL
 NIL
 NIL
 1
+
+CHOOSER
+1043
+199
+1145
+244
+gd-gender
+gd-gender
+"female" "mixed" "male"
+2
 
 @#$#@#$#@
 ## WHAT IS IT?

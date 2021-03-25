@@ -30,7 +30,12 @@ to verification-tests
   if not test-update-egg-laying-mode               verification-file [ set total-check FALSE ]
   if not test-fruits-attract-closest-flies         verification-file [ set total-check FALSE ]
   if not test-cherries-attract-closest-flies       verification-file [ set total-check FALSE ]
-  if not test-fly-activities                       verification-file [ set total-check FALSE ]
+  if not test-egg-laying                           verification-file [ set total-check FALSE ]
+  if not test-fitness                              verification-file [ set total-check FALSE ]
+  if not test-gene-drive                           verification-file [ set total-check FALSE ]
+  if not test-fertilization                        verification-file [ set total-check FALSE ]
+  if not test-male-mating-interval                 verification-file [ set total-check FALSE ]
+  
   
   refresh-world
   
@@ -148,7 +153,7 @@ to-report test-start-season [ verification-file ]
     set partner-search FALSE
     set eggs 1
     set ready-to-lay-egg TRUE
-    set ticks-since-fertilization 1
+    set fertilization-tick 1
   ]
   
   start-season
@@ -192,7 +197,7 @@ to-report test-end-season [ verification-file ]
     set eggs 0
     set ready-to-lay-egg FALSE
     set total-age 1
-    set ticks-since-fertilization 0     
+    set fertilization-tick 0     
   ]
   
   end-season
@@ -542,10 +547,6 @@ to-report test-release-gene-drive [ verification-file ]
     set log-content word log-content "GENERATION NOT 1; "
   ]
 
-  if count flies with [ sex = "f" ] != count flies [
-    set log-content word log-content "NOT ALL FLIES FEMALE; "
-  ]
-
   if count flies with [ partner-search = TRUE ] != count flies [
     set log-content word log-content "FLIES NOT SEARCHING FOR PARTNERS; "
   ]
@@ -569,6 +570,39 @@ to-report test-release-gene-drive [ verification-file ]
   if count flies with [ ticks-since-fertilization = 0 ] != count flies [
     set log-content word log-content "TICKS SINCE FERTILIZATION NOT 0; "
   ]
+  
+  ; test gender switch
+  
+  refresh-world
+  set release-amount 1000
+  set gd-gender "female"
+  
+  release-gene-drive  
+  
+  if count flies with [ sex = "f" ] != count flies [
+    set log-content word log-content "WRONG GENDER (not female); "
+  ]
+  
+  refresh-world
+  set release-amount 1000
+  set gd-gender "mixed"
+  
+  release-gene-drive  
+  
+  if count flies with [ sex = "f" ] < ( count flies * 0.45 ) or count flies with [ sex = "f" ] > ( count flies * 0.55 ) [
+    set log-content word log-content "WRONG GENDER (not mixed); "
+  ]
+
+  refresh-world
+  set release-amount 1000
+  set gd-gender "male"
+  
+  release-gene-drive  
+  
+  if count flies with [ sex = "m" ] != count flies [
+    set log-content word log-content "WRONG GENDER (not male); "
+  ]  
+  
 
   write-verification-result-to-file verification-file log-header log-content
   ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]    
@@ -1087,6 +1121,8 @@ to-report test-kill-flies [ verification-file ]
   
   let temp-female 0
   let temp-male 0
+  let gender-ratio 0
+  let gender-ratio-new 0
 
   set init-pop 3000
   set mortality-off-season 0.9
@@ -1103,11 +1139,14 @@ to-report test-kill-flies [ verification-file ]
     set eggs 0
     set ready-to-lay-egg FALSE
     set total-age 1
-    set ticks-since-fertilization 0     
+    set fertilization-tick 0     
   ]  
-  
+   
   ; test killing of flies off season
-  kill-flies-off-season  
+  
+  set gender-ratio ( count flies with [ sex = "f" ] / count flies with [ sex = "m" ] )
+  
+  kill-flies-off-season
   
   if count flies with [ mode = "stationary" ] > 0 [
     set log-content word log-content "kill-flies-off-season: STATIONARY FLIES LEFT; "
@@ -1117,6 +1156,11 @@ to-report test-kill-flies [ verification-file ]
     set log-content word log-content "kill-flies-off-season: WRONG NUMBER OF FLIES LEFT; "
   ]
   
+  set gender-ratio-new ( count flies with [ sex = "f" ] / count flies with [ sex = "m" ] )
+  if gender-ratio * 0.95 > gender-ratio-new or gender-ratio * 1.05 < gender-ratio-new [
+    set log-content word log-content "kill-flies-off-season: WRONG NEW GENDER RATIO; "
+  ]
+    
   ; test killing of flies during season
   refresh-world
   
@@ -1211,7 +1255,7 @@ to-report test-kill-flies [ verification-file ]
     set eggs 0
     set ready-to-lay-egg FALSE
     set total-age 1
-    set ticks-since-fertilization 0     
+    set fertilization-tick 0     
   ]  
 
   set rounded-mean-10d-temp 10
@@ -1259,7 +1303,7 @@ to-report test-kill-flies [ verification-file ]
     set eggs 0
     set ready-to-lay-egg FALSE
     set total-age 1
-    set ticks-since-fertilization 0     
+    set fertilization-tick 0     
   ]  
 
   set rounded-mean-10d-temp 0
@@ -1336,6 +1380,8 @@ to-report test-update-egg-laying-mode [ verification-file ]
   
   let log-header "test-update-egg-laying-mode: "
   let log-content ""
+  
+  let i 0
 
   set init-pop 10000
   start-season  
@@ -1349,36 +1395,27 @@ to-report test-update-egg-laying-mode [ verification-file ]
     set partner-search FALSE
     set eggs 10
     set ready-to-lay-egg FALSE
-    set ticks-since-fertilization 9     
+    set fertilization-tick ticks
     set last-egg-tick 0
   ]    
   
-  ask flies with [ eggs > 0 ] [
-    set ticks-since-fertilization ( ticks-since-fertilization + 1 ) 
+  set i 0
+  while [ i < 10 ] [ 
+    tick 
+    set i ( i + 1 )
   ]
-  tick
   update-egg-laying-mode
 
   if count flies with [ ready-to-lay-egg ] > 0 [
     set log-content word log-content "FAILURE IN EGG LAYING MODE (1); "
   ] 
 
-  ask flies with [ eggs > 0 ] [
-    set ticks-since-fertilization ( ticks-since-fertilization + 1 ) 
-  ]
   tick
   update-egg-laying-mode
   
   if count flies with [ ready-to-lay-egg ] != 1000 [
     set log-content word log-content "FAILURE IN EGG LAYING MODE (2); "
   ]  
-
-  ask flies with [ eggs > 0 ] [
-    set ticks-since-fertilization ( ticks-since-fertilization + 1 ) 
-  ]
-  tick
-  update-egg-laying-mode
-
   
   write-verification-result-to-file verification-file log-header log-content
   ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]  
@@ -1391,6 +1428,8 @@ to-report test-fruits-attract-closest-flies [ verification-file ] ; raise to dou
   
   let log-header "test-fruits-attract-closest-flies: "
   let log-content ""
+  
+  let i 0
 
   set init-pop 3
   start-season   
@@ -1406,15 +1445,19 @@ to-report test-fruits-attract-closest-flies [ verification-file ] ; raise to dou
     set partner-search FALSE
     set eggs 10
     set ready-to-lay-egg TRUE
-    set ticks-since-fertilization 11     
+    set fertilization-tick ticks  
     set last-egg-tick 0
     setxy x-coordinate y-coordinate
     facexy 0 0
   ]
   
-  ; tick 1 needed, because of target-tick property of flies
+  ; tick needed, because of target-tick property of flies and fertilization-ticker
   ; target-tick checks if fly has already been redirected within the current tick
-  tick
+  set i 0
+  while [ i < 11 ] [ 
+    tick 
+    set i ( i + 1 )
+  ] 
   
   ; grow 3 fruits
   grow-yummy-fruits 
@@ -1443,6 +1486,8 @@ to-report test-cherries-attract-closest-flies [ verification-file ]
   
   let log-header "test-cherries-attract-closest-flies: "
   let log-content ""
+  
+  let i 0
 
   set init-pop 3
   start-season   
@@ -1458,18 +1503,22 @@ to-report test-cherries-attract-closest-flies [ verification-file ]
     set partner-search FALSE
     set eggs 10
     set ready-to-lay-egg TRUE
-    set ticks-since-fertilization 11     
+    set fertilization-tick ticks
     set last-egg-tick 0
     setxy x-coordinate y-coordinate
     facexy 0 0
   ]
   
-  ; tick 1 needed, because of target-tick property of flies
+  ; tick needed, because of target-tick property of flies and fertilization-ticker
   ; target-tick checks if fly has already been redirected within the current tick
-  tick
+  set i 0
+  while [ i < 11 ] [ 
+    tick 
+    set i ( i + 1 )
+  ]   
   
   ; day > 1 needed for growing function ( grown-cherries and occupied-cherries get reseted on first day of year )
-  let i 0
+  set i 0
   while [ i < ticks-per-day ] [
     tick
     set i ( i + 1 ) 
@@ -1500,11 +1549,11 @@ to-report test-cherries-attract-closest-flies [ verification-file ]
   
 end
 
-to-report test-fly-activities [ verification-file ]
+to-report test-egg-laying [ verification-file ]
   
   refresh-world
   
-  let log-header "test-fly-activities: "
+  let log-header "test-egg-laying: "
   let log-content ""
   
   set current-eggs-per-tick 0.5
@@ -1514,7 +1563,7 @@ to-report test-fly-activities [ verification-file ]
   let temp 0 
   ; temporary index
   let i 0
-  
+
   ; 1.TEST lay egg on cherry
   
   ; grow cherries
@@ -1543,7 +1592,7 @@ to-report test-fly-activities [ verification-file ]
     set fitness 1
     set fitness-of-partner 1
     set combined-fitness 1
-    set ticks-since-fertilization 0
+    set fertilization-tick 0
     move-to min-one-of trees [who] ; move to tree with lowest id
   ]
   ask one-of flies [
@@ -1649,9 +1698,22 @@ to-report test-fly-activities [ verification-file ]
       set log-content word log-content "LAY EGG: movement of stationary flies detected; "
     ]
     die
-  ]
+  ]  
+    
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]    
   
-  ; 6.TEST check if cherry and fruit number get reduced if egg gets not layed due to fitness
+end
+
+to-report test-fitness [ verification-file ]
+  
+  refresh-world
+  
+  let log-header "test-fitness: "
+  let log-content ""
+  
+  ; check if cherry and fruit number get reduced if egg gets not layed due to fitness
+  
   refresh-world
   ; grow cherries
   ask trees [
@@ -1678,7 +1740,7 @@ to-report test-fly-activities [ verification-file ]
     set fitness 0
     set fitness-of-partner 0
     set combined-fitness 0
-    set ticks-since-fertilization 0
+    set fertilization-tick 0
     move-to min-one-of trees [who] ; move to tree with lowest id
   ]
   fly-activities
@@ -1688,9 +1750,28 @@ to-report test-fly-activities [ verification-file ]
   ]
   if count flies with [ mode = "stationary" ] != 0 [
     set log-content word log-content "CHECK FITNESS: wrong number of stationary flies; "
-  ]  
+  ]    
   
-  ; 7.TEST check if cherry and fruit number get reduced if egg gets not layed due to gene-drive
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]    
+  
+end
+
+to-report test-gene-drive [ verification-file ]
+  
+  refresh-world
+  
+  let log-header "test-gene-drive: "
+  let log-content ""
+  
+  set current-eggs-per-tick 0.5
+  set egg-dev-duration 0
+  
+  ; temporary variable for intermediate results
+  let temp 0 
+
+  ; check if cherry and fruit number get reduced if egg gets not layed due to gene-drive
+  
   ; TEST A: M+/++ (female/male)
   refresh-world
   ; grow cherries
@@ -1718,7 +1799,7 @@ to-report test-fly-activities [ verification-file ]
     set fitness 1
     set fitness-of-partner 1
     set combined-fitness 1
-    set ticks-since-fertilization 0
+    set fertilization-tick 0
     move-to min-one-of trees [who] ; move to tree with lowest id
   ]
   fly-activities
@@ -1755,7 +1836,7 @@ to-report test-fly-activities [ verification-file ]
     set fitness 1
     set fitness-of-partner 1
     set combined-fitness 1
-    set ticks-since-fertilization 0
+    set fertilization-tick 0
     move-to min-one-of trees [who] ; move to tree with lowest id
   ]
   set resistance-rate 0.5
@@ -1764,9 +1845,30 @@ to-report test-fly-activities [ verification-file ]
   set temp count flies with [ mode = "stationary" ] 
   if temp < 700 or temp > 800 [
     set log-content word log-content "CHECK GENE DRIVE [B]: wrong number of stationary flies; " 
-  ]
-    
-  ; 8.TEST check fertilization process
+  ]  
+  
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]    
+  
+end
+
+to-report test-fertilization [ verification-file ]
+  
+  refresh-world
+  
+  let log-header "test-fertilization: "
+  let log-content ""
+  
+  set current-eggs-per-tick 0.5
+  set egg-dev-duration 0
+  
+  ; temporary variable for intermediate results
+  let temp 0 
+  ; temporary index
+  let i 0
+
+  ; 1: check fertilization process
+  
   refresh-world
   set eggs-per-cycle 10  
   set current-female-stat-duration 20
@@ -1798,9 +1900,9 @@ to-report test-fly-activities [ verification-file ]
     ]
   ]
   
-  ; 9.TEST check delay between fertilization and egg laying process
+  ; 2: check delay between fertilization and egg laying process
   set current-eggs-per-tick 0.5
-  set egg-dev-duration 4
+  set egg-dev-duration 3
   set i 0
   while [ i < 3 ] [
     tick
@@ -1811,10 +1913,11 @@ to-report test-fly-activities [ verification-file ]
     update-egg-laying-mode
     fly-activities
     if count flies with [ mode = "stationary" ] > 0 [
-      set log-content word log-content "FERTILIZATION TEST: egg-dev-duration not working properly; "
+      set log-content word log-content "FERTILIZATION TEST: egg-dev-duration not working properly [1]; "
     ]
     set i ( i + 1 )
   ]
+
   set i 0
   while [ i < 10 ] [
     tick
@@ -1823,23 +1926,87 @@ to-report test-fly-activities [ verification-file ]
     ]
     ;calculate-current-eggs-per-tick-rate
     update-egg-laying-mode
+    
     fly-activities
-    if count flies with [ mode = "stationary" ] > i [
-      set log-content word log-content "FERTILIZATION TEST: eggs-per-tick-rate not working properly; "
+    if count flies with [ mode = "stationary" ] != ( i + 1 ) [
+      set log-content word log-content "FERTILIZATION TEST: eggs-per-tick-rate not working properly [2]; "
     ]
+    
     tick
     ask flies [ 
       move-to min-one-of trees [who] ; move to tree with lowest id
     ]
     ;calculate-current-eggs-per-tick-rate
-    update-egg-laying-mode
+    update-egg-laying-mode    
+    
     fly-activities
     if count flies with [ mode = "stationary" ] != ( i + 1 ) [
-      set log-content word log-content "FERTILIZATION TEST: eggs-per-tick-rate not working properly; "
+      set log-content word log-content "FERTILIZATION TEST: eggs-per-tick-rate not working properly [3]; "
     ]
+        
     set i ( i + 1 )     
   ]
   
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]
+  
+end
+
+to-report test-male-mating-interval [ verification-file ]
+  
+  refresh-world
+  
+  let log-header "test-male-mating-interval: "
+  let log-content ""
+  
+  set current-eggs-per-tick 0.5
+  set egg-dev-duration 2
+  
+  ; temporary variable for intermediate results
+  let temp 0 
+  ; temporary index
+  let i 0
+
+  refresh-world
+  set eggs-per-cycle 10  
+
+  ; create flies
+  set init-pop 3
+  start-season
+  ; modify flies
+  ask flies [
+    set sex "f"
+    set partner-search TRUE
+    move-to min-one-of trees [who] ; move to tree with lowest id
+  ]  
+  ; select last fly ( this prevents the male fly moving when calling fly-activities )
+  ask flies with-max [who] [
+    set sex "m"
+  ]
+  fly-activities
+  if count flies with [ sex = "f" and partner-search = FALSE ] != 1 [
+    set log-content word log-content "wrong male mating interval [1]; " 
+  ]
+  
+  ask flies [
+    move-to min-one-of trees [who]
+  ]
+  fly-activities
+  if count flies with [ sex = "f" and partner-search = FALSE ] != 1 [
+    set log-content word log-content "wrong male mating interval [2]; " 
+  ]  
+  
+  tick
+  
+  ask flies [
+    move-to min-one-of trees [who]
+  ]
+  fly-activities
+  if count flies with [ sex = "f" and partner-search = FALSE ] != 2 [
+    set log-content word log-content "wrong male mating interval [3]; " 
+  ]  
+  
+
   write-verification-result-to-file verification-file log-header log-content
   ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]
   
