@@ -771,8 +771,85 @@ end
 
 to release-gene-drive
   
-  ask patch ( max-pxcor / 2 ) ( max-pycor / 2 ) [
-    sprout-flies release-amount [
+  let gd-release-amount release-amount
+  let gd-xcor 0
+  let gd-ycor 0  
+  
+  if periodic-release > 1 [
+    set gd-release-amount ceiling ( release-amount / periodic-release )
+  ]
+  
+  if release-location = "center" [
+    
+    set gd-xcor ( max-pxcor / 2 )
+    set gd-ycor ( max-pycor / 2 )
+    release-gene-drive-at-position gd-xcor gd-ycor gd-release-amount
+    
+  ]
+  if release-location = "corner-trees" [
+    
+    set gd-release-amount ceiling ( gd-release-amount / 4 )
+    
+    ; corner tree bottom left
+    set gd-xcor ( border-margin + wildberry-plant-width + wildberry-plant-margin )
+    set gd-ycor ( border-margin + wildberry-plant-width + wildberry-plant-margin )
+    release-gene-drive-at-position gd-xcor gd-ycor gd-release-amount
+
+    ; corner tree bottom right
+    set gd-xcor ( border-margin + wildberry-plant-width + wildberry-plant-margin + ( ( trees-per-row - 1 ) * ( tree-width + tree-margin-x ) ) + tree-width )
+    set gd-ycor ( border-margin + wildberry-plant-width + wildberry-plant-margin )
+    release-gene-drive-at-position gd-xcor gd-ycor gd-release-amount
+    
+    ; corner tree top left
+    set gd-xcor ( border-margin + wildberry-plant-width + wildberry-plant-margin )
+    set gd-ycor ( border-margin + wildberry-plant-width + wildberry-plant-margin + ( ( tree-rows - 1 ) * ( tree-width + tree-margin-y ) ) + tree-width )
+    release-gene-drive-at-position gd-xcor gd-ycor gd-release-amount
+    
+    ; corner tree top right
+    set gd-xcor ( border-margin + wildberry-plant-width + wildberry-plant-margin + ( ( trees-per-row - 1 ) * ( tree-width + tree-margin-x ) ) + tree-width )
+    set gd-ycor ( border-margin + wildberry-plant-width + wildberry-plant-margin + ( ( tree-rows - 1 ) * ( tree-width + tree-margin-y ) ) + tree-width )
+    release-gene-drive-at-position gd-xcor gd-ycor gd-release-amount
+    
+  ]
+  if release-location = "wildberry-plants" [
+    
+    ; release gene drives every tenth wildberry plant
+    
+    ; calculate the release amount for every release location
+    set gd-release-amount ceiling ( gd-release-amount / ( ( floor ( ( max-pxcor - ( border-margin * 2 ) ) / 10 ) ) * 2 + ( floor ( ( max-pycor - ( border-margin * 2 ) ) / 10 ) ) * 2 ) )    
+    
+    ; release at all horizontal locations
+    set gd-xcor ( border-margin + 1 )
+    while [ gd-xcor <= ( max-pxcor - border-margin ) ] [
+      if ( gd-xcor - border-margin ) mod 10 = 0 [
+        set gd-ycor ( border-margin + 1 ) 
+        release-gene-drive-at-position gd-xcor gd-ycor gd-release-amount
+        set gd-ycor ( max-pycor - border-margin )
+        release-gene-drive-at-position gd-xcor gd-ycor gd-release-amount
+      ]
+      set gd-xcor ( gd-xcor + 1 )
+    ]
+    
+    ; release at all vertical locations
+    set gd-ycor ( border-margin + 1 )
+    while [ gd-ycor <= ( max-pycor - border-margin ) ] [
+      if ( gd-ycor - border-margin ) mod 10 = 0 [
+        set gd-xcor ( border-margin + 1 ) 
+        release-gene-drive-at-position gd-xcor gd-ycor gd-release-amount
+        set gd-xcor ( max-pxcor - border-margin )
+        release-gene-drive-at-position gd-xcor gd-ycor gd-release-amount
+      ]
+      set gd-ycor ( gd-ycor + 1 )
+    ]
+
+  ]
+  
+end
+
+to release-gene-drive-at-position [gd-xcor gd-ycor gd-release-amount]
+  
+  ask patch gd-xcor gd-ycor [
+    sprout-flies gd-release-amount [
       set mode "adult"
       set mode-duration 0
       set generation 1
@@ -797,7 +874,7 @@ to release-gene-drive
       if sex = "f" [ set color magenta ]
       if sex = "m" [ set color blue    ]
     ] 
-  ]  
+  ]    
   
 end
 

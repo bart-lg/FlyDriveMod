@@ -139,7 +139,7 @@ to setup
 
   set no-output temp-no-output
 
-  set model-version "V1.5.0"
+  set model-version "V1.6.0"
 
   if behaviorspace-run-number > 0 [ random-seed behaviorspace-run-number ]
 
@@ -238,8 +238,13 @@ to go
 
   ; gene-drive: on/off switch
   if gene-drive [
-    if ticks = release-day * ticks-per-day [
+    if ticks = ( release-day - 1 ) * ticks-per-day + 1 [
       release-gene-drive
+    ]
+    if periodic-release > 1 and ticks > ( release-day - 1 ) * ticks-per-day + 1 and ticks <= ( ( (periodic-release - 1) * periodic-interval ) + ( release-day - 1 ) ) * ticks-per-day + 1 [
+      if ( ticks - ( ( release-day - 1 ) * ticks-per-day + 1 ) ) mod ( periodic-interval * ticks-per-day ) = 0 [
+        release-gene-drive
+      ]
     ]
   ]
 
@@ -440,7 +445,7 @@ init-pop
 init-pop
 0
 10000
-2.0
+0.0
 1
 1
 NIL
@@ -649,7 +654,7 @@ HORIZONTAL
 
 PLOT
 922
-291
+324
 1308
 510
 flies
@@ -687,7 +692,7 @@ PENS
 
 PLOT
 1310
-292
+324
 1654
 511
 genotypes
@@ -872,10 +877,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-925
-251
-1097
-284
+926
+287
+1098
+320
 fitness-PP
 fitness-PP
 0
@@ -887,10 +892,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-1103
-251
-1275
-284
+1104
+287
+1276
+320
 fitness-RR
 fitness-RR
 0
@@ -902,10 +907,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-1279
-253
-1451
-286
+1280
+289
+1452
+322
 fitness-MM
 fitness-MM
 0
@@ -981,6 +986,46 @@ count flies with [ mode = \"stationary\" ]
 17
 1
 11
+
+SLIDER
+926
+245
+1098
+278
+periodic-release
+periodic-release
+1
+100
+10.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+1102
+247
+1274
+280
+periodic-interval
+periodic-interval
+1
+100
+7.0
+1
+1
+NIL
+HORIZONTAL
+
+CHOOSER
+1280
+241
+1449
+286
+release-location
+release-location
+"center" "corner-trees" "wildberry-plants"
+0
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -2424,6 +2469,666 @@ NetLogo 6.1.1
     </enumeratedValueSet>
     <enumeratedValueSet variable="gene-drive">
       <value value="true"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="experiment-pretest-module1" repetitions="5" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <enumeratedValueSet variable="wildberries-per-plant">
+      <value value="20"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="init-pop">
+      <value value="550"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gene-drive">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-day">
+      <value value="75"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-amount">
+      <value value="550"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="periodic-release">
+      <value value="1"/>
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="periodic-interval">
+      <value value="7"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-location">
+      <value value="&quot;center&quot;"/>
+      <value value="&quot;corner-trees&quot;"/>
+      <value value="&quot;wildberry-plants&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistant-ratio">
+      <value value="0.78"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistance-rate">
+      <value value="0.07"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gd-gender">
+      <value value="&quot;female&quot;"/>
+      <value value="&quot;male&quot;"/>
+      <value value="&quot;mixed&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-RR">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-MM">
+      <value value="0.35"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-PP">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mean-cherries">
+      <value value="200"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sd-cherries">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-years">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-period">
+      <value value="60"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-start">
+      <value value="105"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="experiment-pretest-module2" repetitions="5" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <enumeratedValueSet variable="wildberries-per-plant">
+      <value value="20"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="init-pop">
+      <value value="550"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gene-drive">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-day">
+      <value value="75"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-amount">
+      <value value="1650"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="periodic-release">
+      <value value="1"/>
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="periodic-interval">
+      <value value="7"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-location">
+      <value value="&quot;center&quot;"/>
+      <value value="&quot;corner-trees&quot;"/>
+      <value value="&quot;wildberry-plants&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistant-ratio">
+      <value value="0.78"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistance-rate">
+      <value value="0.07"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gd-gender">
+      <value value="&quot;female&quot;"/>
+      <value value="&quot;male&quot;"/>
+      <value value="&quot;mixed&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-RR">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-MM">
+      <value value="0.35"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-PP">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mean-cherries">
+      <value value="200"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sd-cherries">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-years">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-period">
+      <value value="60"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-start">
+      <value value="105"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="experiment-pretest-module3" repetitions="5" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <enumeratedValueSet variable="wildberries-per-plant">
+      <value value="20"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="init-pop">
+      <value value="550"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gene-drive">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-day">
+      <value value="75"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-amount">
+      <value value="2200"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="periodic-release">
+      <value value="1"/>
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="periodic-interval">
+      <value value="7"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-location">
+      <value value="&quot;center&quot;"/>
+      <value value="&quot;corner-trees&quot;"/>
+      <value value="&quot;wildberry-plants&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistant-ratio">
+      <value value="0.78"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistance-rate">
+      <value value="0.07"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gd-gender">
+      <value value="&quot;female&quot;"/>
+      <value value="&quot;male&quot;"/>
+      <value value="&quot;mixed&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-RR">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-MM">
+      <value value="0.35"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-PP">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mean-cherries">
+      <value value="200"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sd-cherries">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-years">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-period">
+      <value value="60"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-start">
+      <value value="105"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="experiment-pretest-module4" repetitions="5" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <enumeratedValueSet variable="wildberries-per-plant">
+      <value value="20"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="init-pop">
+      <value value="550"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gene-drive">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-day">
+      <value value="75"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-amount">
+      <value value="3117"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="periodic-release">
+      <value value="1"/>
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="periodic-interval">
+      <value value="7"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-location">
+      <value value="&quot;center&quot;"/>
+      <value value="&quot;corner-trees&quot;"/>
+      <value value="&quot;wildberry-plants&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistant-ratio">
+      <value value="0.78"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistance-rate">
+      <value value="0.07"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gd-gender">
+      <value value="&quot;female&quot;"/>
+      <value value="&quot;male&quot;"/>
+      <value value="&quot;mixed&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-RR">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-MM">
+      <value value="0.35"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-PP">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mean-cherries">
+      <value value="200"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sd-cherries">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-years">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-period">
+      <value value="60"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-start">
+      <value value="105"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="experiment-pretest-module5" repetitions="5" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <enumeratedValueSet variable="wildberries-per-plant">
+      <value value="20"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="init-pop">
+      <value value="550"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gene-drive">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-day">
+      <value value="75"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-amount">
+      <value value="4950"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="periodic-release">
+      <value value="1"/>
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="periodic-interval">
+      <value value="7"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-location">
+      <value value="&quot;center&quot;"/>
+      <value value="&quot;corner-trees&quot;"/>
+      <value value="&quot;wildberry-plants&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistant-ratio">
+      <value value="0.78"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistance-rate">
+      <value value="0.07"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gd-gender">
+      <value value="&quot;female&quot;"/>
+      <value value="&quot;male&quot;"/>
+      <value value="&quot;mixed&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-RR">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-MM">
+      <value value="0.35"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-PP">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mean-cherries">
+      <value value="200"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sd-cherries">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-years">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-period">
+      <value value="60"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-start">
+      <value value="105"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="experiment-module1" repetitions="100" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <enumeratedValueSet variable="wildberries-per-plant">
+      <value value="20"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="init-pop">
+      <value value="550"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gene-drive">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-day">
+      <value value="75"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-amount">
+      <value value="550"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="periodic-release">
+      <value value="1"/>
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="periodic-interval">
+      <value value="7"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-location">
+      <value value="&quot;center&quot;"/>
+      <value value="&quot;corner-trees&quot;"/>
+      <value value="&quot;wildberry-plants&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistant-ratio">
+      <value value="0.78"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistance-rate">
+      <value value="0.07"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gd-gender">
+      <value value="&quot;female&quot;"/>
+      <value value="&quot;male&quot;"/>
+      <value value="&quot;mixed&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-RR">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-MM">
+      <value value="0.35"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-PP">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mean-cherries">
+      <value value="200"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sd-cherries">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-years">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-period">
+      <value value="60"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-start">
+      <value value="105"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="experiment-module2" repetitions="100" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <enumeratedValueSet variable="wildberries-per-plant">
+      <value value="20"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="init-pop">
+      <value value="550"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gene-drive">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-day">
+      <value value="75"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-amount">
+      <value value="1650"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="periodic-release">
+      <value value="1"/>
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="periodic-interval">
+      <value value="7"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-location">
+      <value value="&quot;center&quot;"/>
+      <value value="&quot;corner-trees&quot;"/>
+      <value value="&quot;wildberry-plants&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistant-ratio">
+      <value value="0.78"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistance-rate">
+      <value value="0.07"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gd-gender">
+      <value value="&quot;female&quot;"/>
+      <value value="&quot;male&quot;"/>
+      <value value="&quot;mixed&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-RR">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-MM">
+      <value value="0.35"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-PP">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mean-cherries">
+      <value value="200"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sd-cherries">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-years">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-period">
+      <value value="60"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-start">
+      <value value="105"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="experiment-module3" repetitions="100" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <enumeratedValueSet variable="wildberries-per-plant">
+      <value value="20"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="init-pop">
+      <value value="550"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gene-drive">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-day">
+      <value value="75"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-amount">
+      <value value="2200"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="periodic-release">
+      <value value="1"/>
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="periodic-interval">
+      <value value="7"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-location">
+      <value value="&quot;center&quot;"/>
+      <value value="&quot;corner-trees&quot;"/>
+      <value value="&quot;wildberry-plants&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistant-ratio">
+      <value value="0.78"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistance-rate">
+      <value value="0.07"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gd-gender">
+      <value value="&quot;female&quot;"/>
+      <value value="&quot;male&quot;"/>
+      <value value="&quot;mixed&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-RR">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-MM">
+      <value value="0.35"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-PP">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mean-cherries">
+      <value value="200"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sd-cherries">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-years">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-period">
+      <value value="60"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-start">
+      <value value="105"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="experiment-module4" repetitions="100" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <enumeratedValueSet variable="wildberries-per-plant">
+      <value value="20"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="init-pop">
+      <value value="550"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gene-drive">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-day">
+      <value value="75"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-amount">
+      <value value="3117"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="periodic-release">
+      <value value="1"/>
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="periodic-interval">
+      <value value="7"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-location">
+      <value value="&quot;center&quot;"/>
+      <value value="&quot;corner-trees&quot;"/>
+      <value value="&quot;wildberry-plants&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistant-ratio">
+      <value value="0.78"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistance-rate">
+      <value value="0.07"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gd-gender">
+      <value value="&quot;female&quot;"/>
+      <value value="&quot;male&quot;"/>
+      <value value="&quot;mixed&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-RR">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-MM">
+      <value value="0.35"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-PP">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mean-cherries">
+      <value value="200"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sd-cherries">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-years">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-period">
+      <value value="60"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-start">
+      <value value="105"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="experiment-module5" repetitions="100" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <enumeratedValueSet variable="wildberries-per-plant">
+      <value value="20"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="init-pop">
+      <value value="550"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gene-drive">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-day">
+      <value value="75"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-amount">
+      <value value="4950"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="periodic-release">
+      <value value="1"/>
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="periodic-interval">
+      <value value="7"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-location">
+      <value value="&quot;center&quot;"/>
+      <value value="&quot;corner-trees&quot;"/>
+      <value value="&quot;wildberry-plants&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistant-ratio">
+      <value value="0.78"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistance-rate">
+      <value value="0.07"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gd-gender">
+      <value value="&quot;female&quot;"/>
+      <value value="&quot;male&quot;"/>
+      <value value="&quot;mixed&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-RR">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-MM">
+      <value value="0.35"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-PP">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mean-cherries">
+      <value value="200"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sd-cherries">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-years">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-period">
+      <value value="60"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-start">
+      <value value="105"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>
