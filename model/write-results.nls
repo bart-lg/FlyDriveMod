@@ -3,7 +3,7 @@ extensions [ time ]
 
 to create-file
   
-  let number-of-values 62
+  let number-of-values 75
   set output-values array:from-list n-values number-of-values [0]
   
   if no-output != "YES" [ 
@@ -159,6 +159,20 @@ to write-headers-to-file
   set headers lput "killed-M+-adult" headers                  ; #58 => set in procedure kill-flies in flies.nls
   set headers lput "killed-MR-stat" headers                   ; #59 => set in procedure kill-flies in flies.nls
   set headers lput "killed-MR-adult" headers                  ; #60 => set in procedure kill-flies in flies.nls
+  set headers lput "min-generation" headers                   ; #61
+  set headers lput "max-generation" headers                   ; #62
+  set headers lput "min-generation-++" headers                ; #63
+  set headers lput "max-generation-++" headers                ; #64
+  set headers lput "min-generation-R+" headers                ; #65
+  set headers lput "max-generation-R+" headers                ; #66
+  set headers lput "min-generation-RR" headers                ; #67
+  set headers lput "max-generation-RR" headers                ; #68
+  set headers lput "min-generation-MM" headers                ; #69
+  set headers lput "max-generation-MM" headers                ; #70
+  set headers lput "min-generation-M+" headers                ; #71
+  set headers lput "max-generation-M+" headers                ; #72
+  set headers lput "min-generation-MR" headers                ; #73
+  set headers lput "max-generation-MR" headers                ; #74
   
   while [ length headers > 0 ] [
     
@@ -225,6 +239,55 @@ to write-values-to-file
     array:set output-values 43 current-male-stat-duration
     array:set output-values 44 current-male-adult-longevity
     ; 47-60 see procedures...
+    ifelse count flies > 0 [
+      array:set output-values 61 min [ generation ] of flies
+      array:set output-values 62 max [ generation ] of flies
+    ] [
+      array:set output-values 61 0
+      array:set output-values 62 0
+    ]
+    ifelse count flies with [ genotype = "++" ] > 0 [
+      array:set output-values 63 min [ generation ] of flies with [ genotype = "++" ] 
+      array:set output-values 64 max [ generation ] of flies with [ genotype = "++" ]
+    ] [
+      array:set output-values 63 0
+      array:set output-values 64 0
+    ]
+    ifelse count flies with [ genotype = "R+" ] > 0 [
+      array:set output-values 65 min [ generation ] of flies with [ genotype = "R+" ] 
+      array:set output-values 66 max [ generation ] of flies with [ genotype = "R+" ]
+    ] [
+      array:set output-values 65 0
+      array:set output-values 66 0
+    ]
+    ifelse count flies with [ genotype = "RR" ] > 0 [ 
+      array:set output-values 67 min [ generation ] of flies with [ genotype = "RR" ] 
+      array:set output-values 68 max [ generation ] of flies with [ genotype = "RR" ]
+    ] [
+      array:set output-values 67 0
+      array:set output-values 68 0
+    ]
+    ifelse count flies with [ genotype = "MM" ] > 0 [
+      array:set output-values 69 min [ generation ] of flies with [ genotype = "MM" ] 
+      array:set output-values 70 max [ generation ] of flies with [ genotype = "MM" ]
+    ] [
+      array:set output-values 69 0
+      array:set output-values 70 0
+    ]
+    ifelse count flies with [ genotype = "M+" ] > 0 [
+      array:set output-values 71 min [ generation ] of flies with [ genotype = "M+" ] 
+      array:set output-values 72 max [ generation ] of flies with [ genotype = "M+" ]
+    ] [
+      array:set output-values 71 0
+      array:set output-values 72 0
+    ]
+    ifelse count flies with [ genotype = "MR" ] > 0 [
+      array:set output-values 73 min [ generation ] of flies with [ genotype = "MR" ] 
+      array:set output-values 74 max [ generation ] of flies with [ genotype = "MR" ]
+    ] [
+      array:set output-values 73 0
+      array:set output-values 74 0
+    ]
     
     file-open output-file-name
     
