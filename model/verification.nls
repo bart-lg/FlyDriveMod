@@ -1736,45 +1736,90 @@ to-report test-fitness [ verification-file ]
   let log-header "test-fitness: "
   let log-content ""
   
-  ; check if cherry and fruit number get reduced if egg gets not layed due to fitness
+  ; FIRST TEST 
+  ; 300 trials
+  ; 1 female / 1 male fly
+  ; female fitness 1
+  ; male fitness 0.4
+  ; mating success should be around 40%
   
-  refresh-world
-  ; grow cherries
-  ask trees [
-    set grown-cherries 5
-    set occupied-cherries 0
+  let trials 300
+  let trial 1
+  let matings 0
+  while [ trial <= trials ] [
+   
+    refresh-world
+    random-seed new-seed
+    
+    set init-pop 2
+    start-season
+    ask flies with-min [who] [
+      set sex "f"
+      set fitness 1
+      move-to min-one-of trees [who] ; move to tree with lowest id
+    ]
+    ask flies with-max [who] [
+      set sex "m"
+      set fitness 0.4
+      move-to min-one-of trees [who] ; move to tree with lowest id
+    ]
+    
+    fly-activities
+    
+    ; check mating
+    if count flies with [ sex = "f" and eggs > 0 ] > 0 [
+      set matings ( matings + 1 ) 
+    ]
+    
+    set trial ( trial + 1 ) 
   ]
-  set cherries-available TRUE
-  ; grow wildberries
-  ask wildberry-plants [
-    set grown-wildberries 5
-    set occupied-wildberries 0
+  ; Most of the time the result should be between .38 and .42, but due to low total trials it may happen that the deviation is slightly higher. Therefore, .36 and .44 chosen for boundaries.
+  if ( matings / trials ) < 0.36 or ( matings / trials ) > 0.44 [
+     set log-content ( word log-content "CHECK FITNESS: first test failed - mating success not around 40% (" round( matings / trials * 100 ) "%); " )
   ]
-  set wildberries-available TRUE
-  ; create flies
-  set init-pop 1
-  start-season
-  ; modify flies
-  ask flies [
-    set sex "f"
-    set ready-to-lay-egg TRUE
-    set eggs 1
-    set genotype "++"
-    set genotype-of-partner "++"
-    set fitness 0
-    set fitness-of-partner 0
-    set combined-fitness 0
-    set fertilization-tick 0
-    move-to min-one-of trees [who] ; move to tree with lowest id
+  
+  ; SECOND TEST 
+  ; 300 trials
+  ; 1 female / 1 male fly
+  ; female fitness 0.6
+  ; male fitness 1
+  ; mating success should be around 60%
+  
+  set trials 300
+  set trial 1
+  set matings 0
+  while [ trial <= trials ] [
+   
+    refresh-world
+    random-seed new-seed
+    
+    set init-pop 2
+    start-season
+    ask flies with-min [who] [
+      set sex "f"
+      set fitness 0.6
+      move-to min-one-of trees [who] ; move to tree with lowest id
+    ]
+    ask flies with-max [who] [
+      set sex "m"
+      set fitness 1
+      move-to min-one-of trees [who] ; move to tree with lowest id
+    ]
+    
+    fly-activities
+    
+    ; check mating
+    if count flies with [ sex = "f" and eggs > 0 ] > 0 [
+      set matings ( matings + 1 ) 
+    ]
+    
+    set trial ( trial + 1 ) 
   ]
-  fly-activities
-  ; check values
-  if count flies with [ mode = "adult" ] != 1 [
-    set log-content word log-content "CHECK FITNESS: wrong number of adult flies; "
+  ; Most of the time the result should be between .56 and .64, but due to low total trials it may happen that the deviation is slightly higher. Therefore, .56 and .64 chosen for boundaries.
+  if ( matings / trials ) < 0.56 or ( matings / trials ) > 0.64 [
+     set log-content ( word log-content "CHECK FITNESS: second test failed - mating success not around 60% (" round( matings / trials * 100 ) "%); " )
   ]
-  if count flies with [ mode = "stationary" ] != 0 [
-    set log-content word log-content "CHECK FITNESS: wrong number of stationary flies; "
-  ]    
+
   
   write-verification-result-to-file verification-file log-header log-content
   ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]    

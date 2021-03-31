@@ -565,24 +565,35 @@ to fly-activities
   let fertile-female-adult-flies female-adult-flies with [ partner-search = TRUE ]
 
   ask fertile-female-adult-flies [
-
-    let fertile-male-adult-flies-here flies-here with [ sex = "m" and mode = "adult" and partner-search = TRUE ]
+    
+    let mating-chance random-float 1
+    let fertile-male-adult-flies-here flies-here with [ sex = "m" and mode = "adult" and partner-search = TRUE and fitness >= mating-chance ]
     
     ; if female fly detects male fly on same patch => start fertilization
     if any? fertile-male-adult-flies-here [
-      set partner-search FALSE
-      set fertilization-tick ticks
-      set eggs eggs-per-cycle
+
       let partner n-of 1 fertile-male-adult-flies-here 
-      ; "[genotype] of partner" and "[fitness] of partner" return lists
-      set genotype-of-partner first [genotype] of partner
-      set fitness-of-partner first [fitness] of partner
-      set combined-fitness ( fitness * fitness-of-partner )
-      set color orange
       ask partner [
         set partner-search FALSE
         set fertilization-tick ticks 
       ]
+
+      let mating-success random-float 1
+      ifelse ( fitness >= mating-success ) [
+      
+        set partner-search FALSE
+        set fertilization-tick ticks
+        set eggs eggs-per-cycle
+        ; "[genotype] of partner" and "[fitness] of partner" return lists
+        set genotype-of-partner first [genotype] of partner
+        set fitness-of-partner first [fitness] of partner
+        set combined-fitness ( fitness * fitness-of-partner )
+        set color orange
+        
+      ] [
+        start-immature-state
+      ]
+      
     ]     
  
   ]
@@ -620,7 +631,8 @@ to fly-activities
         ]
         
         ; fitness rate
-        if random-float 1 > combined-fitness [ set lay-egg FALSE ]
+        ; deactivated. new impact of fitness: mating chance(m)/success(f)
+        ; if random-float 1 > combined-fitness [ set lay-egg FALSE ]
         
         ifelse lay-egg [
           
