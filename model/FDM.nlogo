@@ -2311,6 +2311,121 @@ NetLogo 6.1.1
       <value value="true"/>
     </enumeratedValueSet>
   </experiment>
+  <experiment name="wildberry-test" repetitions="20" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <enumeratedValueSet variable="wildberries-per-plant">
+      <value value="5"/>
+      <value value="10"/>
+      <value value="15"/>
+      <value value="20"/>
+      <value value="25"/>
+      <value value="30"/>
+      <value value="40"/>
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="init-pop">
+      <value value="500"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-day">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-amount">
+      <value value="500"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistant-ratio">
+      <value value="0.8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistance-rate">
+      <value value="0.8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gd-gender">
+      <value value="&quot;mixed&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-RR">
+      <value value="0.8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-MM">
+      <value value="0.8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-PP">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mean-cherries">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sd-cherries">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-years">
+      <value value="4"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-period">
+      <value value="45"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-start">
+      <value value="105"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gene-drive">
+      <value value="true"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="cherry-test" repetitions="12" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <enumeratedValueSet variable="wildberries-per-plant">
+      <value value="20"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="init-pop">
+      <value value="500"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-day">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-amount">
+      <value value="500"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistant-ratio">
+      <value value="0.8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistance-rate">
+      <value value="0.8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gd-gender">
+      <value value="&quot;mixed&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-RR">
+      <value value="0.8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-MM">
+      <value value="0.8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-PP">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mean-cherries">
+      <value value="100"/>
+      <value value="500"/>
+      <value value="1000"/>
+      <value value="1500"/>
+      <value value="2000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sd-cherries">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-years">
+      <value value="4"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-period">
+      <value value="45"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-start">
+      <value value="105"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gene-drive">
+      <value value="true"/>
+    </enumeratedValueSet>
+  </experiment>
 </experiments>
 @#$#@#$#@
 @#$#@#$#@
