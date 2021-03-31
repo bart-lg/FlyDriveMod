@@ -152,22 +152,50 @@ to-report test-start-season [ verification-file ]
     set total-age 1
     set mode-duration 1
     set partner-search FALSE
-    set eggs 1
-    set ready-to-lay-egg TRUE
+    ;set eggs 1
+    ;set ready-to-lay-egg TRUE
     set fertilization-tick 1
   ]
+  
+  ask flies with [ sex = "f" and mode = "adult" ] [
+    set eggs 10
+    set ready-to-lay-egg FALSE
+  ]
+  
+  let num-females-with-eggs count flies with [ eggs > 0 ]
+  let target-min-females-with-eggs ( wintereggs-mean-female-share - ( 3 * wintereggs-sd-female-share ) )
+  let target-max-females-with-eggs ( wintereggs-mean-female-share + ( 3 * wintereggs-sd-female-share ) )
   
   start-season
   
   if count flies with [
     total-age > 0
     or mode-duration > 0
-    or partner-search = FALSE
-    or eggs > 0
-    or ready-to-lay-egg
+    ;or partner-search = FALSE
+    ;or eggs > 0
+    ;or ready-to-lay-egg
     or ticks-since-fertilization > 0
   ] > 0 [ set log-content word log-content "WRONG NEW SEASON FLY PROPERTIES; " ]  
   
+  if count flies with [
+    eggs > 0 and (
+      ready-to-lay-egg = FALSE
+      or partner-search = TRUE
+    )
+  ] > 0 [ set log-content word log-content "FEMALES WITH FLIES HAVE WRONG PROPERTIES; " ]
+  
+  if count flies with [
+    eggs = 0 and partner-search = FALSE
+  ] > 0 [ set log-content word log-content "FLIES WITHOUT EGGS NOT SEARCHING FOR PARTNERS; " ]
+  
+  if count flies with [ eggs > 0 ] < ceiling ( num-females-with-eggs * target-min-females-with-eggs ) [
+    set log-content word log-content "NUM FEMALE FLIES WITH EGGS LOWER THAN EXPECTED (expected min: mean - 3*sd); "
+  ]
+  
+  if count flies with [ eggs > 0 ] > ceiling ( num-females-with-eggs * target-max-females-with-eggs ) [
+    set log-content word log-content "NUM FEMALE FLIES WITH EGGS HIGHER THAN EXPECTED (expected max: mean + 3*sd); "
+  ]
+
   if not season or season-number != 2 [
     set log-content word log-content "WRONG NEW SEASON NUMBER OR SEASON FLAG; "
   ]  
@@ -1148,7 +1176,7 @@ to-report test-kill-flies [ verification-file ]
   let gender-ratio-new 0
 
   set init-pop 3000
-  set mortality-off-season 0.9
+  set mortality-off-season 0.5
   
   ; create initial population and start season
   start-season
@@ -1175,7 +1203,7 @@ to-report test-kill-flies [ verification-file ]
     set log-content word log-content "kill-flies-off-season: STATIONARY FLIES LEFT; "
   ]
   
-  if count flies != 200 [
+  if count flies != 1000 [
     set log-content word log-content "kill-flies-off-season: WRONG NUMBER OF FLIES LEFT; "
   ]
   
@@ -1737,13 +1765,13 @@ to-report test-fitness [ verification-file ]
   let log-content ""
   
   ; FIRST TEST 
-  ; 300 trials
+  ; 500 trials
   ; 1 female / 1 male fly
   ; female fitness 1
   ; male fitness 0.4
   ; mating success should be around 40%
   
-  let trials 300
+  let trials 500
   let trial 1
   let matings 0
   while [ trial <= trials ] [
@@ -1774,18 +1802,18 @@ to-report test-fitness [ verification-file ]
     set trial ( trial + 1 ) 
   ]
   ; Most of the time the result should be between .38 and .42, but due to low total trials it may happen that the deviation is slightly higher. Therefore, .36 and .44 chosen for boundaries.
-  if ( matings / trials ) < 0.36 or ( matings / trials ) > 0.44 [
+  if ( precision ( matings / trials ) 2 ) < 0.35 or ( precision ( matings / trials ) 2 ) > 0.45 [
      set log-content ( word log-content "CHECK FITNESS: first test failed - mating success not around 40% (" round( matings / trials * 100 ) "%); " )
   ]
   
   ; SECOND TEST 
-  ; 300 trials
+  ; 500 trials
   ; 1 female / 1 male fly
   ; female fitness 0.6
   ; male fitness 1
   ; mating success should be around 60%
   
-  set trials 300
+  set trials 500
   set trial 1
   set matings 0
   while [ trial <= trials ] [
@@ -1816,7 +1844,7 @@ to-report test-fitness [ verification-file ]
     set trial ( trial + 1 ) 
   ]
   ; Most of the time the result should be between .56 and .64, but due to low total trials it may happen that the deviation is slightly higher. Therefore, .56 and .64 chosen for boundaries.
-  if ( matings / trials ) < 0.56 or ( matings / trials ) > 0.64 [
+  if ( precision ( matings / trials ) 2 ) < 0.55 or ( precision ( matings / trials ) 2 ) > 0.65 [
      set log-content ( word log-content "CHECK FITNESS: second test failed - mating success not around 60% (" round( matings / trials * 100 ) "%); " )
   ]
 

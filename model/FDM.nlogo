@@ -86,6 +86,10 @@ globals [
   ; number of season (counts seasons)
   season-number
 
+  ; part of females carry eggs over winter
+  wintereggs-mean-female-share
+  wintereggs-sd-female-share
+
   ; eggs-per-day (array for eggs-per-day depending on avg. temperature)
   ; eggs-per-day-temperatures => array of temperatures (10-days avg. temp) in steps of 1°C (min and max serve as reference values for temperatures below and above the range)
   ; eggs-per-day => array of eggs-per-day rate at given avg. temperature
@@ -135,7 +139,7 @@ to setup
 
   set no-output temp-no-output
 
-  set model-version "V1.4.0"
+  set model-version "V1.5.0"
 
   if behaviorspace-run-number > 0 [ random-seed behaviorspace-run-number ]
 
@@ -162,11 +166,13 @@ to setup
   ; mortality interval: 6 weeks
   set mortality-interval 6 * 7
 
-  set mortality-off-season 0.9
+  set mortality-off-season 0.5
   set season-start-temp 11
   set season-end-temp 10
   set season FALSE
   set season-number 0
+  set wintereggs-mean-female-share 0.41
+  set wintereggs-sd-female-share 0.03
 
   ;set fitness-PP 1 (slider input)
   ;set fitness-RR 1 (slider input)
@@ -308,13 +314,23 @@ to start-season
       set total-age 0
       set mode-duration 0
       set partner-search TRUE
-      set eggs 0
-      set ready-to-lay-egg FALSE
       set fertilization-tick 0
       set immature-state FALSE
       if mode = "stationary"          [ set color yellow  ]
-      if mode = "adult" and sex = "f" [ set color magenta ]
       if mode = "adult" and sex = "m" [ set color blue    ]
+    ]
+    let female-flies-with-eggs flies with [ sex = "f" and eggs > 0 ]
+    let num-female-flies-with-eggs count female-flies-with-eggs
+    let share ( random-normal wintereggs-mean-female-share wintereggs-sd-female-share )
+    ask n-of ceiling ( num-female-flies-with-eggs * ( 1 - share ) ) female-flies-with-eggs [
+      set eggs 0
+      set ready-to-lay-egg FALSE
+      set color magenta
+    ]
+    ; correct partner-search and ready-to-lay-egg for females with eggs
+    ask flies with [ sex = "f" and eggs > 0 ] [
+      set partner-search FALSE
+      set ready-to-lay-egg TRUE
     ]
   ]
   set season TRUE
@@ -424,7 +440,7 @@ init-pop
 init-pop
 0
 10000
-500.0
+2.0
 1
 1
 NIL
@@ -580,7 +596,7 @@ mean-cherries
 mean-cherries
 0
 4000
-2000.0
+100.0
 1
 1
 NIL
@@ -595,7 +611,7 @@ sd-cherries
 sd-cherries
 0
 1000
-50.0
+0.0
 1
 1
 NIL
@@ -610,7 +626,7 @@ cherries-growth-start
 cherries-growth-start
 0
 365
-105.0
+2.0
 1
 1
 NIL
@@ -625,7 +641,7 @@ cherries-growth-period
 cherries-growth-period
 0
 180
-45.0
+2.0
 1
 1
 NIL
@@ -727,7 +743,7 @@ release-amount
 release-amount
 0
 10000
-500.0
+1000.0
 10
 1
 NIL
@@ -838,7 +854,7 @@ CHOOSER
 gd-gender
 gd-gender
 "female" "mixed" "male"
-0
+2
 
 SLIDER
 1292
