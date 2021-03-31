@@ -1333,7 +1333,7 @@ NetLogo 6.1.1
     <setup>setup</setup>
     <go>go</go>
     <enumeratedValueSet variable="wildberries-per-plant">
-      <value value="50"/>
+      <value value="20"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="init-pop">
       <value value="500"/>
@@ -1369,10 +1369,10 @@ NetLogo 6.1.1
       <value value="1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="mean-cherries">
-      <value value="2000"/>
+      <value value="200"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="sd-cherries">
-      <value value="50"/>
+      <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="max-years">
       <value value="3"/>
@@ -1391,7 +1391,7 @@ NetLogo 6.1.1
     <setup>setup</setup>
     <go>go</go>
     <enumeratedValueSet variable="wildberries-per-plant">
-      <value value="50"/>
+      <value value="20"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="init-pop">
       <value value="500"/>
@@ -1427,10 +1427,10 @@ NetLogo 6.1.1
       <value value="1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="mean-cherries">
-      <value value="2000"/>
+      <value value="200"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="sd-cherries">
-      <value value="50"/>
+      <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="max-years">
       <value value="3"/>
@@ -1449,7 +1449,7 @@ NetLogo 6.1.1
     <setup>setup</setup>
     <go>go</go>
     <enumeratedValueSet variable="wildberries-per-plant">
-      <value value="75"/>
+      <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="init-pop">
       <value value="500"/>
@@ -1485,10 +1485,10 @@ NetLogo 6.1.1
       <value value="1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="mean-cherries">
-      <value value="2000"/>
+      <value value="200"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="sd-cherries">
-      <value value="50"/>
+      <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="max-years">
       <value value="3"/>
@@ -1507,7 +1507,7 @@ NetLogo 6.1.1
     <setup>setup</setup>
     <go>go</go>
     <enumeratedValueSet variable="wildberries-per-plant">
-      <value value="75"/>
+      <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="init-pop">
       <value value="500"/>
@@ -1543,10 +1543,10 @@ NetLogo 6.1.1
       <value value="1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="mean-cherries">
-      <value value="2000"/>
+      <value value="200"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="sd-cherries">
-      <value value="50"/>
+      <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="max-years">
       <value value="3"/>
@@ -1565,7 +1565,7 @@ NetLogo 6.1.1
     <setup>setup</setup>
     <go>go</go>
     <enumeratedValueSet variable="wildberries-per-plant">
-      <value value="50"/>
+      <value value="20"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="init-pop">
       <value value="5000"/>
@@ -1601,10 +1601,10 @@ NetLogo 6.1.1
       <value value="1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="mean-cherries">
-      <value value="2000"/>
+      <value value="200"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="sd-cherries">
-      <value value="50"/>
+      <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="max-years">
       <value value="3"/>
@@ -1623,7 +1623,7 @@ NetLogo 6.1.1
     <setup>setup</setup>
     <go>go</go>
     <enumeratedValueSet variable="wildberries-per-plant">
-      <value value="75"/>
+      <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="init-pop">
       <value value="5000"/>
@@ -1659,10 +1659,10 @@ NetLogo 6.1.1
       <value value="1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="mean-cherries">
-      <value value="2000"/>
+      <value value="200"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="sd-cherries">
-      <value value="50"/>
+      <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="max-years">
       <value value="3"/>
@@ -1681,7 +1681,7 @@ NetLogo 6.1.1
     <setup>setup</setup>
     <go>go</go>
     <enumeratedValueSet variable="wildberries-per-plant">
-      <value value="50"/>
+      <value value="20"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="init-pop">
       <value value="5000"/>
@@ -1717,10 +1717,10 @@ NetLogo 6.1.1
       <value value="1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="mean-cherries">
-      <value value="2000"/>
+      <value value="200"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="sd-cherries">
-      <value value="50"/>
+      <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="max-years">
       <value value="3"/>
@@ -1739,7 +1739,7 @@ NetLogo 6.1.1
     <setup>setup</setup>
     <go>go</go>
     <enumeratedValueSet variable="wildberries-per-plant">
-      <value value="75"/>
+      <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="init-pop">
       <value value="5000"/>
@@ -1775,10 +1775,10 @@ NetLogo 6.1.1
       <value value="1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="mean-cherries">
-      <value value="2000"/>
+      <value value="200"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="sd-cherries">
-      <value value="50"/>
+      <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="max-years">
       <value value="3"/>
@@ -1797,7 +1797,7 @@ NetLogo 6.1.1
     <setup>setup</setup>
     <go>go</go>
     <enumeratedValueSet variable="wildberries-per-plant">
-      <value value="50"/>
+      <value value="20"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="init-pop">
       <value value="500"/>
@@ -1833,10 +1833,10 @@ NetLogo 6.1.1
       <value value="1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="mean-cherries">
-      <value value="2000"/>
+      <value value="200"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="sd-cherries">
-      <value value="50"/>
+      <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="max-years">
       <value value="3"/>
@@ -1855,7 +1855,7 @@ NetLogo 6.1.1
     <setup>setup</setup>
     <go>go</go>
     <enumeratedValueSet variable="wildberries-per-plant">
-      <value value="75"/>
+      <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="init-pop">
       <value value="500"/>
@@ -1891,10 +1891,10 @@ NetLogo 6.1.1
       <value value="1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="mean-cherries">
-      <value value="2000"/>
+      <value value="200"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="sd-cherries">
-      <value value="50"/>
+      <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="max-years">
       <value value="3"/>
@@ -1913,7 +1913,7 @@ NetLogo 6.1.1
     <setup>setup</setup>
     <go>go</go>
     <enumeratedValueSet variable="wildberries-per-plant">
-      <value value="50"/>
+      <value value="20"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="init-pop">
       <value value="500"/>
@@ -1949,10 +1949,10 @@ NetLogo 6.1.1
       <value value="1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="mean-cherries">
-      <value value="2000"/>
+      <value value="200"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="sd-cherries">
-      <value value="50"/>
+      <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="max-years">
       <value value="3"/>
@@ -1971,7 +1971,7 @@ NetLogo 6.1.1
     <setup>setup</setup>
     <go>go</go>
     <enumeratedValueSet variable="wildberries-per-plant">
-      <value value="75"/>
+      <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="init-pop">
       <value value="500"/>
@@ -2007,10 +2007,10 @@ NetLogo 6.1.1
       <value value="1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="mean-cherries">
-      <value value="2000"/>
+      <value value="200"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="sd-cherries">
-      <value value="50"/>
+      <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="max-years">
       <value value="3"/>
@@ -2029,7 +2029,7 @@ NetLogo 6.1.1
     <setup>setup</setup>
     <go>go</go>
     <enumeratedValueSet variable="wildberries-per-plant">
-      <value value="50"/>
+      <value value="20"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="init-pop">
       <value value="5000"/>
@@ -2065,10 +2065,10 @@ NetLogo 6.1.1
       <value value="1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="mean-cherries">
-      <value value="2000"/>
+      <value value="200"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="sd-cherries">
-      <value value="50"/>
+      <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="max-years">
       <value value="3"/>
@@ -2087,7 +2087,7 @@ NetLogo 6.1.1
     <setup>setup</setup>
     <go>go</go>
     <enumeratedValueSet variable="wildberries-per-plant">
-      <value value="75"/>
+      <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="init-pop">
       <value value="5000"/>
@@ -2123,10 +2123,10 @@ NetLogo 6.1.1
       <value value="1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="mean-cherries">
-      <value value="2000"/>
+      <value value="200"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="sd-cherries">
-      <value value="50"/>
+      <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="max-years">
       <value value="3"/>
@@ -2145,7 +2145,7 @@ NetLogo 6.1.1
     <setup>setup</setup>
     <go>go</go>
     <enumeratedValueSet variable="wildberries-per-plant">
-      <value value="50"/>
+      <value value="20"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="init-pop">
       <value value="5000"/>
@@ -2181,10 +2181,10 @@ NetLogo 6.1.1
       <value value="1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="mean-cherries">
-      <value value="2000"/>
+      <value value="200"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="sd-cherries">
-      <value value="50"/>
+      <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="max-years">
       <value value="3"/>
@@ -2203,7 +2203,7 @@ NetLogo 6.1.1
     <setup>setup</setup>
     <go>go</go>
     <enumeratedValueSet variable="wildberries-per-plant">
-      <value value="75"/>
+      <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="init-pop">
       <value value="5000"/>
@@ -2239,10 +2239,10 @@ NetLogo 6.1.1
       <value value="1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="mean-cherries">
-      <value value="2000"/>
+      <value value="200"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="sd-cherries">
-      <value value="50"/>
+      <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="max-years">
       <value value="3"/>
