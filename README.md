@@ -21,11 +21,26 @@ The genotypes of the flies within this model consist of two alleles. Possible va
 
 Within off-season due to low temperature, the flies switch to a freezing state. Following the results of experiments in the literature, 50% of all adult flies get killed over the winter. All undeveloped stationary flies get killed as well. To preserve a fertile population the off-season killing affects female and male flies in the same ratio. Following the results of experiments in the literature, 41% of female flies with eggs (standard deviation 3%) preserve their eggs during the winter. The age of adult flies surviving the winter period is set to zero at the beginning of the new season. Fly season starts at a 10-day-mean temperature of 11° C while it ends at a 10-day-mean temperature of 10° C.
 
+csv outputs
+
 Several model parameters are temperature dependent. To smooth temperature fluctuations, a 10-day-mean temperature value gets calculated every tick, on which the model parameters rely. For the current model version the hourly temperature measures of the Stockton Metropolitan Airport (California, USA) of the year 2010 provided by the [US National Centers For Environmental Information of the National Oceanic and Atmospheric Administration (NOAA)](https://www.ncdc.noaa.gov/cdo-web/) had been used. The hourly data has been thinned out to 15 values per day according to the number of ticks per day. Since the model reads the temperature data from a csv file, the temperature data set can be replaced by a different data set providing 15 temperature values per day (in °C). The following model parameters are temperature dependent: start and end of season, female/male longevity of adult flies, development duration for stationary female/male flies, frequency of egg laying, mortality rates.
+
+random seed for mutliple runs
+
+self-test
+
+Video
+
 ## Usage
+
+Installation and start
 
 ## Versioning
 
+Tags for different code adaptions
+
 ## Self-test
+
+## Flow charts
 
 
