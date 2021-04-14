@@ -2,7 +2,7 @@
 
 FlyDriveMod is an individual based (agent based) model for the simulation of a [Drosophila suzukii](https://en.wikipedia.org/wiki/Drosophila_suzukii) population using [NetLogo](https://ccl.northwestern.edu/netlogo/) as a multi-agent programmable modeling environment. 
 
-https://user-images.githubusercontent.com/23704254/114708532-c0e01e80-9d2b-11eb-98cb-52c7a5b8393f.mp4
+![Teaser_V19](https://user-images.githubusercontent.com/23704254/114712271-33eb9400-9d30-11eb-941e-c2a2b62be3c5.gif)
 
 #### Environment
 
