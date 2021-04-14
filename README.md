@@ -2,6 +2,8 @@
 
 FlyDriveMod is an individual based (agent based) model for the simulation of a [Drosophila suzukii](https://en.wikipedia.org/wiki/Drosophila_suzukii) population using [NetLogo](https://ccl.northwestern.edu/netlogo/) as a multi-agent programmable modeling environment. 
 
+https://user-images.githubusercontent.com/23704254/114686255-e7459000-9d12-11eb-8bf5-03218508cfc1.mp4
+
 #### Environment
 
 The environment represents a cherry field with five rows of ten cherry trees surrounded by a ring of wildberry plants. Cherries are grown linearly within a configurable growing period, whereby mean and standard deviation of the cherry amounts per tree can be set. To provide a survivable habitat a limited amount of wildberries is constantly available for egg laying. If wildberries get occupied, the plants grow a new wildberry each day until a certain limit per plant is reached. The number of wildberries per plant can be set in the model configuration. A value setting of 20 wildberries per plant, 200 mean cherries per tree with a standard deviation of 10, 105 for the cherries growth start day and a cherry growth period of 60 days is recommended. The number of simulated years can be specified in the model configuration.
