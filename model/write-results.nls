@@ -88,6 +88,9 @@ to write-configs-to-file
   file-print ( word "gd-gender" " " gd-gender )
   file-print ( word "release-amount" " " release-amount )
   file-print ( word "release-day" " " release-day )
+  file-print ( word "periodic-release" " " periodic-release )
+  file-print ( word "periodic-interval" " " periodic-interval )
+  file-print ( word "release-location" " " release-location )
   
   file-print ( word "mean-cherries" " " mean-cherries )
   file-print ( word "sd-cherries" " " sd-cherries )
