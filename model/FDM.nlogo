@@ -139,7 +139,7 @@ to setup
 
   set no-output temp-no-output
 
-  set model-version "V1.6.5"
+  set model-version "V1.6.6"
 
   if behaviorspace-run-number > 0 [ random-seed behaviorspace-run-number ]
 
@@ -448,7 +448,7 @@ init-pop
 init-pop
 0
 10000
-0.0
+550.0
 1
 1
 NIL
@@ -491,7 +491,7 @@ resistant-ratio
 resistant-ratio
 0
 1
-0.5
+0.78
 0.01
 1
 NIL
@@ -604,7 +604,7 @@ mean-cherries
 mean-cherries
 0
 4000
-100.0
+200.0
 1
 1
 NIL
@@ -619,7 +619,7 @@ sd-cherries
 sd-cherries
 0
 1000
-0.0
+10.0
 1
 1
 NIL
@@ -634,7 +634,7 @@ cherries-growth-start
 cherries-growth-start
 0
 365
-2.0
+105.0
 1
 1
 NIL
@@ -649,7 +649,7 @@ cherries-growth-period
 cherries-growth-period
 0
 180
-2.0
+60.0
 1
 1
 NIL
@@ -831,7 +831,7 @@ wildberries-per-plant
 wildberries-per-plant
 0
 100
-50.0
+20.0
 1
 1
 NIL
@@ -862,7 +862,7 @@ CHOOSER
 gd-gender
 gd-gender
 "female" "mixed" "male"
-2
+1
 
 SLIDER
 1292
@@ -873,7 +873,7 @@ resistance-rate
 resistance-rate
 0
 1
-0.5
+0.07
 0.01
 1
 NIL
@@ -918,7 +918,7 @@ fitness-MM
 fitness-MM
 0
 1
-1.0
+0.35
 0.01
 1
 NIL
@@ -999,7 +999,7 @@ periodic-release
 periodic-release
 1
 100
-10.0
+3.0
 1
 1
 NIL
