@@ -384,7 +384,47 @@ to kill-flies-off-season
   ask n-of ( ceiling ( count flies with [ sex = "f" ] * mortality-off-season ) ) flies with [ sex = "f" ] [ die ]
   ask n-of ( count flies - surviving-flies ) flies with [ sex = "m" ] [ die ]
 end
+ 
 
+to kill_Medea_flies_diapause
+  ;If Cargo_Gene 1, envrionmental cue is the winter season, is true than it kills all the flies with a Medea gene
+  
+  if ms_gender = "male" [
+    ask n-of (ceiling (count flies with [sex = "m" and member? "M" genotype] ) ) flies with [sex = "m" and member? "M" genotype] [die]
+  ]
+  if ms_gender = "female" [
+    ask n-of (ceiling (count flies with [sex = "f" and member? "M" genotype] ) ) flies with [sex = "f" and member? "M" genotype] [die]
+  ]
+  if ms_gender = "mixed" [
+    ask n-of (ceiling (count flies with [member? "M" genotype] ) ) flies with [member? "M" genotype] [die]
+  ]
+end
+
+; so far it kills them on the spot, I could change this to instead of die the get the e.g.: set poisoned = true (need to make this attribute with the flies) and than have an own function with the flies to kill them in time
+to kill_flies_with_magic_substance
+  ask trees with [magic_substance = True] [
+    ask flies with [member? "M" genotype] in-radius tree-radius [die] 
+  ]
+end
+
+to make_MM_steril
+  if ms_gender = "female" [
+    ask flies with [sex = "f" and genotype = "MM"] [
+      set fitness 0
+    ]
+  ]
+  if ms_gender = "male" [
+    ask flies with [sex = "m" and genotype = "MM"] [
+      set fitness 0
+    ]
+  ]
+  if ms_gender = "mixed" [
+    ask flies with [genotype = "MM"] [
+      set fitness 0
+    ]
+  ]
+end
+  
 to kill-flies
   
   ; ### death due to life-expectancy ###
@@ -868,12 +908,17 @@ to release-gene-drive-at-position [gd-xcor gd-ycor gd-release-amount]
       set eggs 0
       set genotype "MM"
       set fitness fitness-MM
+      ask n-of (gd-release-amount * release_share_heterozygot) flies-here [
+        set genotype "M+"
+        set fitness fitness-MM
+      ]
       set total-age 0
       set fertilization-tick 0
       start-immature-state
       if sex = "f" [ set color magenta ]
       if sex = "m" [ set color blue    ]
     ] 
+    
   ]    
   
 end

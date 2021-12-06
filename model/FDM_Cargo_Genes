@@ -125,6 +125,8 @@ globals [
   ; path for input csv files
   path-csv-input
 
+  ;cargo_genes
+
 ]
 
 ; initial setup procedure
@@ -251,6 +253,13 @@ to go
     ]
   ]
 
+  ; Check which if a Cargo Gene is activated
+  if Cargo_gene != "No_CG" [
+   Check_CG
+    ]
+
+
+
   ; if off-season => freeze
   if season [
 
@@ -353,6 +362,26 @@ to end-season
 
 end
 
+to check_CG
+  if Cargo_gene = "CG1" [
+    if season = TRUE and round ( mean-10d-temp ) <= season-end-temp [
+      kill_Medea_flies_diapause
+    ]
+  ]
+
+
+  if Cargo_gene = "CG2" [
+    ask trees [spray_magic_substance]
+    kill_flies_with_magic_substance
+    magic_substance_fade_away
+  ]
+  if Cargo_gene = "CG3" [
+    make_MM_steril
+  ]
+end
+
+
+
 ; returns the current date in the format 1.1.[1] (the number in brackets reflects the year - note: NO LEAP YEARS!)
 to-report current-date
 
@@ -448,7 +477,7 @@ init-pop
 init-pop
 0
 10000
-0.0
+569.0
 1
 1
 NIL
@@ -491,7 +520,7 @@ resistant-ratio
 resistant-ratio
 0
 1
-0.5
+0.1
 0.01
 1
 NIL
@@ -619,7 +648,7 @@ sd-cherries
 sd-cherries
 0
 1000
-0.0
+16.0
 1
 1
 NIL
@@ -634,7 +663,7 @@ cherries-growth-start
 cherries-growth-start
 0
 365
-2.0
+0.0
 1
 1
 NIL
@@ -649,7 +678,7 @@ cherries-growth-period
 cherries-growth-period
 0
 180
-2.0
+10.0
 1
 1
 NIL
@@ -751,7 +780,7 @@ release-amount
 release-amount
 0
 10000
-1000.0
+2610.0
 10
 1
 NIL
@@ -774,7 +803,7 @@ INPUTBOX
 1002
 204
 max-years
-3.0
+0.5
 1
 0
 Number
@@ -831,7 +860,7 @@ wildberries-per-plant
 wildberries-per-plant
 0
 100
-50.0
+10.0
 1
 1
 NIL
@@ -873,7 +902,7 @@ resistance-rate
 resistance-rate
 0
 1
-0.5
+0.03
 0.01
 1
 NIL
@@ -903,7 +932,7 @@ fitness-RR
 fitness-RR
 0
 1
-1.0
+0.0
 0.01
 1
 NIL
@@ -918,7 +947,7 @@ fitness-MM
 fitness-MM
 0
 1
-1.0
+0.5
 0.01
 1
 NIL
@@ -926,9 +955,9 @@ HORIZONTAL
 
 MONITOR
 1594
-244
+278
 1651
-289
+323
 timer
 run-time-total
 17
@@ -970,9 +999,9 @@ run-time-3
 
 MONITOR
 1456
-244
+278
 1516
-289
+323
 adult flies
 count flies with [ mode = \"adult\" ]
 17
@@ -981,9 +1010,9 @@ count flies with [ mode = \"adult\" ]
 
 MONITOR
 1521
-244
+278
 1581
-289
+323
 stat flies
 count flies with [ mode = \"stationary\" ]
 17
@@ -999,7 +1028,7 @@ periodic-release
 periodic-release
 1
 100
-10.0
+1.0
 1
 1
 NIL
@@ -1029,6 +1058,187 @@ release-location
 release-location
 "center" "corner-trees" "wildberry-plants"
 0
+
+CHOOSER
+20
+715
+158
+760
+Cargo_Gene
+Cargo_Gene
+"CG_off" "CG1" "CG2" "CG3"
+2
+
+SLIDER
+21
+763
+193
+796
+kill_rate_cg
+kill_rate_cg
+0
+1
+1.0
+0.01
+1
+NIL
+HORIZONTAL
+
+SLIDER
+233
+715
+405
+748
+ms_spray_day
+ms_spray_day
+1
+365
+154.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+405
+715
+507
+748
+ms_spray_year
+ms_spray_year
+1
+10
+1.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+233
+751
+405
+784
+ms_periodic_spray
+ms_periodic_spray
+1
+20
+3.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+233
+785
+405
+818
+ms_periodic_interval
+ms_periodic_interval
+1
+100
+10.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+233
+820
+405
+853
+ms_potency_duration
+ms_potency_duration
+0
+100
+8.0
+1
+1
+NIL
+HORIZONTAL
+
+CHOOSER
+21
+799
+159
+844
+ms_gender
+ms_gender
+"male" "female" "mixed"
+0
+
+MONITOR
+409
+749
+479
+794
+Magic trees
+count trees with [magic_substance = TRUE]
+17
+1
+11
+
+TEXTBOX
+254
+686
+404
+704
+NIL
+11
+0.0
+1
+
+SLIDER
+1454
+242
+1651
+275
+release_share_heterozygot
+release_share_heterozygot
+0
+1
+0.0
+0.01
+1
+NIL
+HORIZONTAL
+
+TEXTBOX
+25
+686
+175
+704
+General Cargo Gene
+11
+0.0
+1
+
+TEXTBOX
+238
+684
+388
+712
+Cargo Gene 2 (magic substance)
+11
+0.0
+1
+
+SLIDER
+576
+817
+748
+850
+Days_to_die
+Days_to_die
+0.1
+3
+3.0
+0.1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?

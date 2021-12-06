@@ -554,10 +554,7 @@ to-report test-release-gene-drive [ verification-file ]
   let log-content ""
 
   set release-amount 1000
-  set periodic-release 1
   release-gene-drive
-  
-  ; TODO: check periodic releases, different locations, periodic interval
   
   if count flies != 1000 [
     set log-content word log-content "WRONG NUMBER OF FLIES RELEASED; "
@@ -612,7 +609,6 @@ to-report test-release-gene-drive [ verification-file ]
       set log-content word log-content "WRONG IMMATURE-STATE [B]; "
     ]
   ]
-  tick
   tick
   check-immature-state
   fly-activities  

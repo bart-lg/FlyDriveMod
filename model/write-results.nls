@@ -3,7 +3,7 @@ extensions [ time ]
 
 to create-file
   
-  let number-of-values 75
+  let number-of-values 77
   set output-values array:from-list n-values number-of-values [0]
   
   if no-output != "YES" [ 
@@ -176,6 +176,8 @@ to write-headers-to-file
   set headers lput "max-generation-M+" headers                ; #72
   set headers lput "min-generation-MR" headers                ; #73
   set headers lput "max-generation-MR" headers                ; #74
+  set headers lput "adult_with_CG" headers                    ; #75
+  set headers lput "female_with_CG" headers                   ; #76
   
   while [ length headers > 0 ] [
     
@@ -291,6 +293,8 @@ to write-values-to-file
       array:set output-values 73 0
       array:set output-values 74 0
     ]
+    array:set output-values 75 count flies with [ genotype = "M+" or genotype = "+M" or genotype = "MM" or genotype = "MR" or genotype = "RM" and mode = "adult" ]
+    array:set output-values 76 count flies with [ genotype = "M+" or genotype = "+M" or genotype = "MM" or genotype = "MR" or genotype = "RM" and mode = "adult" and sex ="f" ]
     
     file-open output-file-name
     

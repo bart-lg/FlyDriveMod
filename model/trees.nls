@@ -6,6 +6,9 @@ trees-own [
   max-cherries
   grown-cherries
   occupied-cherries
+  spray_tick
+  magic_substance
+  magic_substance_tick
   
 ]
 
@@ -38,6 +41,7 @@ to plant-trees
         set max-cherries round ( random-normal mean-cherries sd-cherries )
         set grown-cherries 0
         set occupied-cherries 0
+        set spray_tick (0 - ms_spray_day * ticks-per-day )
         update-tree-label     
       ]
       
@@ -94,9 +98,72 @@ to grow-cherries
     
   ]
   
+;  If day >= cherries-growth-start + cherries-growth-period [
+;    ask trees [
+;      If grown-cherries + occupied-cherries > 0 
+;      [harvest]
+;    ]
+;  ]
+  
   set total-grown-cherries sum [ grown-cherries ] of trees
   ifelse total-grown-cherries > 0 [ set cherries-available TRUE ] [ set cherries-available FALSE ]
+  
+  
+end
+
+;to harvest
+;  let harvest_grown_cherries precision (grown-cherries / 10) 1
+;  let harvest_occupied_cherries precision (occupied-cherries / 10) 1
+;  ask trees [ 
+;    ifelse grown-cherries > 0 [
+;      set grown-cherries precision ( grown-cherries - harvest_grown_cherries  ) 1
+;    ][
+;      set grown-cherries 0
+;  ]
+;    
+;    ifelse occupied-cherries > 0 [
+;      set occupied-cherries precision  ( occupied-cherries - harvest_occupied_cherries ) 1
+;    ][
+;      set occupied-cherries 0
+;    ]
+;    update-tree-label
+;  ]  
+;end
+
+
+to spray_magic_substance
+  
+  let x-coordinate 0
+  
+  if ticks = ( (ms_spray_day - 1 + ( (ms_spray_year * 365 ) - 365 ) ) * ticks-per-day + 1) [
+    set spray_tick ticks ]
+  
+  if ms_periodic_spray > 1 and ticks > ( (ms_spray_day - 1 + ( (ms_spray_year * 365 ) - 365 ) ) * ticks-per-day + 1) and ticks <= ( ( (ms_spray_day - 1 + ( (ms_spray_year * 365 ) - 365 ) ) ) + ( ( ms_periodic_spray - 1) * ms_periodic_interval) ) * ticks-per-day + 1 [
+    if ( ( ticks -  ( (ms_spray_day - 1 + ( (ms_spray_year * 365 ) - 365 ) ) * ticks-per-day + 1) ) mod (ms_periodic_interval * ticks-per-day ) ) = 0 [
+      set spray_tick ticks
+    ]
+  ]
+  
+  if ( ( ticks - spray_tick + 1 )  > 0 and ( ( ticks - spray_tick ) + 1 )  <= trees-per-row )  [
+    set x-coordinate ( border-margin + wildberry-plant-width + wildberry-plant-margin +  ( ( ( ticks - spray_tick + 1 )  - 1 ) * ( tree-width + tree-margin-x ) ) )
+    if ( tree-width > 1 ) [ set x-coordinate ( x-coordinate + ceiling ( tree-width / 2 ) ) ]
     
+    ask trees with [xcor = x-coordinate] [
+      set magic_substance true 
+      set color blue 
+      set magic_substance_tick ticks
+    ]
+  ]   
+end
+
+
+
+to magic_substance_fade_away
+  ask trees with [ magic_substance = true and magic_substance_tick = ( ticks - (ms_potency_duration * ticks-per-day ) ) ] [ 
+    set magic_substance false
+    set color green
+    set magic_substance_tick 0
+  ] 
 end
 
 to cherries-attract-closest-flies
