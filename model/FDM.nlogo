@@ -125,6 +125,11 @@ globals [
   ; path for input csv files
   path-csv-input
 
+  ;cargo_genes
+
+  ;harvest_tick to set time when the harvest begins
+  harvest_tick
+
 ]
 
 ; initial setup procedure
@@ -192,6 +197,8 @@ to setup
   set cherries-available FALSE
   set wildberries-available FALSE
 
+  set harvest_tick 0
+
   ; create output file
   create-file
 
@@ -220,6 +227,8 @@ to setup
     set pcolor [0 41 0]
   ]
 
+
+
 end
 
 to go
@@ -238,6 +247,9 @@ to go
 
   grow-cherries
   grow-wildberries
+  If harvest_tick > 0 [
+    ask trees [harvest]
+  ]
 
   ; gene-drive: on/off switch
   if gene-drive [
@@ -251,7 +263,13 @@ to go
     ]
   ]
 
-  ; if off-season => freeze
+  ; Check which if a Cargo Gene is activated
+  if Cargo_gene != "No_CG" [
+    Check_CG
+  ]
+
+  ; in if season rein kopieren, für Performence
+; if off-season => freeze
   if season [
 
     ; kill flies at beginning of the day ( mortality rate per tick is unefficient )
@@ -259,6 +277,8 @@ to go
       get-current-mode-durations
       kill-flies
     ]
+
+
 
     calculate-current-eggs-per-tick-rate
 
@@ -282,6 +302,8 @@ to go
     set run-time-3-end timer
 
   ]
+
+  ;als ifelse season [ if Cargo_gene = CG1
 
   write-values-to-file
 
@@ -352,6 +374,27 @@ to end-season
   kill-flies-off-season
 
 end
+
+to check_CG
+  if Cargo_gene = "CG1" [
+    if season = TRUE and round ( mean-10d-temp ) <= season-end-temp [ ;wird so nicht mehr funktionieren
+      kill_Medea_flies_diapause
+    ]
+  ]
+
+
+  if Cargo_gene = "CG2" [
+    ask trees [spray_magic_substance]
+    poison_flies
+    kill_flies_with_magic_substance
+    magic_substance_fade_away
+  ]
+  if Cargo_gene = "CG3" [
+    make_MM_steril
+  ]
+end
+
+
 
 ; returns the current date in the format 1.1.[1] (the number in brackets reflects the year - note: NO LEAP YEARS!)
 to-report current-date
@@ -448,7 +491,7 @@ init-pop
 init-pop
 0
 10000
-0.0
+569.0
 1
 1
 NIL
@@ -491,7 +534,7 @@ resistant-ratio
 resistant-ratio
 0
 1
-0.5
+0.1
 0.01
 1
 NIL
@@ -604,7 +647,7 @@ mean-cherries
 mean-cherries
 0
 4000
-100.0
+102.0
 1
 1
 NIL
@@ -619,7 +662,7 @@ sd-cherries
 sd-cherries
 0
 1000
-0.0
+16.0
 1
 1
 NIL
@@ -634,7 +677,7 @@ cherries-growth-start
 cherries-growth-start
 0
 365
-2.0
+50.0
 1
 1
 NIL
@@ -649,7 +692,7 @@ cherries-growth-period
 cherries-growth-period
 0
 180
-2.0
+47.0
 1
 1
 NIL
@@ -751,7 +794,7 @@ release-amount
 release-amount
 0
 10000
-1000.0
+2610.0
 10
 1
 NIL
@@ -774,7 +817,7 @@ INPUTBOX
 1002
 204
 max-years
-3.0
+0.5
 1
 0
 Number
@@ -831,7 +874,7 @@ wildberries-per-plant
 wildberries-per-plant
 0
 100
-50.0
+10.0
 1
 1
 NIL
@@ -862,7 +905,7 @@ CHOOSER
 gd-gender
 gd-gender
 "female" "mixed" "male"
-2
+1
 
 SLIDER
 1292
@@ -873,7 +916,7 @@ resistance-rate
 resistance-rate
 0
 1
-0.5
+0.03
 0.01
 1
 NIL
@@ -903,7 +946,7 @@ fitness-RR
 fitness-RR
 0
 1
-1.0
+0.0
 0.01
 1
 NIL
@@ -918,7 +961,7 @@ fitness-MM
 fitness-MM
 0
 1
-1.0
+0.5
 0.01
 1
 NIL
@@ -926,9 +969,9 @@ HORIZONTAL
 
 MONITOR
 1594
-244
+278
 1651
-289
+323
 timer
 run-time-total
 17
@@ -970,9 +1013,9 @@ run-time-3
 
 MONITOR
 1456
-244
+278
 1516
-289
+323
 adult flies
 count flies with [ mode = \"adult\" ]
 17
@@ -981,9 +1024,9 @@ count flies with [ mode = \"adult\" ]
 
 MONITOR
 1521
-244
+278
 1581
-289
+323
 stat flies
 count flies with [ mode = \"stationary\" ]
 17
@@ -999,7 +1042,7 @@ periodic-release
 periodic-release
 1
 100
-10.0
+8.0
 1
 1
 NIL
@@ -1029,6 +1072,208 @@ release-location
 release-location
 "center" "corner-trees" "wildberry-plants"
 0
+
+CHOOSER
+20
+715
+158
+760
+Cargo_Gene
+Cargo_Gene
+"CG_off" "CG1" "CG2" "CG3" "CG4"
+0
+
+SLIDER
+21
+763
+193
+796
+effectivness_rate_cg
+effectivness_rate_cg
+0
+1
+1.0
+0.01
+1
+NIL
+HORIZONTAL
+
+SLIDER
+233
+715
+405
+748
+ms_spray_day
+ms_spray_day
+1
+365
+11.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+405
+715
+507
+748
+ms_spray_year
+ms_spray_year
+1
+10
+0.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+233
+751
+405
+784
+ms_periodic_spray
+ms_periodic_spray
+1
+20
+3.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+233
+785
+405
+818
+ms_periodic_interval
+ms_periodic_interval
+1
+100
+10.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+233
+820
+405
+853
+ms_potency_duration
+ms_potency_duration
+0
+100
+8.0
+1
+1
+NIL
+HORIZONTAL
+
+CHOOSER
+21
+799
+159
+844
+cg_gender
+cg_gender
+"male" "female" "mixed"
+1
+
+MONITOR
+409
+788
+479
+833
+Magic trees
+count trees with [magic_substance = TRUE]
+17
+1
+11
+
+TEXTBOX
+254
+686
+404
+704
+NIL
+11
+0.0
+1
+
+SLIDER
+1454
+242
+1651
+275
+release_share_heterozygot
+release_share_heterozygot
+0
+1
+0.1
+0.01
+1
+NIL
+HORIZONTAL
+
+TEXTBOX
+25
+686
+175
+704
+General Cargo Gene
+11
+0.0
+1
+
+TEXTBOX
+238
+684
+388
+712
+Cargo Gene 2 (magic substance)
+11
+0.0
+1
+
+SLIDER
+405
+751
+507
+784
+Days_to_die
+Days_to_die
+0
+3
+3.0
+0.1
+1
+NIL
+HORIZONTAL
+
+CHOOSER
+21
+843
+159
+888
+Genotype_affected
+Genotype_affected
+"Heterozygot" "Homozygot" "Mixed"
+1
+
+MONITOR
+787
+752
+868
+797
+NIL
+harvest_tick
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -3607,6 +3852,101 @@ NetLogo 6.1.1
     </enumeratedValueSet>
     <enumeratedValueSet variable="cherries-growth-start">
       <value value="105"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="experiment" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <metric>count turtles</metric>
+    <enumeratedValueSet variable="resistant-ratio">
+      <value value="0.1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-day">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="effectivness_rate_cg">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-location">
+      <value value="&quot;center&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sd-cherries">
+      <value value="16"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Genotype_affected">
+      <value value="&quot;Homozygot&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gene-drive">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Cargo_Gene">
+      <value value="&quot;CG4&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cg_gender">
+      <value value="&quot;female&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-start">
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_spray_year">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="periodic-release">
+      <value value="8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistance-rate">
+      <value value="0.03"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="init-pop">
+      <value value="569"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="wildberries-per-plant">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_potency_duration">
+      <value value="8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-years">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-RR">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-MM">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="periodic-interval">
+      <value value="7"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-period">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_periodic_spray">
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-PP">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_spray_day">
+      <value value="11"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-amount">
+      <value value="2610"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release_share_heterozygot">
+      <value value="0.1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_periodic_interval">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gd-gender">
+      <value value="&quot;mixed&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Days_to_die">
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mean-cherries">
+      <value value="102"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>

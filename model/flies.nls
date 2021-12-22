@@ -1,6 +1,5 @@
 breed [ flies fly ]
 
-; properties of fly
 flies-own [
   
   ; modes: stationary (yellow), adult (red)
@@ -54,6 +53,13 @@ flies-own [
   ; if direction has been set in current tick, the following variable gets updated with the tick-number
   target-tick
   target-distance
+  
+  ;the magic substance poisons the flies so the die after a few days
+  poisoned
+  poisoned_tick
+  
+  ;the ovipositionapperatus determints if the flies can lay their eggs into cherries or not, but the can always lay their eggs in wildberries
+  ovipositionapperatus
   
 ]
 
@@ -365,6 +371,9 @@ to fly-init-pop
         set total-age 0
         set fertilization-tick 0
         set immature-state FALSE
+        set poisoned FALSE
+        set poisoned_tick 0
+        set ovipositionapperatus true
         if sex = "f" [ set color magenta ]
         if sex = "m" [ set color blue    ]
       ] 
@@ -387,43 +396,130 @@ end
  
 
 to kill_Medea_flies_diapause
-  ;If Cargo_Gene 1, envrionmental cue is the winter season, is true than it kills all the flies with a Medea gene
+  ;If Cargo_Gene 1, envrionmental cue is the winter season, is true than it kills all the flies with a Medea gene    
   
-  if ms_gender = "male" [
-    ask n-of (ceiling (count flies with [sex = "m" and member? "M" genotype] ) ) flies with [sex = "m" and member? "M" genotype] [die]
+  if cg_gender = "male" and genotype_affected = "Heterozygot" [
+    ask n-of (ceiling ( (count flies with [sex = "m" and genotype = "M+" or genotype = "+M" or genotype = "R+" or genotype = "+R"] ) * effectivness_rate_cg ) ) flies with [sex = "m" and genotype = "M+" or genotype = "+M" or genotype = "R+" or genotype = "+R"] [die]
   ]
-  if ms_gender = "female" [
-    ask n-of (ceiling (count flies with [sex = "f" and member? "M" genotype] ) ) flies with [sex = "f" and member? "M" genotype] [die]
+    if cg_gender = "female" and genotype_affected = "Heterozygot" [
+    ask n-of (ceiling ( (count flies with [sex = "f" and genotype = "M+" or genotype = "+M" or genotype = "R+" or genotype = "+R"] ) * effectivness_rate_cg ) ) flies with [sex = "f" and genotype = "M+" or genotype = "+M" or genotype = "R+" or genotype = "+R"] [die]
   ]
-  if ms_gender = "mixed" [
-    ask n-of (ceiling (count flies with [member? "M" genotype] ) ) flies with [member? "M" genotype] [die]
+    if cg_gender = "mixed" and genotype_affected = "Heterozygot" [
+    ask n-of (ceiling ( (count flies with [genotype = "M+" or genotype = "+M" or genotype = "R+" or genotype = "+R"] ) * effectivness_rate_cg ) ) flies with [genotype = "M+" or genotype = "+M" or genotype = "R+" or genotype = "+R"] [die]
+  ]
+  
+  if cg_gender = "male" and genotype_affected = "Homozygot" [
+    ask n-of (ceiling ( (count flies with [sex = "m" and genotype = "MM" ] ) * effectivness_rate_cg ) ) flies with [sex = "m" and genotype = "MM" ] [die]
+  ]
+    if cg_gender = "female" and genotype_affected = "Heterozygot" [
+    ask n-of (ceiling ( (count flies with [sex = "f" and genotype = "MM" ] ) * effectivness_rate_cg ) ) flies with [sex = "f" and genotype = "MM" ] [die]
+  ]
+    if cg_gender = "mixed" and genotype_affected = "Heterozygot" [
+    ask n-of (ceiling ( (count flies with [ genotype = "MM" ] ) * effectivness_rate_cg ) ) flies with [genotype = "MM" ] [die]
+  ]
+  if cg_gender = "mixed" [
+    ask n-of (ceiling ( (count flies with [member? "M" genotype] ) * effectivness_rate_cg ) ) flies with [member? "M" genotype] [die]
   ]
 end
 
+to poison_flies
+  ask trees with [magic_substance = True] [
+    if cg_gender = "male" and genotype_affected = "Heterozygot" [
+      ask flies with [sex = "m" and poisoned = false and genotype = "M+" or genotype = "+M" or genotype = "R+" or genotype = "+R"] in-radius tree-radius [
+        set poisoned_tick ticks
+        set poisoned TRUE
+      ] 
+    ]
+    if cg_gender = "male" and genotype_affected = "Homozygot" [
+      ask flies with [sex = "m" and poisoned = false and genotype = "MM"] in-radius tree-radius [
+        set poisoned_tick ticks
+        set poisoned TRUE
+      ] 
+    ]
+    if cg_gender = "male" and genotype_affected = "mixed" [
+      ask flies with [sex = "m" and poisoned = false and member? "M" genotype] in-radius tree-radius [
+        set poisoned_tick ticks
+        set poisoned TRUE
+      ] 
+    ]
+    if cg_gender = "female" and genotype_affected = "Heterozygot" [
+      ask flies with [sex = "f" and poisoned = false and genotype = "M+" or genotype = "+M" or genotype = "R+" or genotype = "+R"] in-radius tree-radius [
+        set poisoned_tick ticks
+        set poisoned TRUE
+      ] 
+    ]
+    if cg_gender = "female" and genotype_affected = "Homozygot" [
+      ask flies with [sex = "f" and poisoned = false and genotype = "MM"] in-radius tree-radius [
+        set poisoned_tick ticks
+        set poisoned TRUE
+      ] 
+    ]
+    if cg_gender = "female" and genotype_affected = "mixed" [
+      ask flies with [sex = "f" and poisoned = false and member? "M" genotype] in-radius tree-radius [
+        set poisoned_tick ticks
+        set poisoned TRUE
+      ]
+    ]
+    if cg_gender = "mixed" and genotype_affected = "Heterozygot" [
+      ask flies with [poisoned = false and genotype = "M+" or genotype = "+M" or genotype = "R+" or genotype = "+R"] in-radius tree-radius [
+        set poisoned_tick ticks
+        set poisoned TRUE
+      ] 
+    ]
+     if cg_gender = "mixed" and genotype_affected = "Homozygot" [
+      ask flies with [poisoned = false and genotype = "MM"] in-radius tree-radius [
+        set poisoned_tick ticks
+        set poisoned TRUE
+      ] 
+    ]
+    if cg_gender = "mixed" and genotype_affected = "mixed" [
+      ask flies with [member? "M" genotype and poisoned = false] in-radius tree-radius [
+        set poisoned_tick ticks
+        set poisoned TRUE
+      ] 
+    ]
+  ]
+end
+  
 ; so far it kills them on the spot, I could change this to instead of die the get the e.g.: set poisoned = true (need to make this attribute with the flies) and than have an own function with the flies to kill them in time
 to kill_flies_with_magic_substance
-  ask trees with [magic_substance = True] [
-    ask flies with [member? "M" genotype] in-radius tree-radius [die] 
+  ask flies with [poisoned = TRUE] [
+    IF ticks = poisoned_tick + Days_to_die * ticks-per-day [
+      Ifelse effectivness_rate_cg >= random-float 1 [
+        die
+      ][
+        set poisoned FALSE
+        set poisoned_tick 0
+      ]
+    ]
   ]
 end
 
 to make_MM_steril
-  if ms_gender = "female" [
-    ask flies with [sex = "f" and genotype = "MM"] [
-      set fitness 0
-    ]
+  
+  if cg_gender = "male" and genotype_affected = "Heterozygot" [
+    ask flies with [sex = "m" and genotype = "M+" or genotype = "+M" or genotype = "R+" or genotype = "+R"] [set fitness 0]
   ]
-  if ms_gender = "male" [
-    ask flies with [sex = "m" and genotype = "MM"] [
-      set fitness 0
-    ]
+  if cg_gender = "female" and genotype_affected = "Heterozygot" [
+    ask flies with [sex = "f" and genotype = "M+" or genotype = "+M" or genotype = "R+" or genotype = "+R"] [set fitness 0]
   ]
-  if ms_gender = "mixed" [
-    ask flies with [genotype = "MM"] [
-      set fitness 0
-    ]
+  if cg_gender = "mixed" and genotype_affected = "Heterozygot" [
+    ask flies with [genotype = "M+" or genotype = "+M" or genotype = "R+" or genotype = "+R"] [set fitness 0]
   ]
-end
+    
+  if cg_gender = "male" and genotype_affected = "Heterozygot" [
+    ask flies with [sex = "m" and genotype = "MM"] [set fitness 0]
+  ]
+  if cg_gender = "female" and genotype_affected = "Heterozygot" [
+    ask flies with [sex = "f" and genotype = "MM"] [set fitness 0]
+  ]
+  if cg_gender = "mixed" and genotype_affected = "Heterozygot" [
+    ask flies with [ genotype = "MM"] [set fitness 0]
+  ]
+    if cg_gender = "mixed" [
+    ask flies with [member? "M" genotype] [set fitness 0]
+  ]
+  end
   
 to kill-flies
   
@@ -647,8 +743,8 @@ to fly-activities
       
       let wildberries-here no-turtles
       if wildberries-available [ set wildberries-here ( wildberry-plants-on patch-here ) with [grown-wildberries > 0] ]
-      
-      if any? cherries-here or any? wildberries-here [
+           
+      if any? cherries-here and (ovipositionapperatus = true or ovipositionapperatus = false and random-float 1 > effectivness_rate_cg) or any? wildberries-here [
         
         ; save generation number in separate variable to make it accessible in sprout statement
         let generation-temp generation
@@ -691,6 +787,20 @@ to fly-activities
               set total-age 0
               set fertilization-tick 0
               set immature-state FALSE
+              set poisoned FALSE
+              set poisoned_tick 0
+              set ovipositionapperatus true
+              if Cargo_Gene = "CG4" [
+                if genotype_affected = "Heterozygot" and genotype = "M+" or genotype = "+M" or genotype = "MR" or genotype = "RM" [
+                  set ovipositionapperatus false
+                ]
+                if genotype_affected = "Homozygot" and genotype = "MM" [
+                  set ovipositionapperatus false
+                ]
+                if genotype_affected = "mixed" and member? "M" genotype [
+                  set ovipositionapperatus false
+                ]
+              ]              
             ]
           ]
           
@@ -738,7 +848,10 @@ to fly-activities
           set color magenta
         ] 
         
-      ]
+      ]  
+      if any? cherries-here and ovipositionapperatus = false [
+        set last-egg-tick ticks + ticks-per-day
+      ]      
         
     ]
     
@@ -908,19 +1021,31 @@ to release-gene-drive-at-position [gd-xcor gd-ycor gd-release-amount]
       set eggs 0
       set genotype "MM"
       set fitness fitness-MM
-      ask n-of (gd-release-amount * release_share_heterozygot) flies-here [
-        set genotype "M+"
-        set fitness fitness-MM
+      If (random-float 1) <= release_share_heterozygot [
+        set genotype "M+" set fitness fitness-MP
       ]
       set total-age 0
       set fertilization-tick 0
       start-immature-state
+      set poisoned FALSE
+      set poisoned_tick 0
+      set ovipositionapperatus TRUE
+      if Cargo_Gene = "CG4" [
+                if genotype_affected = "Heterozygot" and genotype = "M+" or genotype = "+M" or genotype = "MR" or genotype = "RM" [
+                  set ovipositionapperatus false
+                ]
+                if genotype_affected = "Homozygot" and genotype = "MM" [
+                  set ovipositionapperatus false
+                ]
+                if genotype_affected = "mixed" and member? "M" genotype [
+                  set ovipositionapperatus false
+                ]
+              ]
       if sex = "f" [ set color magenta ]
       if sex = "m" [ set color blue    ]
     ] 
-    
-  ]    
-  
+   ]
+   
 end
 
 to-report get-fitness-for-genotype [ temp-genotype ]
