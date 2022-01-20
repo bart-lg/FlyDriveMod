@@ -6,7 +6,6 @@ trees-own [
   max-cherries
   grown-cherries
   occupied-cherries
-  spray_tick
   magic_substance
   magic_substance_tick
   
@@ -41,7 +40,6 @@ to plant-trees
         set max-cherries round ( random-normal mean-cherries sd-cherries )
         set grown-cherries 0
         set occupied-cherries 0
-        set spray_tick (0 - ms_spray_day * ticks-per-day )
         update-tree-label     
       ]
       
@@ -59,35 +57,22 @@ end
 
 to grow-cherries
   
-  let day 1
-  if ( ticks > 0 ) [
-    set day ( ceiling ( ticks / ticks-per-day ) mod 365 )
-  ]
   
-  ; remove cherries on 1st jan of every year
-  if day = 1 [
-    ask trees [
-      set grown-cherries 0
-      set occupied-cherries 0
-      update-tree-label
-    ]
-  ]
-  
-  if ( day >= cherries-growth-start ) and ( day <= cherries-growth-start + cherries-growth-period ) [
+  if ( sim-day >= cherries-growth-start ) and ( sim-day <= cherries-growth-start + cherries-growth-period ) [    ; arguement that cherries should grow between the growth start and the the end of the growth period
     
-    ifelse ( day = cherries-growth-start + cherries-growth-period ) [
+    ifelse ( sim-day = cherries-growth-start + cherries-growth-period ) [                                    ; if for any reason on the last day of the growth period not all cherries are grown they will be now
       ask trees [
         if ( max-cherries - occupied-cherries ) > grown-cherries [
           set grown-cherries ( max-cherries - occupied-cherries ) 
         ]
       ]
     ] [
-      ask trees [
+      ask trees [                                                                                        ; the normal growth function
         let new-cherries ceiling ( max-cherries / ( cherries-growth-period * ticks-per-day ) )
-        ifelse ( grown-cherries + new-cherries ) < ( max-cherries - occupied-cherries ) [
+        ifelse ( grown-cherries + new-cherries ) < ( max-cherries - occupied-cherries ) [                ; if the addition of the new cherries doesn't isn't bigger than the max-cherries cap the will be added. could also be written as grown-cherries + occupied-cherries + new-cherries < max-cherries
           set grown-cherries ( grown-cherries + new-cherries ) 
         ] [
-          if ( max-cherries - occupied-cherries ) > grown-cherries [
+          if ( max-cherries - occupied-cherries ) > grown-cherries [                                     ; in case the max-cherries cap would be exceeded the grown-cherries will be grown to the max-cherries cap
             set grown-cherries ( max-cherries - occupied-cherries ) 
           ]
         ]  
@@ -97,10 +82,7 @@ to grow-cherries
     ask trees [ update-tree-label ]
     
   ]
-  If day = cherries-growth-start + cherries-growth-period [  
-    set harvest_tick ticks
-    ]
-    
+      
   set total-grown-cherries sum [ grown-cherries ] of trees
   ifelse total-grown-cherries > 0 [ set cherries-available TRUE ] [ set cherries-available FALSE ]
   
@@ -109,72 +91,31 @@ end
 
 ;harvest funktioniert halbert (oder eh schon) wenn ich alles nach ask trees with [xcor... rausnehme außer set ...-cherries 0, dann wird einmal am Tag geerntet, halt nicht stündlich
 to harvest
+  
+  let first_harvest_day ( cherries-growth-start + cherries-growth-period )
   let x-coordinate 0
   
-  ifelse ( ( ticks - harvest_tick + 1 )  > 0 and ( ( ticks - harvest_tick ) + 1 )  <= trees-per-row * ticks-per-day )  [
-    set x-coordinate ( border-margin + wildberry-plant-width + wildberry-plant-margin +  ( ( ( floor ( ( ticks - harvest_tick) / ticks-per-day ) + 1 )  - 1 ) * ( tree-width + tree-margin-x ) ) )
-    if ( tree-width > 1 ) [ set x-coordinate ( x-coordinate + ceiling ( tree-width / 2 ) ) ]
-    
-    ask trees with [xcor = x-coordinate] [
-      ;let harvest_hour 1
-      ;if harvest_hour <= ticks-per-day [
-      set color red
-      set grown-cherries 0 ;(grown-cherries * ( ( ( ticks / ticks-per-day ) mod ( harvest_tick / ticks-per-day ) ) - floor ( ( ticks / ticks-per-day ) mod ( harvest_tick / ticks-per-day ) ) ) )   ;floor (grown-cherries * ( 1 - ( (  ticks - ( harvest_tick + ( harvest_tick * ( ( floor ( ( ticks - harvest_tick) / ticks-per-day ) + 1 )  - 1 ) ) ) ) / ticks-per-day ) ) )
-      ;set occupied-cherries  (occupied-cherries * ( 1 - (  harvest_hour  / ticks-per-day) ) )  ; floor (occupied-cherries * ( 1 - ( ( ticks - ( harvest_tick + ( harvest_tick * ( ( floor ( ( ticks - harvest_tick) / ticks-per-day ) + 1 )  - 1 ) ) ) ) / ticks-per-day ) ) )
-      update-tree-label
-      ;set harvest_hour (harvest_hour + 1)
-      ;ask flies with [mode = "stationary"] in-radius tree-radius [
-;        If (count flies with [mode = "stationary"] in-radius tree-radius) > occupied-cherries [
-;          ask n-of  (count (flies with [mode = "stationary"] in-radius tree-radius) - occupied-cherries) (flies with [mode = "stationary"] in-radius tree-radius) [die]
-;        ]
-      ]
-   ; ]
-  ][ set harvest_tick 0 ]
+  set x-coordinate ( border-margin + wildberry-plant-width + wildberry-plant-margin +  ( ( sim-day - first_harvest_day ) * ( tree-width + tree-margin-x ) ) )
+  if ( tree-width > 1 ) [ set x-coordinate ( x-coordinate + ceiling ( tree-width / 2 ) ) ]
+  
+  ask trees with [xcor = x-coordinate] [
+    set color red
+    set grown-cherries 0 
+    set occupied-cherries 0
+    update-tree-label 
+    ask flies with [mode = "stationary"] in-radius tree-radius [ die ]
+  ]
   
    
 end
 
 
-to spray_magic_substance
- 
-   let day 1.00
-  if ( ticks > 0 ) [
-    set day ( ( ticks / ticks-per-day ) mod 365 )
-  ]
-  
-  let x-coordinate 0
-  
-  if ticks >= ( ( (ms_spray_year * 365 ) - 365 ) * ticks-per-day ) [
-    if day = ms_spray_day - 1 + (1 / ticks-per-day) [
-      set spray_tick ticks 
-    ]  
-  
-    if ms_periodic_spray > 1 and day > ms_spray_day and day <=  (ms_spray_day - 1 + ( ( ms_periodic_spray - 1) * ms_periodic_interval) ) + 1 [
-      if ( ( ticks -  ( (ms_spray_day - 1) * ticks-per-day + 1) ) mod (ms_periodic_interval * ticks-per-day ) ) = 0 [
-        set spray_tick ticks
-      ]
-    ]
-  ]
-  
-  if ( ( ticks - spray_tick + 1 )  > 0 and ( ( ticks - spray_tick ) + 1 )  <= trees-per-row )  [
-    set x-coordinate ( border-margin + wildberry-plant-width + wildberry-plant-margin +  ( ( ( ticks - spray_tick + 1 )  - 1 ) * ( tree-width + tree-margin-x ) ) )
-    if ( tree-width > 1 ) [ set x-coordinate ( x-coordinate + ceiling ( tree-width / 2 ) ) ]
-    
-    ask trees with [xcor = x-coordinate] [
-      set magic_substance true 
-      set color blue 
-      set magic_substance_tick ticks
-    ]
-  ]   
-end
-
-
-
 to magic_substance_fade_away
-  ask trees with [ magic_substance = true and magic_substance_tick = ( ticks - (ms_potency_duration * ticks-per-day ) ) ] [ 
+  ; if any? trees with [ magic_substance = TRUE ] [ does this make sense or is it included in the next line anyways?
+  ask trees with [ magic_substance = true and magic_substance_tick <= ( ticks - (ms_potency_duration * ticks-per-day ) ) ] [ 
     set magic_substance false
     set color green
-    set magic_substance_tick 0
+    set magic_substance_tick 0 ;nicht wichtig
   ] 
 end
 

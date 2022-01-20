@@ -56,18 +56,18 @@ to-report create-verification-file
   
   let cur-date time:create "now"
   
-  let year   time:get "year"   cur-date
-  let month  time:get "month"  cur-date
-  let day    time:get "day"    cur-date
-  let hour   time:get "hour"   cur-date
-  let minute time:get "minute" cur-date
-  let second time:get "second" cur-date
-  
-  if month  < 10 [ set month  word "0" month  ]
-  if day    < 10 [ set day    word "0" day    ]
-  if hour   < 10 [ set hour   word "0" hour   ]
-  if minute < 10 [ set minute word "0" minute ]
-  if second < 10 [ set second word "0" second ]
+    let year        time:get "year"   cur-date
+    let month       time:get "month"  cur-date
+    let day         time:get "day"    cur-date
+    let hour        time:get "hour"   cur-date
+    let minute      time:get "minute" cur-date
+    let second      time:get "second" cur-date
+    
+    if month       < 10 [ set month  word "0" month  ]
+    if day         < 10 [ set day    word "0" day    ]
+    if hour        < 10 [ set hour   word "0" hour   ]
+    if minute      < 10 [ set minute word "0" minute ]
+    if second      < 10 [ set second word "0" second ]
   
   let verification-file ( word "../verification-tests/" year "-" month "-" day " " hour "_" minute "_" second " verification-test.txt" )
   
@@ -124,14 +124,14 @@ to-report test-start-season [ verification-file ]
     or count flies with [ genotype = "++" and fitness = fitness-PP ] != count flies with [ genotype = "RR" and fitness = fitness-RR ]
   [ set log-content word log-content "WRONG INITIAL GENOTYPES; " ]
   
-  let gender-distribution ( count flies with [ sex = "f" ] / count flies with [ sex = "m" ] )
+  let gender-distribution ( count flies with [ sex = "female" ] / count flies with [ sex = "male" ] )
   if gender-distribution < 0.90 or gender-distribution > 1.10 [
     set log-content ( word log-content "WRONG GENDER DISTRIBUTION " gender-distribution ";" )
   ]
   
   if count flies with [
-    sex = "f" and color != magenta
-    or sex = "m" and color != blue
+    sex = "female" and color != magenta
+    or sex = "male" and color != blue
     or mode != "adult"
     or mode-duration > 0
     or generation != 1
@@ -157,7 +157,7 @@ to-report test-start-season [ verification-file ]
     set fertilization-tick 1
   ]
   
-  ask flies with [ sex = "f" and mode = "adult" ] [
+  ask flies with [ sex = "female" and mode = "adult" ] [
     set eggs 10
     set ready-to-lay-egg FALSE
   ]
@@ -269,14 +269,14 @@ to-report test-upgrade-fly [ verification-file ]
   ask n-of 150 flies [
     set color yellow
     set mode "stationary"
-    set sex "f"
+    set sex "female"
     set mode-duration 10
     set partner-search FALSE
     set total-age 10
   ]
   
   ; convert 50 stationary flies to male
-  ask n-of 50 flies with [ mode = "stationary" ] [ set sex "m" ]
+  ask n-of 50 flies with [ mode = "stationary" ] [ set sex "male" ]
   
   ; set current stationary durations to 10 (usually depending on temperature)
   set current-female-stat-duration 10
@@ -289,11 +289,11 @@ to-report test-upgrade-fly [ verification-file ]
     set log-content word log-content "TOTAL NUMBER OF FLIES WRONG; "
   ]
   
-  if count flies with [ mode = "stationary" and sex = "f" ] > 0 [
+  if count flies with [ mode = "stationary" and sex = "female" ] > 0 [
     set log-content word log-content "FEMALE STATIONARY FLIES NOT UPGRADED; "
   ]
 
-  if count flies with [ mode = "stationary" and sex = "m" ] > 0 [
+  if count flies with [ mode = "stationary" and sex = "male" ] > 0 [
     set log-content word log-content "MALE STATIONARY FLIES NOT UPGRADED; "
   ]
 
@@ -554,6 +554,7 @@ to-report test-release-gene-drive [ verification-file ]
   let log-content ""
 
   set release-amount 1000
+  set release-location "center"
   release-gene-drive
   
   if count flies != 1000 [
@@ -604,7 +605,7 @@ to-report test-release-gene-drive [ verification-file ]
   while [ ticks < ( ticks-per-day * immature-duration ) ] [
     tick
     check-immature-state
-    fly-activities
+    fly-activities 
     if count flies with [ immature-state = TRUE ] != count flies [
       set log-content word log-content "WRONG IMMATURE-STATE [B]; "
     ]
@@ -624,7 +625,7 @@ to-report test-release-gene-drive [ verification-file ]
   
   release-gene-drive  
   
-  if count flies with [ sex = "f" ] != count flies [
+  if count flies with [ sex = "female" ] != count flies [
     set log-content word log-content "WRONG GENDER (not female); "
   ]
   
@@ -634,7 +635,7 @@ to-report test-release-gene-drive [ verification-file ]
   
   release-gene-drive  
   
-  if count flies with [ sex = "f" ] < ( count flies * 0.45 ) or count flies with [ sex = "f" ] > ( count flies * 0.55 ) [
+  if count flies with [ sex = "female" ] < ( count flies * 0.45 ) or count flies with [ sex = "female" ] > ( count flies * 0.55 ) [
     set log-content word log-content "WRONG GENDER (not mixed); "
   ]
 
@@ -644,7 +645,7 @@ to-report test-release-gene-drive [ verification-file ]
   
   release-gene-drive  
   
-  if count flies with [ sex = "m" ] != count flies [
+  if count flies with [ sex = "male" ] != count flies [
     set log-content word log-content "WRONG GENDER (not male); "
   ]  
   
@@ -1195,7 +1196,7 @@ to-report test-kill-flies [ verification-file ]
    
   ; test killing of flies off season
   
-  set gender-ratio ( count flies with [ sex = "f" ] / count flies with [ sex = "m" ] )
+  set gender-ratio ( count flies with [ sex = "female" ] / count flies with [ sex = "male" ] )
   
   kill-flies-off-season
   
@@ -1207,7 +1208,7 @@ to-report test-kill-flies [ verification-file ]
     set log-content word log-content "kill-flies-off-season: WRONG NUMBER OF FLIES LEFT; "
   ]
   
-  set gender-ratio-new ( count flies with [ sex = "f" ] / count flies with [ sex = "m" ] )
+  set gender-ratio-new ( count flies with [ sex = "female" ] / count flies with [ sex = "male" ] )
   if gender-ratio * 0.95 > gender-ratio-new or gender-ratio * 1.05 < gender-ratio-new [
     set log-content word log-content "kill-flies-off-season: WRONG NEW GENDER RATIO; "
   ]
@@ -1221,16 +1222,16 @@ to-report test-kill-flies [ verification-file ]
   set current-female-adult-longevity 50
   set current-male-adult-longevity 55
   
-  ask n-of 100 flies with [ sex = "f" ] [ 
+  ask n-of 100 flies with [ sex = "female" ] [ 
     set mode-duration 50 
   ]
-  ask n-of 100 flies with [ sex = "f" and mode-duration = 0 ] [
+  ask n-of 100 flies with [ sex = "female" and mode-duration = 0 ] [
     set mode-duration 52 
   ]
-  ask n-of 100 flies with [ sex = "m" ] [ 
+  ask n-of 100 flies with [ sex = "male" ] [ 
     set mode-duration 53
   ]
-  ask n-of 100 flies with [ sex = "m" and mode-duration = 0 ] [
+  ask n-of 100 flies with [ sex = "male" and mode-duration = 0 ] [
     set mode-duration 57 
   ]
   
@@ -1253,8 +1254,8 @@ to-report test-kill-flies [ verification-file ]
   
   set rounded-mean-10d-temp 20
   
-  set temp-female count flies with [ sex = "f" ]
-  set temp-male count flies with [ sex = "m" ]
+  set temp-female count flies with [ sex = "female" ]
+  set temp-male count flies with [ sex = "male" ]
 
   kill-flies
   
@@ -1262,12 +1263,12 @@ to-report test-kill-flies [ verification-file ]
     set log-content word log-content "kill-flies [life-expectancy]: WRONG NUMBER OF FLIES LEFT; "
   ]
   
-  if count flies with [ sex = "f" ] != temp-female - 100 [
-    set log-content ( word log-content "kill-flies [life-expectancy]: WRONG NUMBER OF FEMALE FLIES LEFT [" count flies with [ sex = "f" ] "]; " )
+  if count flies with [ sex = "female" ] != temp-female - 100 [
+    set log-content ( word log-content "kill-flies [life-expectancy]: WRONG NUMBER OF FEMALE FLIES LEFT [" count flies with [ sex = "female" ] "]; " )
   ]
 
-  if count flies with [ sex = "m" ] != temp-male - 100 [
-    set log-content ( word log-content "kill-flies [life-expectancy]: WRONG NUMBER OF MALE FLIES LEFT [" count flies with [ sex = "m" ] "]; " )
+  if count flies with [ sex = "male" ] != temp-male - 100 [
+    set log-content ( word log-content "kill-flies [life-expectancy]: WRONG NUMBER OF MALE FLIES LEFT [" count flies with [ sex = "male" ] "]; " )
   ]  
   
 
@@ -1442,7 +1443,7 @@ to-report test-update-egg-laying-mode [ verification-file ]
   set egg-dev-duration 10
   
   ; convert 1000 flies to flies with eggs
-  ask n-of 1000 flies with [ sex = "f" ] [
+  ask n-of 1000 flies with [ sex = "female" ] [
     set mode-duration 9
     set partner-search FALSE
     set eggs 10
@@ -1492,7 +1493,7 @@ to-report test-wildberries-attract-closest-flies [ verification-file ] ; raise t
   
   ; convert flies to flies with eggs
   ask flies [
-    set sex "f"
+    set sex "female"
     set mode-duration 11
     set partner-search FALSE
     set eggs 10
@@ -1550,7 +1551,7 @@ to-report test-cherries-attract-closest-flies [ verification-file ]
   
   ; convert flies to flies with eggs
   ask flies [
-    set sex "f"
+    set sex "female"
     set mode-duration 11
     set partner-search FALSE
     set eggs 10
@@ -1635,7 +1636,7 @@ to-report test-egg-laying [ verification-file ]
   start-season
   ; modify flies
   ask flies [
-    set sex "f"
+    set sex "female"
     set ready-to-lay-egg TRUE
     set partner-search FALSE
     set eggs 2
@@ -1782,12 +1783,12 @@ to-report test-fitness [ verification-file ]
     set init-pop 2
     start-season
     ask flies with-min [who] [
-      set sex "f"
+      set sex "female"
       set fitness 1
       move-to min-one-of trees [who] ; move to tree with lowest id
     ]
     ask flies with-max [who] [
-      set sex "m"
+      set sex "male"
       set fitness 0.4
       move-to min-one-of trees [who] ; move to tree with lowest id
     ]
@@ -1795,7 +1796,7 @@ to-report test-fitness [ verification-file ]
     fly-activities
     
     ; check mating
-    if count flies with [ sex = "f" and eggs > 0 ] > 0 [
+    if count flies with [ sex = "female" and eggs > 0 ] > 0 [
       set matings ( matings + 1 ) 
     ]
     
@@ -1824,12 +1825,12 @@ to-report test-fitness [ verification-file ]
     set init-pop 2
     start-season
     ask flies with-min [who] [
-      set sex "f"
+      set sex "female"
       set fitness 0.6
       move-to min-one-of trees [who] ; move to tree with lowest id
     ]
     ask flies with-max [who] [
-      set sex "m"
+      set sex "male"
       set fitness 1
       move-to min-one-of trees [who] ; move to tree with lowest id
     ]
@@ -1837,7 +1838,7 @@ to-report test-fitness [ verification-file ]
     fly-activities
     
     ; check mating
-    if count flies with [ sex = "f" and eggs > 0 ] > 0 [
+    if count flies with [ sex = "female" and eggs > 0 ] > 0 [
       set matings ( matings + 1 ) 
     ]
     
@@ -1888,7 +1889,7 @@ to-report test-gene-drive [ verification-file ]
   start-season
   ; modify flies
   ask flies [
-    set sex "f"
+    set sex "female"
     set ready-to-lay-egg TRUE
     set eggs 1
     set genotype "M+"
@@ -1925,7 +1926,7 @@ to-report test-gene-drive [ verification-file ]
   start-season
   ; modify flies
   ask flies [
-    set sex "f"
+    set sex "female"
     set ready-to-lay-egg TRUE
     set eggs 1
     set genotype "MR"
@@ -1996,15 +1997,15 @@ to-report test-fertilization [ verification-file ]
     start-season
     ; modify flies
     ask flies [
-      set sex "f"
+      set sex "female"
       set partner-search TRUE
       move-to min-one-of trees [who] ; move to tree with lowest id
     ]  
     ask n-of 1 flies [
-      set sex "m"
+      set sex "male"
     ]
     fly-activities
-    ask flies with [ sex = "f" ] [
+    ask flies with [ sex = "female" ] [
       if partner-search = TRUE [
         set log-content word log-content "FERTILIZATION TEST: partner-search flag wrong; " 
       ] 
@@ -2090,16 +2091,16 @@ to-report test-male-mating-interval [ verification-file ]
   start-season
   ; modify flies
   ask flies [
-    set sex "f"
+    set sex "female"
     set partner-search TRUE
     move-to min-one-of trees [who] ; move to tree with lowest id
   ]  
   ; select last fly ( this prevents the male fly moving when calling fly-activities )
   ask flies with-max [who] [
-    set sex "m"
+    set sex "male"
   ]
   fly-activities
-  if count flies with [ sex = "f" and partner-search = FALSE ] != 1 [
+  if count flies with [ sex = "female" and partner-search = FALSE ] != 1 [
     set log-content word log-content "wrong male mating interval [1]; " 
   ]
   
@@ -2107,7 +2108,7 @@ to-report test-male-mating-interval [ verification-file ]
     move-to min-one-of trees [who]
   ]
   fly-activities
-  if count flies with [ sex = "f" and partner-search = FALSE ] != 1 [
+  if count flies with [ sex = "female" and partner-search = FALSE ] != 1 [
     set log-content word log-content "wrong male mating interval [2]; " 
   ]  
   
@@ -2117,7 +2118,7 @@ to-report test-male-mating-interval [ verification-file ]
     move-to min-one-of trees [who]
   ]
   fly-activities
-  if count flies with [ sex = "f" and partner-search = FALSE ] != 2 [
+  if count flies with [ sex = "female" and partner-search = FALSE ] != 2 [
     set log-content word log-content "wrong male mating interval [3]; " 
   ]  
   
@@ -2144,7 +2145,7 @@ to-report test-female-attract-male-flies [ verification-file ]
     
     ; modify flies
     ask flies [
-      set sex "f"
+      set sex "female"
       set partner-search TRUE
       setxy 0 0 
     ]
@@ -2159,7 +2160,7 @@ to-report test-female-attract-male-flies [ verification-file ]
     ask one-of [ flies-here ] of patch 0 0 [ setxy 9  12 ]
 
     ask one-of [ flies-here ] of patch 0 0 [
-      set sex "m"
+      set sex "male"
       setxy 10 10
     ]   
    
@@ -2168,7 +2169,7 @@ to-report test-female-attract-male-flies [ verification-file ]
     female-attract-male-flies
     fly-activities
 
-    if not any? ( [ flies-here ] of patch x y ) with [ sex = "m" ] [
+    if not any? ( [ flies-here ] of patch x y ) with [ sex = "male" ] [
       set wrong-direction TRUE 
     ]
     
@@ -2214,10 +2215,10 @@ to-report test-immature-state [ verification-file ]
   start-season
   ; modify flies
   ask flies [
-    set sex "m"
+    set sex "male"
   ]
   ask min-one-of flies [who] [
-    set sex "f"
+    set sex "female"
     set ready-to-lay-egg TRUE
     set partner-search FALSE
     set eggs 2

@@ -127,8 +127,10 @@ globals [
 
   ;cargo_genes
 
-  ;harvest_tick to set time when the harvest begins
-  harvest_tick
+
+  ;Zeitvariablen
+  sim-day
+  sim-year
 
 ]
 
@@ -197,7 +199,6 @@ to setup
   set cherries-available FALSE
   set wildberries-available FALSE
 
-  set harvest_tick 0
 
   ; create output file
   create-file
@@ -227,7 +228,8 @@ to setup
     set pcolor [0 41 0]
   ]
 
-
+  set sim-day 1
+  set sim-year 1
 
 end
 
@@ -243,13 +245,16 @@ to go
   get-current-weather
   calculate-mean-temperatures
 
+  current_date
+
   check-season
 
   grow-cherries
-  grow-wildberries
-  If harvest_tick > 0 [
-    ask trees [harvest]
+  if sim-day >= cherries-growth-start + cherries-growth-period and sim-day < cherries-growth-start + cherries-growth-period + trees-per-row [
+    harvest
   ]
+  grow-wildberries
+
 
   ; gene-drive: on/off switch
   if gene-drive [
@@ -263,11 +268,6 @@ to go
     ]
   ]
 
-  ; Check which if a Cargo Gene is activated
-  if Cargo_gene != "No_CG" [
-    Check_CG
-  ]
-
   ; in if season rein kopieren, für Performence
 ; if off-season => freeze
   if season [
@@ -277,7 +277,13 @@ to go
       get-current-mode-durations
       kill-flies
     ]
-
+    ;The spraying of pesticides only activates if the Cargo Gene 2 is choosen
+    if Cargo_gene = "CG2" [
+      spray_magic_substance
+      poison_flies
+      kill_flies_with_magic_substance
+      magic_substance_fade_away
+    ]
 
 
     calculate-current-eggs-per-tick-rate
@@ -322,6 +328,16 @@ to go
 
 end
 
+to current_date
+  let total_days ceiling ( ticks / ticks-per-day )
+  if total_days = 0 [ set total_days 1 ]
+
+  set sim-year ( floor ( total_days / ( 365 + 1 ) ) ) + 1
+  set sim-day total_days mod 365
+  if sim-day = 0 [ set sim-day 365 ]
+end
+
+
 to check-season
 
   if season = FALSE and round ( mean-10d-temp ) >= season-start-temp [
@@ -347,9 +363,9 @@ to start-season
       set fertilization-tick 0
       set immature-state FALSE
       if mode = "stationary"          [ set color yellow  ]
-      if mode = "adult" and sex = "m" [ set color blue    ]
+      if mode = "adult" and sex = "male" [ set color blue    ]
     ]
-    let female-flies-with-eggs flies with [ sex = "f" and eggs > 0 ]
+    let female-flies-with-eggs flies with [ sex = "female" and eggs > 0 ]
     let num-female-flies-with-eggs count female-flies-with-eggs
     let share ( random-normal wintereggs-mean-female-share wintereggs-sd-female-share )
     ask n-of ceiling ( num-female-flies-with-eggs * ( 1 - share ) ) female-flies-with-eggs [
@@ -358,7 +374,7 @@ to start-season
       set color magenta
     ]
     ; correct partner-search and ready-to-lay-egg for females with eggs
-    ask flies with [ sex = "f" and eggs > 0 ] [
+    ask flies with [ sex = "female" and eggs > 0 ] [
       set partner-search FALSE
       set ready-to-lay-egg TRUE
     ]
@@ -372,26 +388,25 @@ to end-season
 
   set season FALSE
   kill-flies-off-season
+  if Cargo_Gene = "CG1" [
+    kill_Medea_flies_diapause
+  ]
 
 end
 
-to check_CG
-  if Cargo_gene = "CG1" [
-    if season = TRUE and round ( mean-10d-temp ) <= season-end-temp [ ;wird so nicht mehr funktionieren
-      kill_Medea_flies_diapause
+
+to spray_magic_substance
+
+  if sim-year >= ms_spray_year and sim-day <= ( ms_spray_day + ( ms_periodic_spray * ( ms_periodic_interval - 1 ) ) ) and sim-day >= ms_spray_day [                         ;the general time frame for when spraying should happen
+    if ( sim-day - ms_spray_day ) mod ms_periodic_interval  = 0 [                                                                                                    ;the actual time spraying happens
+      ask trees  [
+        set magic_substance true
+        set color blue
+        set magic_substance_tick ticks
+      ]
     ]
   ]
 
-
-  if Cargo_gene = "CG2" [
-    ask trees [spray_magic_substance]
-    poison_flies
-    kill_flies_with_magic_substance
-    magic_substance_fade_away
-  ]
-  if Cargo_gene = "CG3" [
-    make_MM_steril
-  ]
 end
 
 
@@ -399,27 +414,20 @@ end
 ; returns the current date in the format 1.1.[1] (the number in brackets reflects the year - note: NO LEAP YEARS!)
 to-report current-date
 
-  let days ceiling ( ticks / ticks-per-day )
-  if days = 0 [ set days 1 ]
   let return "0"
-  let year 0
 
-  set year ( floor ( days / ( 365 + 1 ) ) ) + 1
-  set days ( days mod 365 )
-  if days = 0 [ set days 365 ]
-
-  ifelse days < 32 [ set return ( word days ".1." ) ] [
-    ifelse days < 60 [ set return ( word ( days - 31 ) ".2." ) ] [
-      ifelse days < 91 [ set return ( word ( days - 59 ) ".3." ) ] [
-        ifelse days < 121 [ set return ( word ( days - 90 ) ".4." ) ] [
-          ifelse days < 152 [ set return ( word ( days - 120 ) ".5." ) ] [
-            ifelse days < 182 [ set return ( word ( days - 151 ) ".6." ) ] [
-              ifelse days < 213 [ set return ( word ( days - 181 ) ".7." ) ] [
-                ifelse days < 244 [ set return ( word ( days - 212 ) ".8." ) ] [
-                  ifelse days < 274 [ set return ( word ( days - 243 ) ".9." ) ] [
-                    ifelse days < 305 [ set return ( word ( days - 273 ) ".10." ) ] [
-                      ifelse days < 335 [ set return ( word ( days - 304 ) ".11." ) ] [
-                        if days < 366 [ set return ( word ( days - 334 ) ".12." ) ]
+  ifelse sim-day < 32 [ set return ( word sim-day ".1." ) ] [
+    ifelse sim-day < 60 [ set return ( word ( sim-day - 31 ) ".2." ) ] [
+      ifelse sim-day < 91 [ set return ( word ( sim-day - 59 ) ".3." ) ] [
+        ifelse sim-day < 121 [ set return ( word ( sim-day - 90 ) ".4." ) ] [
+          ifelse sim-day < 152 [ set return ( word ( sim-day - 120 ) ".5." ) ] [
+            ifelse sim-day < 182 [ set return ( word ( sim-day - 151 ) ".6." ) ] [
+              ifelse sim-day < 213 [ set return ( word ( sim-day - 181 ) ".7." ) ] [
+                ifelse sim-day < 244 [ set return ( word ( sim-day - 212 ) ".8." ) ] [
+                  ifelse sim-day < 274 [ set return ( word ( sim-day - 243 ) ".9." ) ] [
+                    ifelse sim-day < 305 [ set return ( word ( sim-day - 273 ) ".10." ) ] [
+                      ifelse sim-day < 335 [ set return ( word ( sim-day - 304 ) ".11." ) ] [
+                        if sim-day < 366 [ set return ( word ( sim-day - 334 ) ".12." ) ]
                       ]
                     ]
                   ]
@@ -432,7 +440,7 @@ to-report current-date
     ]
   ]
 
-  set return ( word return "[" year "]" )
+  set return ( word return "[" sim-year "]" )
 
   report return
 
@@ -491,8 +499,8 @@ init-pop
 init-pop
 0
 10000
-569.0
-1
+550.0
+10
 1
 NIL
 HORIZONTAL
@@ -534,7 +542,7 @@ resistant-ratio
 resistant-ratio
 0
 1
-0.1
+0.78
 0.01
 1
 NIL
@@ -607,10 +615,10 @@ sum [occupied-cherries] of trees
 11
 
 PLOT
-1310
-512
-1657
-681
+1307
+513
+1654
+682
 Weather data
 tick
 NIL
@@ -647,7 +655,7 @@ mean-cherries
 mean-cherries
 0
 4000
-102.0
+200.0
 1
 1
 NIL
@@ -662,7 +670,7 @@ sd-cherries
 sd-cherries
 0
 1000
-16.0
+10.0
 1
 1
 NIL
@@ -677,7 +685,7 @@ cherries-growth-start
 cherries-growth-start
 0
 365
-50.0
+105.0
 1
 1
 NIL
@@ -692,7 +700,7 @@ cherries-growth-period
 cherries-growth-period
 0
 180
-47.0
+60.0
 1
 1
 NIL
@@ -720,7 +728,7 @@ PENS
 PLOT
 918
 512
-1306
+1307
 682
 cherries
 tick
@@ -794,7 +802,7 @@ release-amount
 release-amount
 0
 10000
-2610.0
+500.0
 10
 1
 NIL
@@ -817,7 +825,7 @@ INPUTBOX
 1002
 204
 max-years
-0.5
+1.0
 1
 0
 Number
@@ -844,16 +852,6 @@ mean-10d-temp
 1
 11
 
-TEXTBOX
-1408
-78
-1575
-98
-NIL
-11
-0.0
-1
-
 MONITOR
 1605
 22
@@ -874,7 +872,7 @@ wildberries-per-plant
 wildberries-per-plant
 0
 100
-10.0
+20.0
 1
 1
 NIL
@@ -905,7 +903,7 @@ CHOOSER
 gd-gender
 gd-gender
 "female" "mixed" "male"
-1
+2
 
 SLIDER
 1292
@@ -916,7 +914,7 @@ resistance-rate
 resistance-rate
 0
 1
-0.03
+0.07
 0.01
 1
 NIL
@@ -946,7 +944,7 @@ fitness-RR
 fitness-RR
 0
 1
-0.0
+1.0
 0.01
 1
 NIL
@@ -961,7 +959,7 @@ fitness-MM
 fitness-MM
 0
 1
-0.5
+0.35
 0.01
 1
 NIL
@@ -1042,7 +1040,7 @@ periodic-release
 periodic-release
 1
 100
-8.0
+0.0
 1
 1
 NIL
@@ -1080,7 +1078,7 @@ CHOOSER
 760
 Cargo_Gene
 Cargo_Gene
-"CG_off" "CG1" "CG2" "CG3" "CG4"
+"CG_off" "CG1" "CG2" "CG3" "CG4" "CG5"
 0
 
 SLIDER
@@ -1107,7 +1105,7 @@ ms_spray_day
 ms_spray_day
 1
 365
-11.0
+50.0
 1
 1
 NIL
@@ -1167,7 +1165,7 @@ ms_potency_duration
 ms_potency_duration
 0
 100
-8.0
+11.0
 1
 1
 NIL
@@ -1213,7 +1211,7 @@ release_share_heterozygot
 release_share_heterozygot
 0
 1
-0.1
+0.0
 0.01
 1
 NIL
@@ -1234,7 +1232,7 @@ TEXTBOX
 684
 388
 712
-Cargo Gene 2 (magic substance)
+Magic substance (Cargo Gene 2)
 11
 0.0
 1
@@ -1248,7 +1246,7 @@ Days_to_die
 Days_to_die
 0
 3
-3.0
+1.3
 0.1
 1
 NIL
@@ -1265,12 +1263,12 @@ Genotype_affected
 1
 
 MONITOR
-787
-752
-868
-797
+1657
+22
+1714
+67
 NIL
-harvest_tick
+sim-day
 17
 1
 11

@@ -8,20 +8,22 @@ to create-file
   
   if no-output != "YES" [ 
     
+    ; this is the current real-life time
+    
     let cur-date time:create "now"
     
-    let year   time:get "year"   cur-date
-    let month  time:get "month"  cur-date
-    let day    time:get "day"    cur-date
-    let hour   time:get "hour"   cur-date
-    let minute time:get "minute" cur-date
-    let second time:get "second" cur-date
+    let year        time:get "year"   cur-date
+    let month       time:get "month"  cur-date
+    let day         time:get "day"    cur-date
+    let hour        time:get "hour"   cur-date
+    let minute      time:get "minute" cur-date
+    let second      time:get "second" cur-date
     
-    if month  < 10 [ set month  word "0" month  ]
-    if day    < 10 [ set day    word "0" day    ]
-    if hour   < 10 [ set hour   word "0" hour   ]
-    if minute < 10 [ set minute word "0" minute ]
-    if second < 10 [ set second word "0" second ]
+    if month       < 10 [ set month  word "0" month  ]
+    if day         < 10 [ set day    word "0" day    ]
+    if hour        < 10 [ set hour   word "0" hour   ]
+    if minute      < 10 [ set minute word "0" minute ]
+    if second      < 10 [ set second word "0" second ]
     
     set output-file-name ( word "../output/" year "-" month "-" day " " hour "_" minute "_" second " [" behaviorspace-run-number "] output.csv" )
     let config-output-file-name ( word "../output/" year "-" month "-" day " " hour "_" minute "_" second " [" behaviorspace-run-number "] config-output.csv" )
@@ -211,10 +213,10 @@ to write-values-to-file
     array:set output-values 10 sum [ occupied-wildberries ] of wildberry-plants
     array:set output-values 11 count flies with [ mode = "stationary" ]
     array:set output-values 12 count flies with [ mode = "adult" ]
-    array:set output-values 13 count flies with [ sex = "f" ]
-    array:set output-values 14 count flies with [ sex = "f" and partner-search ]
+    array:set output-values 13 count flies with [ sex = "female" ]
+    array:set output-values 14 count flies with [ sex = "female" and partner-search ]
     array:set output-values 15 count flies with [ eggs > 0 ]
-    array:set output-values 16 count flies with [ sex = "m" ]
+    array:set output-values 16 count flies with [ sex = "male" ]
     array:set output-values 17 count flies with [ genotype = "++" ]
     array:set output-values 18 count flies with [ genotype = "++" and mode = "stationary" ]
     array:set output-values 19 count flies with [ genotype = "++" and mode = "adult" ]
@@ -294,7 +296,7 @@ to write-values-to-file
       array:set output-values 74 0
     ]
     array:set output-values 75 count flies with [ genotype = "M+" or genotype = "+M" or genotype = "MM" or genotype = "MR" or genotype = "RM" and mode = "adult" ]
-    array:set output-values 76 count flies with [ genotype = "M+" or genotype = "+M" or genotype = "MM" or genotype = "MR" or genotype = "RM" and mode = "adult" and sex ="f" ]
+    array:set output-values 76 count flies with [ genotype = "M+" or genotype = "+M" or genotype = "MM" or genotype = "MR" or genotype = "RM" and mode = "adult" and sex ="female" ]
     
     file-open output-file-name
     
