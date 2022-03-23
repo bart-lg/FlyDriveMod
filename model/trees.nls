@@ -69,6 +69,7 @@ to grow-cherries
     ]
   ]
   
+  let cherries-growth-period-tick 0
   if ( day >= cherries-growth-start ) and ( day <= cherries-growth-start + cherries-growth-period ) [
     
     ifelse ( day = cherries-growth-start + cherries-growth-period ) [
@@ -78,8 +79,16 @@ to grow-cherries
         ]
       ]
     ] [
+    
+      set cherries-growth-period-tick ( ticks - ( cherries-growth-start * ticks-per-day ) ) 
+    
       ask trees [
-        let new-cherries ceiling ( max-cherries / ( cherries-growth-period * ticks-per-day ) )
+        let new-cherries 0
+        ifelse grown-cherries > ( cherries-growth-period-tick * max-cherries / ( cherries-growth-period * ticks-per-day ) ) [
+          set new-cherries floor ( max-cherries / ( cherries-growth-period * ticks-per-day ) )
+        ] [
+          set new-cherries ceiling ( max-cherries / ( cherries-growth-period * ticks-per-day ) )
+        ]
         ifelse ( grown-cherries + new-cherries ) < ( max-cherries - occupied-cherries ) [
           set grown-cherries ( grown-cherries + new-cherries ) 
         ] [
