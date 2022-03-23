@@ -84,7 +84,7 @@ to grow-cherries
     
       ask trees [
         let new-cherries 0
-        ifelse grown-cherries > ( cherries-growth-period-tick * max-cherries / ( cherries-growth-period * ticks-per-day ) ) [
+        ifelse grown-cherries > ( ( cherries-growth-period-tick - 1 ) * max-cherries / ( cherries-growth-period * ticks-per-day ) ) [
           set new-cherries floor ( max-cherries / ( cherries-growth-period * ticks-per-day ) )
         ] [
           set new-cherries ceiling ( max-cherries / ( cherries-growth-period * ticks-per-day ) )
