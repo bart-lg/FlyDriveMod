@@ -1,0 +1,125 @@
+breed [ wildberry-plants wildberry-plant ]
+
+; properties of wildberry-plants
+wildberry-plants-own [
+  
+  grown-wildberries
+  occupied-wildberries
+  
+]
+
+to plant-wildberry-plant [ x y ]
+  
+  create-wildberry-plants 1 [
+   
+    set shape "square"
+    set color 54
+    setxy x y
+    set grown-wildberries wildberries-per-plant
+    set occupied-wildberries 0
+    
+  ]
+  
+end
+
+to plant-wildberry-plants
+  
+  ; coordinates in world
+  let x-coordinate 0
+  let y-coordinate 0
+
+  set x-coordinate border-margin + 1 
+  set y-coordinate border-margin + 1 
+  while [ x-coordinate <= ( max-pxcor - border-margin ) ] [
+    
+    if not any? wildberry-plants-on patch x-coordinate y-coordinate [
+      plant-wildberry-plant x-coordinate y-coordinate
+    ]
+    
+    set x-coordinate ( x-coordinate + 1 )
+    
+  ]
+
+  set x-coordinate border-margin + 1 
+  set y-coordinate max-pycor - border-margin
+  while [ x-coordinate <= ( max-pxcor - border-margin ) ] [
+    
+    if not any? wildberry-plants-on patch x-coordinate y-coordinate [
+      plant-wildberry-plant x-coordinate y-coordinate
+    ]
+    
+    set x-coordinate ( x-coordinate + 1 )
+    
+  ]
+  
+  set x-coordinate border-margin + 1 
+  set y-coordinate border-margin + 2 
+  while [ y-coordinate <= ( max-pycor - border-margin ) ] [
+    
+    if not any? wildberry-plants-on patch x-coordinate y-coordinate [
+      plant-wildberry-plant x-coordinate y-coordinate
+    ]
+    
+    set y-coordinate ( y-coordinate + 1 )
+    
+  ]  
+
+  set x-coordinate max-pxcor - border-margin
+  set y-coordinate border-margin + 2 
+  while [ y-coordinate <= ( max-pycor - border-margin ) ] [
+    
+    if not any? wildberry-plants-on patch x-coordinate y-coordinate [
+      plant-wildberry-plant x-coordinate y-coordinate
+    ]
+    
+    set y-coordinate ( y-coordinate + 1 )
+    
+  ]
+  
+end
+
+to grow-wildberries 
+  
+  ask wildberry-plants with [ ( grown-wildberries + count flies-here with [ mode = "stationary" ] ) < wildberries-per-plant ] [
+    set grown-wildberries ( grown-wildberries + 1 ) 
+  ]
+  
+  set total-grown-wildberries sum [ grown-wildberries ] of wildberry-plants
+  ifelse total-grown-wildberries > 0   [ set wildberries-available TRUE   ] [ set wildberries-available FALSE   ]
+  
+end
+
+
+to wildberries-attract-closest-flies
+  
+  if wildberries-available [
+    
+    let female-flies-with-eggs flies with [ ready-to-lay-egg]
+    
+    ask wildberry-plants with [ grown-wildberries > 0 ] [
+     
+      let flies-in-radius female-flies-with-eggs with [ target-tick < ticks or distance myself < target-distance ] in-radius visibility
+      if count flies-in-radius > grown-wildberries [
+        set flies-in-radius min-n-of grown-wildberries flies-in-radius [ distance myself ]
+      ]
+      
+      if any? flies-in-radius [
+        
+        let target-x xcor
+        let target-y ycor
+        
+        ask flies-in-radius [
+          
+          facexy target-x target-y
+          set target-tick ticks
+          set target-distance distance patch target-x target-y
+          
+        ]
+        
+      ]
+      
+    ]
+    
+  ]  
+  
+end

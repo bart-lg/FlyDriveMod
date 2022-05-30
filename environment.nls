@@ -1,0 +1,65 @@
+to env-setworld
+  
+  let world-x ( trees-per-row * tree-width + ( trees-per-row - 1 ) * tree-margin-x + 2 * wildberry-plant-width + 2 * wildberry-plant-margin + 2 * border-margin )
+  let world-y ( tree-rows * tree-width + ( tree-rows - 1 ) * tree-margin-y + 2 * wildberry-plant-width + 2 * wildberry-plant-margin + 2 * border-margin )
+  
+  resize-world 0 world-x 0 world-y
+  
+end
+
+to load-weather-data
+  
+  ; load temperatures (every line represents 1 tick)
+  file-open "temperature-reduced.csv"
+  set temperature-list []
+  set-current-plot "Weather data"
+  
+  clear-plot
+  
+  set-current-plot-pen "prev-t"
+  let t 1
+  while [file-at-end? = false] [
+    ; read line
+    let value file-read
+    ; plot preview
+    plotxy t value
+    ; add value to the end of list
+    set temperature-list lput value temperature-list 
+    set t ( t + 1 )
+  ]
+  set current-temp first temperature-list
+  file-close
+  
+end
+
+to get-current-weather
+  
+  ; load list again if empty (needed for multiple years simulation) (last entry is empty)
+  if length temperature-list = 0 [ load-weather-data ]
+  
+  set current-temp first temperature-list
+  if ( length temperature-list > 0 ) [ set temperature-list but-first temperature-list ]
+  
+  set-current-plot "Weather data"
+  set-current-plot-pen "temp"
+  plotxy ( ticks mod (365 * ticks-per-day) ) current-temp
+  
+end
+
+to calculate-mean-temperatures 
+  
+  ; ### calculate mean of last 10 days ###
+  
+  ; remove first entry (latest entries are at the end of the list) if log is long enough (equal or greather than 10 days)
+  if length temp-10d-log >= ( 10 * ticks-per-day ) [
+    set temp-10d-log but-first temp-10d-log 
+  ]
+  
+  ; add current-temp to list
+  set temp-10d-log lput current-temp temp-10d-log
+  
+  ; calculates the mean of the list with a precision of 1
+  set mean-10d-temp precision ( mean temp-10d-log ) 1
+  set rounded-mean-10d-temp round mean-10d-temp
+  
+end
