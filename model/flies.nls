@@ -111,7 +111,7 @@ end
 to set-eggs-per-day-rates
 
   ; first check if csv file exists
-  let file-path (word path-csv-input "eggsPerDay.csv")
+  let file-path (word path-csv-input "OvipostionRate.csv")
   if file-exists? file-path [
   
     file-open file-path
@@ -150,10 +150,10 @@ to-report set-mode-durations
   let allFilesExist TRUE
   
   ; check if all csv files exist
-  let file-path (word path-csv-input "femaleEggsToAdult.csv")
+  let file-path (word path-csv-input "EggsToAdult.csv")
   if not file-exists? file-path [ 
     set allFilesExist FALSE 
-    output-print "femaleEggsToAdult.csv missing!"
+    output-print "EggsToAdult.csv missing!"
   ]
   
   set file-path (word path-csv-input "femaleAdultLongevity.csv")
@@ -162,10 +162,10 @@ to-report set-mode-durations
     output-print "femaleAdultLongevity.csv missing!"
   ]
   
-  set file-path (word path-csv-input "maleEggsToAdult.csv")
+  set file-path (word path-csv-input "EggsToAdult.csv")
   if not file-exists? file-path [ 
     set allFilesExist FALSE 
-    output-print "maleEggsToAdult.csv missing!"
+    output-print "EggsToAdult.csv missing!"
   ]
   
   set file-path (word path-csv-input "maleAdultLongevity.csv")
@@ -183,12 +183,12 @@ to-report set-mode-durations
   ; ### TEMPERATURES
   ; ### FEMALE EGGS TO ADULT
   
-  set file-path (word path-csv-input "femaleEggsToAdult.csv")
+  set file-path (word path-csv-input "EggsToAdult.csv")
   file-open file-path
   
   ; check the headers of the columns
   let headers csv:from-row file-read-line
-  if item 0 headers = "temperature" and item 1 headers = "femaleEggsToAdult" [
+  if item 0 headers = "temperature" and item 1 headers = "EggsToAdult" [
   
     ; create arrays
     set mode-duration-temperatures array:from-list []
@@ -239,12 +239,12 @@ to-report set-mode-durations
   
   ; ### MALE EGGS TO ADULT
   
-  set file-path (word path-csv-input "maleEggsToAdult.csv")
+  set file-path (word path-csv-input "EggsToAdult.csv")
   file-open file-path
   
   ; check the headers of the columns
   set headers csv:from-row file-read-line
-  if item 0 headers = "temperature" and item 1 headers = "maleEggsToAdult" [
+  if item 0 headers = "temperature" and item 1 headers = "EggsToAdult" [
   
     ; create arrays
     set male-stat-durations array:from-list []
@@ -317,6 +317,7 @@ to get-current-mode-durations
   
 end
 
+
 to calculate-current-eggs-per-tick-rate
   
   ; determine index for array
@@ -375,8 +376,9 @@ to fly-init-pop
         set poisoned FALSE
         set poisoned_tick 0
         set ovipositionapperatus true
+        set shape "fly"
         if sex = "female" [ set color magenta ]
-        if sex = "male" [ set color blue    ]
+        if sex = "male" [ set color blue  set shape "fly_male"  ]
       ] 
     ]
   ]
@@ -400,10 +402,10 @@ to kill_Medea_flies_diapause
   ;If Cargo_Gene 1, envrionmental cue is the winter season, is true than it kills all the flies with a Medea gene   
   
   let flies_with_affected_genotype flies with [ member? "M" genotype ]
-  if genotype_affected = "Heterozygot" [
+  if genotype_affected = "heterozygot" [
     set flies_with_affected_genotype flies with [ genotype = "M+" or genotype = "+M" or genotype = "RM"  or genotype = "MR" ]
   ]
-  if genotype_affected = "Homozygot" [
+  if genotype_affected = "homozygot" [
     set flies_with_affected_genotype flies with [ genotype = "MM" ]
   ]
       
@@ -422,10 +424,10 @@ to poison_flies
   if any? trees with [ magic_substance = TRUE ] [
     
     let flies_with_affected_genotype no-turtles
-    ifelse genotype_affected = "Heterozygot" [
+    ifelse genotype_affected = "heterozygot" [
       set flies_with_affected_genotype flies with [ genotype = "M+" or genotype = "+M" or genotype = "RM"  or genotype = "MR" ]
     ][
-      ifelse genotype_affected = "Homozygot" [
+      ifelse genotype_affected = "homozygot" [
         set flies_with_affected_genotype flies with [ genotype = "MM" ]
       ][
         set flies_with_affected_genotype flies with [ member? "M" genotype ] 
@@ -685,13 +687,13 @@ to fly-activities
     if ( cherries-available or wildberries-available ) [
       
       let cherries-here no-turtles
-      if cherries-available [ set cherries-here ( trees-on patches in-radius tree-radius ) with [grown-cherries > 0] ]
+      if cherries-available [ set cherries-here ( trees-on patches in-radius tree-radius ) with [ grown-cherries > 0 ] ]
       
       let wildberries-here no-turtles
-      if wildberries-available [ set wildberries-here ( wildberry-plants-on patch-here ) with [grown-wildberries > 0] ]
+      if wildberries-available [ set wildberries-here ( wildberry-plants-on patch-here ) with [ grown-wildberries > 0 ] ]
       
       if any? cherries-here or any? wildberries-here [ 
-        ifelse any? cherries-here and ovipositionapperatus = true or any? wildberries-here [
+        ifelse ( any? wildberries-here ) or ( any? cherries-here and ovipositionapperatus = TRUE ) or ( ovipositionapperatus = FALSE and any? cherries-here and ( random-float 1 ) > effectivness_rate_cg  ) [
           
           let lay-egg TRUE
           
@@ -707,7 +709,7 @@ to fly-activities
           ; FEMALE: M+ or MR => RR DIE with certain prob. due to resistance
           
           ; descion of which sex the off-spring will have was forwared here, for better clarity
-          let sex-temp ""
+          
           
           if member? "M" genotype [
             if genotype-temp = "++" or genotype-temp = "R+" or genotype-temp = "+R" [ set lay-egg FALSE ]
@@ -717,35 +719,31 @@ to fly-activities
               ]
             ] 
           ]
-          ifelse Cargo_Gene = "CG5" and member? "M" genotype-temp [
+          
+          let sex-temp ""
+          ifelse ( random 2 ) = 1 [ set sex-temp "female" ][ set sex-temp "male" ]
+          
+          if Cargo_Gene = "CG5" and member? "M" genotype-temp [
             
             
-            ifelse genotype_affected = "Heterozygot" and genotype-temp = "M+" or genotype-temp = "+M" or genotype-temp = "RM"  or genotype-temp = "MR" [
-                ifelse cg_gender = "male" [
-                  ifelse effectivness_rate_cg >= ( random-float 1 ) [ set sex-temp "male" ] [ set sex-temp "female" ]
-                ] [ 
-                  ifelse effectivness_rate_cg < ( random-float 1 ) [ set sex-temp "male" ] [ set sex-temp "female" ] 
+            ifelse genotype_affected = "heterozygot" and genotype-temp = "M+" or genotype-temp = "+M" or genotype-temp = "RM"  or genotype-temp = "MR" [
+              if cg_gender = sex-temp and effectivness_rate_cg <= ( random-float 1 ) [
+                set lay-egg FALSE
+              ]
+            ][
+              ifelse genotype_affected = "homozygot" and genotype-temp = "MM" [
+                if cg_gender = sex-temp and effectivness_rate_cg <= ( random-float 1 ) [
+                  set lay-egg FALSE
                 ]
-            ] [
-              ifelse genotype_affected = "Homozygot" and genotype-temp = "MM" [
-                ifelse cg_gender = "male" [
-                  ifelse effectivness_rate_cg >= ( random-float 1 ) [ set sex-temp "male" ] [ set sex-temp "female" ]
-                ] [ 
-                  ifelse effectivness_rate_cg < ( random-float 1 ) [ set sex-temp "male" ] [ set sex-temp "female" ] 
+              ]
+              [ if genotype_affected = "mixed" and member? "M" genotype-temp [ 
+                if cg_gender = sex-temp and effectivness_rate_cg <= ( random-float 1 ) [
+                  set lay-egg FALSE
                 ]
-            ]
-                 [ ifelse genotype_affected = "mixed" and member? "M" genotype-temp [ ; hier liegt der fehler! beim aktuellen versuch laufen alle Heterozygoten hier durch und setzten ihr geschlecht
-                  ifelse cg_gender = "male" [
-                    ifelse effectivness_rate_cg >= ( random-float 1 ) [ set sex-temp "male" ] [ set sex-temp "female" ]
-                  ] [ 
-                    ifelse effectivness_rate_cg < ( random-float 1 ) [ set sex-temp "male" ] [ set sex-temp "female" ] 
-                  ]
-                ] [
-                  ifelse ( random 2 ) = 1 [ set sex-temp "female" ][ set sex-temp "male" ]
                 ]
               ]
             ]
-          ][ ifelse ( random 2 ) = 1 [ set sex-temp "female" ][ set sex-temp "male" ] ]
+          ]
               
 
           ; fitness rate
@@ -773,14 +771,14 @@ to fly-activities
                 ;the next to variables could change depending on the cargo gene
                 set fitness ( get-fitness-for-genotype genotype-temp )
                 if Cargo_Gene = "CG3" [
-                  ifelse genotype_affected = "Heterozygot" and genotype = "M+" or genotype = "+M" or genotype = "MR" or genotype = "RM" [
-                    if cg_gender = "mixed" or sex = cg_gender [ set fitness 0 ]
+                  ifelse genotype_affected = "heterozygot" and genotype = "M+" or genotype = "+M" or genotype = "MR" or genotype = "RM" [
+                    if (cg_gender = "mixed" or sex = cg_gender) and random-float 1 <= effectivness_rate_cg [ set fitness 0 ]
                   ][
-                    ifelse genotype_affected = "Homozygot" and genotype = "MM" [
-                      if cg_gender = "mixed" or sex = cg_gender [ set fitness 0 ]
+                    ifelse genotype_affected = "homozygot" and genotype = "MM" [
+                      if (cg_gender = "mixed" or sex = cg_gender) and random-float 1 <= effectivness_rate_cg [ set fitness 0 ]
                     ][
                       if genotype_affected = "mixed" and member? "M" genotype [
-                        if cg_gender = "mixed" or sex = cg_gender [ set fitness 0 ]
+                        if (cg_gender = "mixed" or sex = cg_gender) and random-float 1 <= effectivness_rate_cg [ set fitness 0 ]
                       ]
                     ]
                   ]
@@ -788,10 +786,10 @@ to fly-activities
                 
                 set ovipositionapperatus true
                 if Cargo_Gene = "CG4" [
-                  if genotype_affected = "Heterozygot" and genotype = "M+" or genotype = "+M" or genotype = "MR" or genotype = "RM" [
+                  if genotype_affected = "heterozygot" and genotype = "M+" or genotype = "+M" or genotype = "MR" or genotype = "RM" [
                     set ovipositionapperatus false
                   ]
-                  if genotype_affected = "Homozygot" and genotype = "MM" [
+                  if genotype_affected = "homozygot" and genotype = "MM" [
                     set ovipositionapperatus false
                   ]
                   if genotype_affected = "mixed" and member? "M" genotype [
@@ -875,6 +873,7 @@ to upgrade-fly
       set mode-duration 0
       set partner-search TRUE
       set color magenta
+      set shape "fly"
     ]
     
     if ( sex = "male" and mode = "stationary" and mode-duration >= current-male-stat-duration ) [
@@ -882,6 +881,7 @@ to upgrade-fly
       set mode-duration 0
       set partner-search TRUE
       set color blue
+      set shape "fly_male"
     ]
     
     ; increase log-value
@@ -1021,32 +1021,32 @@ to release-gene-drive-at-position [gd-xcor gd-ycor gd-release-amount]
         set fitness fitness-MP
       ]
       if Cargo_Gene = "CG3" [
-        ifelse genotype_affected = "Heterozygot" and genotype = "M+" or genotype = "+M" or genotype = "MR" or genotype = "RM" [
-          if cg_gender = "mixed" or sex = cg_gender [ set fitness 0 ]
+        ifelse genotype_affected = "heterozygot" and genotype = "M+" or genotype = "+M" or genotype = "MR" or genotype = "RM" [
+          if (cg_gender = "mixed" or sex = cg_gender) and random-float 1 <= effectivness_rate_cg [ set fitness 0 ]
         ][
-          ifelse genotype_affected = "Homozygot" and genotype = "MM" [
-            if cg_gender = "mixed" or sex = cg_gender [ set fitness 0 ]
+          ifelse genotype_affected = "homozygot" and genotype = "MM" [
+            if (cg_gender = "mixed" or sex = cg_gender) and random-float 1 <= effectivness_rate_cg [ set fitness 0 ]
           ][
             if genotype_affected = "mixed" and member? "M" genotype [
-              if cg_gender = "mixed" or sex = cg_gender [ set fitness 0 ]
+              if (cg_gender = "mixed" or sex = cg_gender) and random-float 1 <= effectivness_rate_cg [ set fitness 0 ]
             ]
           ]
         ]
-      ] 
+      ]  
       set ovipositionapperatus TRUE
       if Cargo_Gene = "CG4" [
-                if genotype_affected = "Heterozygot" and genotype = "M+" or genotype = "+M" or genotype = "MR" or genotype = "RM" [
+                if genotype_affected = "heterozygot" and genotype = "M+" or genotype = "+M" or genotype = "MR" or genotype = "RM" [
                   set ovipositionapperatus false
                 ]
-                if genotype_affected = "Homozygot" and genotype = "MM" [
+                if genotype_affected = "homozygot" and genotype = "MM" [
                   set ovipositionapperatus false
                 ]
                 if genotype_affected = "mixed" and member? "M" genotype [
                   set ovipositionapperatus false
                 ]
               ]
-      if sex = "female" [ set color magenta ]
-      if sex = "male" [ set color blue    ]
+      if sex = "female" [ set color magenta set shape "fly"]
+      if sex = "male" [ set color blue set shape "fly_male" ]
     ] 
    ]
    
@@ -1089,6 +1089,7 @@ end
 to start-immature-state
   
   set immature-state TRUE
+  set ready-to-lay-egg FALSE
   set immature-start ticks
   set partner-search FALSE
   

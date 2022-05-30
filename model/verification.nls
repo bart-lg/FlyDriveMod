@@ -1,11 +1,12 @@
 
 to verification-tests
   
+  save_config
+  
   ; prevents CSV-output
   set no-output "YES" 
   
-  let total-check TRUE
-    
+  let total-check TRUE  
   refresh-world
   
   let verification-file create-verification-file
@@ -35,7 +36,10 @@ to verification-tests
   if not test-male-mating-interval                 verification-file [ set total-check FALSE ]
   if not test-female-attract-male-flies            verification-file [ set total-check FALSE ]
   if not test-immature-state                       verification-file [ set total-check FALSE ]
-  
+  if not test-Cargo_Gene_1                         verification-file [ set total-check FALSE ]
+  if not test-Cargo_Gene_2                         verification-file [ set total-check FALSE ]
+  if not test-Cargo_Gene_3                         verification-file [ set total-check FALSE ]
+  if not test-Cargo_Gene_4                         verification-file [ set total-check FALSE ] 
   
   refresh-world
   
@@ -44,8 +48,176 @@ to verification-tests
   ] [
     user-message "VERIFICAITON-TEST FAILED!"
   ]
+  set no-output "NO"
+  load_config
   
 end
+
+to save_config
+
+  let save-file  ( word "../verification-tests/" " save-file.txt" )
+  
+  file-open save-file
+  
+  file-print ( word "resistance-rate," resistance-rate )
+  file-print ( word "fitness-PP," fitness-PP )
+  file-print ( word "fitness-RR," fitness-RR )
+  file-print ( word "fitness-MM," fitness-MM )
+  
+  file-print ( word "init-pop," init-pop )
+  file-print ( word "resistant-ratio," resistant-ratio )
+  
+  file-print ( word "gene-drive," gene-drive )
+  file-print ( word "gd-gender," gd-gender )
+  file-print ( word "release-amount," release-amount )
+  file-print ( word "release-day," release-day )
+  file-print ( word "periodic-release," periodic-release )
+  file-print ( word "periodic-interval," periodic-interval )
+  file-print ( word "release-location," release-location )
+  file-print ( word "release_share_heterozygot," release_share_heterozygot )
+  
+  file-print ( word "mean-cherries," mean-cherries )
+  file-print ( word "sd-cherries," sd-cherries )
+  file-print ( word "cherries-growth-start," cherries-growth-start )
+  file-print ( word "cherries-growth-period"  "," cherries-growth-period )
+  
+  file-print ( word "Cargo_Gene," Cargo_Gene)
+  file-print ( word "effectivness_rate_cg," effectivness_rate_cg )
+  file-print ( word "cg_gender," cg_gender )
+  file-print ( word "Genotype_affected," Genotype_affected )
+  
+  file-print ( word "ms_spray_day," ms_spray_day )
+  file-print ( word "ms_spray_year," ms_spray_year )
+  file-print ( word "ms_periodic_spray," ms_periodic_spray )
+  file-print ( word "ms_periodic_interval," ms_periodic_interval )
+  file-print ( word "ms_potency_duration," ms_potency_duration )
+  file-print ( word "Days_to_die," Days_to_die )
+  
+  file-close 
+   
+end
+
+to load_config
+  let save-file  ( word "../verification-tests/" " save-file.txt" )
+  file-open save-file
+  
+  let line_1 csv:from-row file-read-line
+  if item 0 line_1  = "resistance-rate" [
+    set resistance-rate item 1 line_1]   
+  
+  let line_2 csv:from-row file-read-line
+  if item 0 line_2  = "fitness-PP" [
+    set fitness-PP item 1 line_2]
+  
+  let line_3 csv:from-row file-read-line
+  if item 0 line_3  = "fitness-RR" [
+    set fitness-RR item 1 line_3]
+  
+  let line_4 csv:from-row file-read-line
+  if item 0 line_4  = "fitness-MM" [
+    set fitness-MM item 1 line_4]    
+  
+  let line_5 csv:from-row file-read-line
+  if item 0 line_5  = "init-pop" [
+    set init-pop item 1 line_5]  
+  
+  let line_6 csv:from-row file-read-line
+  if item 0 line_6  = "resistant-ratio" [
+    set resistant-ratio item 1 line_6]  
+  
+  let line_7 csv:from-row file-read-line
+  if item 0 line_7  = "gene-drive" [
+    set gene-drive item 1 line_7] 
+  
+  let line_8 csv:from-row file-read-line
+  if item 0 line_8  = "gd-gender" [
+    set gd-gender item 1 line_8] 
+  
+  let line_9 csv:from-row file-read-line
+  if item 0 line_9  = "release-amount" [
+    set release-amount item 1 line_9] 
+  
+  let line_10 csv:from-row file-read-line
+  if item 0 line_10  = "release-day" [
+    set release-day item 1 line_10]
+  
+  let line_11 csv:from-row file-read-line
+  if item 0 line_11  = "periodic-release" [
+    set periodic-release item 1 line_11]  
+  
+  let line_12 csv:from-row file-read-line
+  if item 0 line_12  = "periodic-interval" [
+    set periodic-interval item 1 line_12] 
+  
+  let line_13 csv:from-row file-read-line
+  if item 0 line_13  = "release-location" [
+    set release-location item 1 line_13]   
+  
+  let line_14 csv:from-row file-read-line
+  if item 0 line_14  = "release_share_heterozygot" [
+    set   release_share_heterozygot item 1 line_14] 
+  
+  let line_15 csv:from-row file-read-line
+  if item 0 line_15  = "mean-cherries" [
+    set   mean-cherries item 1 line_15] 
+  
+  let line_17 csv:from-row file-read-line
+  if item 0 line_17  = "sd-cherries" [
+    set   sd-cherries item 1 line_17] 
+  
+  let line_18 csv:from-row file-read-line
+  if item 0 line_18  = "cherries-growth-start" [
+    set   cherries-growth-start item 1 line_18] 
+  
+  let line_19 csv:from-row file-read-line
+  if item 0 line_19  = "cherries-growth-period" [
+    set   cherries-growth-period item 1 line_19] 
+  
+  let line_20 csv:from-row file-read-line
+  if item 0 line_20  = "Cargo_Gene" [
+    set   Cargo_Gene item 1 line_20] 
+  
+  let line_21 csv:from-row file-read-line
+  if item 0 line_21  = "effectivness_rate_cg" [
+    set   effectivness_rate_cg item 1 line_21] 
+  
+  let line_22 csv:from-row file-read-line
+  if item 0 line_22  = "cg_gender" [
+    set   cg_gender item 1 line_22] 
+  
+  let line_23 csv:from-row file-read-line
+  if item 0 line_23  = "Genotype_affected" [
+    set   Genotype_affected item 1 line_23] 
+  
+  let line_24 csv:from-row file-read-line
+  if item 0 line_24  = "ms_spray_day" [
+    set   ms_spray_day item 1 line_24] 
+  
+  let line_25 csv:from-row file-read-line
+  if item 0 line_25  = "ms_spray_year" [
+    set   ms_spray_year item 1 line_25] 
+  
+  let line_26 csv:from-row file-read-line
+  if item 0 line_26  = "ms_periodic_spray" [
+    set   ms_periodic_spray item 1 line_26] 
+  
+  let line_27 csv:from-row file-read-line
+  if item 0 line_27  = "ms_periodic_interval" [
+    set   ms_periodic_interval item 1 line_27] 
+  
+  let line_28 csv:from-row file-read-line
+  if item 0 line_28  = "ms_potency_duration" [
+    set   ms_potency_duration item 1 line_28]
+  
+  let line_29 csv:from-row file-read-line
+  if item 0 line_29  = "Days_to_die" [
+    set   Days_to_die item 1 line_29]
+  
+  file-close
+  file-delete save-file
+  
+end
+
 
 to refresh-world
   setup
@@ -419,6 +591,7 @@ to-report test-grow-cherries [ verification-file ]
   set cherries-growth-period 100
   
   while [ ticks < ( 102 * ticks-per-day ) ] [ 
+    current_date
     grow-cherries 
     tick
   ]
@@ -555,6 +728,8 @@ to-report test-release-gene-drive [ verification-file ]
 
   set release-amount 1000
   set release-location "center"
+  set periodic-release 1
+  set release_share_heterozygot 0
   release-gene-drive
   
   if count flies != 1000 [
@@ -1583,6 +1758,8 @@ to-report test-cherries-attract-closest-flies [ verification-file ]
   set mean-cherries 100
   set sd-cherries 0
   
+  current_date
+  
   grow-cherries
   
   cherries-attract-closest-flies
@@ -1594,8 +1771,9 @@ to-report test-cherries-attract-closest-flies [ verification-file ]
   ]
   
   if count flies-on patch x-coordinate ( y-coordinate + 1 ) != 3 [
-    set log-content word log-content "FLIES NOT ATTRACTED BY TREES; "
+  set log-content word log-content "FLIES NOT ATTRACTED BY TREES; "
   ]  
+  
   
   write-verification-result-to-file verification-file log-header log-content
   ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]  
@@ -2295,3 +2473,734 @@ to-report test-immature-state [ verification-file ]
   ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]
   
 end  
+
+to-report test-Cargo_Gene_1 [ verification-file ]
+  
+  refresh-world
+  set cargo_gene "CG1"
+  set effectivness_rate_cg 1.00
+  
+  let log-header "test-Cargo_Gene_1 stats: "
+  let log-content ""
+  
+  
+  
+  ; test cg_gender switch and genotype mixed
+  
+  set cg_gender  "female"
+  set genotype_affected "mixed"
+  set init-pop 20
+  
+  refresh-world
+  start-season
+  
+  ; modify flies
+  ask flies [
+    set sex "female"
+    set genotype "MM"
+  ]
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set sex "male"]
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set genotype "M+"]    
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set genotype "M+"
+    set sex "male"]
+  
+  
+  set season false
+  kill_Medea_flies_diapause
+  
+  if count flies != 10 [ 
+    set log-content word log-content "wrong number of flies killed; " ]
+  
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ] 
+  
+    ;male
+  
+  set cg_gender  "male"
+  set genotype_affected "mixed"
+  
+  refresh-world
+  start-season
+   
+  ; modify flies
+  ask flies [
+    set sex "female"
+    set genotype "MM"
+  ]
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set sex "male"]
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set genotype "M+"]    
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set genotype "M+"
+    set sex "male"]
+    
+  set season false
+  kill_Medea_flies_diapause
+  
+  if count flies != 10 [ 
+    set log-content word log-content "wrong number of flies killed; " ]
+  
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ] 
+  
+  ;mixed
+  
+   set cg_gender  "mixed"
+  set genotype_affected "mixed"
+  
+  refresh-world
+  start-season
+   
+  ; modify flies
+  ask flies [
+    set sex "female"
+    set genotype "MM"
+  ]
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set sex "male"]
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set genotype "M+"]    
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set genotype "M+"
+    set sex "male"]
+    
+  set season false
+  kill_Medea_flies_diapause
+  
+  if count flies != 0 [ 
+    set log-content word log-content "wrong number of flies killed; " ]
+  
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ] 
+  
+  ;test genotype_affected switch
+  
+  ;heterozygot
+  set cg_gender  "female"
+  set genotype_affected "heterozygot"
+  
+  refresh-world
+  start-season
+   
+  ; modify flies
+  ask flies [
+    set sex "female"
+    set genotype "MM"
+  ]
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set sex "male"]
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set genotype "M+"]    
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set genotype "M+"
+    set sex "male"]
+    
+  set season false
+  kill_Medea_flies_diapause
+  
+  if count flies != 15 [ 
+    set log-content word log-content "wrong number of flies killed; " ]
+  
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ] 
+  
+    ;homozygot
+  set cg_gender  "female"
+  set genotype_affected "homozygot"
+  
+  refresh-world
+  start-season
+   
+  ; modify flies
+  ask flies [
+    set sex "female"
+    set genotype "MM"
+  ]
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set sex "male"]
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set genotype "M+"]    
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set genotype "M+"
+    set sex "male"]
+    
+  set season false
+  kill_Medea_flies_diapause
+  
+  if count flies != 15 [ 
+    set log-content word log-content "wrong number of flies killed; " ]
+  
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ] 
+  
+end
+
+to-report test-Cargo_Gene_2 [ verification-file ]
+  ;Part 1 trees get sprayed testing
+  
+    refresh-world
+  set cargo_gene "CG2"
+  set effectivness_rate_cg 1.00
+  set season true
+  set ms_spray_day 2
+  set ms_spray_year 1
+  set ms_periodic_spray 2
+  set ms_periodic_interval 3
+  set ms_potency_duration 2
+  
+  
+  let log-header "test-Cargo_Gene_2 stats: "
+  let log-content ""
+  
+  ; Trees get sprayed at the correct time
+     
+  let i 0
+  while [i < ( ticks-per-day + 1 ) ][
+    tick
+    set i (i + 1)
+  ]
+  current_date
+  
+  spray_magic_substance
+  
+  if count trees with [magic_substance = true] != count trees [ 
+    set log-content word log-content "trees weren't sprayed; " ]
+  
+  ; and countinuing with the potency_duration test
+  
+  set i 0
+  while [i < ( 3 * ticks-per-day + 1 ) ][
+    tick
+    set i (i + 1)
+  ]
+  current_date
+  
+  magic_substance_fade_away
+  
+  if count trees with [magic_substance = true] > 0 [ 
+    set log-content word log-content "Magic substance didn't fad away; " ]
+  
+  spray_magic_substance
+  
+  if count trees with [magic_substance = true] != count trees [ 
+    set log-content word log-content "trees weren't sprayed a second time; " ]
+  
+  set i 0
+  while [i < ( 3 * ticks-per-day + 1 ) ][
+    tick
+    set i (i + 1)
+  ]
+  current_date
+  
+  magic_substance_fade_away
+  
+  if count trees with [magic_substance = true] > 0 [ 
+    set log-content word log-content "Magic substance didn't fad away a second time; " ]
+  
+  spray_magic_substance
+  
+  if count trees with [magic_substance = true] = count trees [ 
+    set log-content word log-content "trees were sprayed when they shouldn't; " ]   
+  
+  ;Part 2 Only selected flies get affected by the magic substance and die after some time
+  
+  set init-pop 20
+  set days_to_die 1
+  
+  ; test cg_gender switch and genotype mixed
+  
+  set cg_gender  "female"
+  set genotype_affected "mixed" 
+  refresh-world
+  start-season
+  
+  ask trees [
+    set magic_substance true
+  ]
+  
+  ask flies [
+    setxy (border-margin + wildberry-plant-width + wildberry-plant-margin + ceiling ( tree-width / 2 )) (border-margin + wildberry-plant-width + wildberry-plant-margin + ceiling ( tree-width / 2 ))
+    set sex "female"
+    set genotype "MM"
+  ]
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set sex "male"]
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set genotype "M+"]    
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set genotype "M+"
+    set sex "male"]
+  
+  poison_flies
+  
+  if count flies with [ poisoned = true ] != 10 [ 
+    set log-content word log-content "wrong number of flies got poisend; " ]
+  
+    set i 0
+  while [i < ( ticks-per-day + 1 ) ][
+    tick
+    set i (i + 1)
+  ]
+  
+ kill_flies_with_magic_substance
+  
+  if count flies  != 10 [ 
+    set log-content word log-content "wrong number of flies got killed; " ]
+  
+   ; test cg_gender switch and genotype mixed
+  
+  set cg_gender  "male"
+  set genotype_affected "mixed" 
+  refresh-world
+  start-season
+  
+  ask trees [
+    set magic_substance true
+  ]
+  
+  ask flies [
+    setxy (border-margin + wildberry-plant-width + wildberry-plant-margin + ceiling ( tree-width / 2 )) (border-margin + wildberry-plant-width + wildberry-plant-margin + ceiling ( tree-width / 2 ))
+    set sex "female"
+    set genotype "MM"
+  ]
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set sex "male"]
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set genotype "M+"]    
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set genotype "M+"
+    set sex "male"]
+  
+  poison_flies
+  
+  if count flies with [ poisoned = true ] != 10 [ 
+    set log-content word log-content "wrong number of flies got poisend; " ]
+  
+    set i 0
+  while [i < ( ticks-per-day + 1 ) ][
+    tick
+    set i (i + 1)
+  ]
+  
+ kill_flies_with_magic_substance
+  
+  if count flies  != 10 [ 
+    set log-content word log-content "wrong number of flies got killed; " ] 
+  
+  ; test cg_gender switch and genotype mixed
+  
+  set cg_gender  "mixed"
+  set genotype_affected "mixed" 
+  refresh-world
+  start-season
+  
+  ask trees [
+    set magic_substance true
+  ]
+  
+  ask flies [
+    setxy (border-margin + wildberry-plant-width + wildberry-plant-margin + ceiling ( tree-width / 2 )) (border-margin + wildberry-plant-width + wildberry-plant-margin + ceiling ( tree-width / 2 ))
+    set sex "female"
+    set genotype "MM"
+  ]
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set sex "male"]
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set genotype "M+"]    
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set genotype "M+"
+    set sex "male"]
+  
+  poison_flies
+  
+  if count flies with [ poisoned = true ] != 20 [ 
+    set log-content word log-content "wrong number of flies got poisend; " ]
+  
+    set i 0
+  while [i < ( ticks-per-day + 1 ) ][
+    tick
+    set i (i + 1)
+  ]
+  
+ kill_flies_with_magic_substance
+  
+  if count flies  != 0 [ 
+    set log-content word log-content "wrong number of flies got killed; " ]  
+  
+    ; test  genotype affected switch with female flies
+  
+  set cg_gender  "female"
+  set genotype_affected "heterozygot" 
+  refresh-world
+  start-season
+  
+  ask trees [
+    set magic_substance true
+  ]
+  
+  ask flies [
+    setxy (border-margin + wildberry-plant-width + wildberry-plant-margin + ceiling ( tree-width / 2 )) (border-margin + wildberry-plant-width + wildberry-plant-margin + ceiling ( tree-width / 2 ))
+    set sex "female"
+    set genotype "MM"
+  ]
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set sex "male"]
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set genotype "M+"]    
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set genotype "M+"
+    set sex "male"]
+  
+  poison_flies
+  
+  if count flies with [ poisoned = true ] != 5 [ 
+    set log-content word log-content "wrong number of flies got poisend; " ]
+  
+    set i 0
+  while [i < ( ticks-per-day + 1 ) ][
+    tick
+    set i (i + 1)
+  ]
+  
+ kill_flies_with_magic_substance
+  
+  if count flies  != 15 [ 
+    set log-content word log-content "wrong number of flies got killed; " ]
+  
+  set cg_gender  "female"
+  set genotype_affected "homozygot" 
+  refresh-world
+  start-season
+  
+  ask trees [
+    set magic_substance true
+  ]
+  
+  ask flies [
+    setxy (border-margin + wildberry-plant-width + wildberry-plant-margin + ceiling ( tree-width / 2 )) (border-margin + wildberry-plant-width + wildberry-plant-margin + ceiling ( tree-width / 2 ))
+    set sex "female"
+    set genotype "MM"
+  ]
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set sex "male"]
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set genotype "M+"]    
+  ask n-of 5 flies with [sex = "female" and genotype = "MM"] [
+    set genotype "M+"
+    set sex "male"]
+  
+  poison_flies
+  
+  if count flies with [ poisoned = true ] != 5 [ 
+    set log-content word log-content "wrong number of flies got poisend; " ]
+  
+    set i 0
+  while [i < ( ticks-per-day + 1 ) ][
+    tick
+    set i (i + 1)
+  ]
+  
+ kill_flies_with_magic_substance
+  
+  if count flies  != 15 [ 
+    set log-content word log-content "wrong number of flies got killed; " ]
+  
+  
+    write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ]
+end
+
+to-report test-Cargo_Gene_3 [ verification-file ]
+  
+  refresh-world
+  set cargo_gene "CG3"
+  set effectivness_rate_cg 1.00
+  set init-pop 10
+  set release_share_heterozygot 0
+  
+
+  
+  let log-header "test-Cargo_Gene_3 stats: "
+  let log-content ""
+  
+  
+  
+; test cg_gender switch and genotype mixed
+  
+  set gd-gender "male"
+  set release-amount 10
+  set cg_gender  "male"
+  set genotype_affected "mixed"
+   
+  refresh-world
+  start-season
+  release-gene-drive
+  
+  if count flies with [fitness = 0] != 10 [ 
+    set log-content word log-content "wrong number of flies are infertile; " ]
+  
+  
+  ; test if not falsely counting wrong genotype
+  
+  set gd-gender "male"
+  set release-amount 10
+  set cg_gender  "male"
+  set genotype_affected "heterozygot"
+   
+  refresh-world
+  start-season
+  release-gene-drive
+  
+  if count flies with [fitness = 0] != 0 [ 
+    set log-content word log-content "homozygots are infertile when the shouldn't; " ]
+  
+  
+    ; test if  counting the correct genotype
+  
+  set gd-gender "male"
+  set release-amount 10
+  set cg_gender  "male"
+  set genotype_affected "homozygot"
+   
+  refresh-world
+  start-season
+  release-gene-drive
+  
+  if count flies with [fitness = 0] != 10 [ 
+    set log-content word log-content "homozygots aren't infertile when the should; " ]
+
+  
+  ; test if not falsely counting wrong sex
+  
+  set gd-gender "male"
+  set release-amount 10
+  set cg_gender  "female"
+  set genotype_affected "mixed"
+   
+  refresh-world
+  start-season
+  release-gene-drive
+  
+  if count flies with [fitness = 0] != 0 [ 
+    set log-content word log-content "males are infertile when the shouldn't; " ]
+
+  
+    ; test if counting correct sex
+  
+  set gd-gender "female"
+  set release-amount 10
+  set cg_gender  "female"
+  set genotype_affected "mixed"
+   
+  refresh-world
+  start-season
+  release-gene-drive
+  
+  if count flies with [fitness = 0] != 10 [ 
+    set log-content word log-content "females aren't infertile when the should; " ]
+  
+      ; test if counting correct sex even when cg_gender = mixed
+  
+  set gd-gender "female"
+  set release-amount 10
+  set cg_gender  "mixed"
+  set genotype_affected "mixed"
+   
+  refresh-world
+  start-season
+  release-gene-drive
+  
+  if count flies with [fitness = 0] != 10 [ 
+    set log-content word log-content "females are infertile when the shouldn't; " ]
+  
+
+  
+  ;test if new hatched flies are also infertile
+  
+  
+  set wildberries-per-plant 20
+  set cg_gender "mixed"
+  set genotype_affected "homozygot"
+
+  
+  refresh-world
+  start-season
+  set wildberries-available true
+  
+  ;prime the flies
+  
+  ask flies [
+    setxy  6 6
+    set sex "female"
+    set genotype "MM" ; those homozygot flies are still fertile, cause they werent't released or hatched
+    set genotype-of-partner "MM"
+    set eggs 1
+    set ready-to-lay-egg true
+    set partner-search false
+    
+  ]
+ 
+    fly-activities
+      
+    if count flies != 20 [ 
+      set log-content word log-content "Eggs didn't hatch when the should; " ]
+    if count flies with [fitness = 0 ] != 10 [
+      set log-content word log-content "Offsprings aren't infertile; " ]
+    
+   
+
+    
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ] 
+  
+end
+
+to-report test-Cargo_Gene_4 [ verification-file ]
+  
+  refresh-world
+  set cargo_gene "CG4"
+  set effectivness_rate_cg 1.00
+  set init-pop 10
+  set release_share_heterozygot 0
+  
+  
+  let log-header "test-Cargo_Gene_4 stats: "
+  let log-content ""
+  
+  
+  
+; test cg_gender switch and genotype mixed
+  
+  set gd-gender "female"
+  set release-amount 10
+  set cg_gender  "female"
+  set genotype_affected "mixed"
+   
+  refresh-world
+  start-season
+  release-gene-drive
+  
+  if count flies with [ovipositionapperatus = false] != 10 [ 
+    set log-content word log-content "wrong number of flies don't have an ovipositionapperatus; " ]
+  
+  
+  ; test if not falsely counting wrong genotype
+  
+  set gd-gender "female"
+  set release-amount 10
+  set cg_gender  "female"
+  set genotype_affected "heterozygot"
+   
+  refresh-world
+  start-season
+  release-gene-drive
+  
+  if count flies with [ovipositionapperatus = false] != 0 [ 
+    set log-content word log-content "homozygot flies have an ovipositionapperatus when they shouldn't; " ]
+  
+  
+    ; test if  counting the correct genotype
+  
+  set gd-gender "female"
+  set release-amount 10
+  set cg_gender  "female"
+  set genotype_affected "homozygot"
+   
+  refresh-world
+  start-season
+  release-gene-drive
+  
+if count flies with [ovipositionapperatus = false] != 10 [ 
+    set log-content word log-content "homozygot flies don't have an ovipositionapperatus when they should; " ]
+   
+      ; test if counting correct sex even when cg_gender = mixed
+  
+  set gd-gender "female"
+  set release-amount 10
+  set cg_gender  "mixed"
+  set genotype_affected "mixed"
+   
+  refresh-world
+  start-season
+  release-gene-drive
+  
+  if count flies with [ovipositionapperatus = false] != 10 [ 
+    set log-content word log-content "wrong number of flies have an ovipositionapperatus; " ]
+  
+  
+  ;test if new hatched flies are also infertile
+  
+  
+  set wildberries-per-plant 20
+  set cg_gender "mixed"
+  set genotype_affected "homozygot"
+
+  
+  refresh-world
+  start-season
+  set wildberries-available true
+  
+  ;prime the flies
+  
+  ask flies [
+    setxy  6 6
+    set sex "female"
+    set genotype "MM" ; those homozygot flies still have an ovipositonapperatus, cause they werent't released or hatched
+    set genotype-of-partner "MM"
+    set eggs 1
+    set ready-to-lay-egg true
+    set partner-search false
+    
+  ]
+ 
+    fly-activities
+      
+    if count flies != 20 [ 
+      set log-content word log-content "Eggs didn't hatch when the should; " ]
+    if count flies with [ovipositionapperatus = false] != 10 [
+      set log-content word log-content "Offsprings have an ovipositionapperatus when the shouldn't; " ]
+  
+  ; test if the egg-laying works correct
+  
+  set init-pop 20
+  
+ refresh-world
+  ask trees [
+    set grown-cherries 20]
+  set cherries-available true
+  
+  start-season
+  
+  ask flies [
+    setxy (border-margin + wildberry-plant-width + wildberry-plant-margin + ceiling ( tree-width / 2 )) (border-margin + wildberry-plant-width + wildberry-plant-margin + ceiling ( tree-width / 2 ))
+    set sex "female"
+    set genotype "MM" ; those homozygot flies still have an ovipositonapperatus, cause they werent't released or hatched
+    set genotype-of-partner "MM"
+    set ready-to-lay-egg true
+    set eggs 1]
+  ask n-of 10 flies [
+      set ovipositionapperatus false]
+    
+    fly-activities 
+    
+    if count flies != 30 [ 
+      set log-content word log-content "Eggs didn't hatch when the should; " ]
+    if count flies with [eggs = 1 ] != 10 [
+    set log-content word log-content "Eggs were layed when they shouldn't have been"]
+    
+    
+    
+    
+   
+
+    
+  write-verification-result-to-file verification-file log-header log-content
+  ifelse length log-content > 0 [ report FALSE ] [ report TRUE ] 
+  
+end
+  
+  

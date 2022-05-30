@@ -3,7 +3,7 @@ extensions [ time ]
 
 to create-file
   
-  let number-of-values 77
+  let number-of-values 78
   set output-values array:from-list n-values number-of-values [0]
   
   if no-output != "YES" [ 
@@ -93,11 +93,24 @@ to write-configs-to-file
   file-print ( word "periodic-release" " " periodic-release )
   file-print ( word "periodic-interval" " " periodic-interval )
   file-print ( word "release-location" " " release-location )
+  file-print ( word "release_share_heterozygot" " " release_share_heterozygot )
   
   file-print ( word "mean-cherries" " " mean-cherries )
   file-print ( word "sd-cherries" " " sd-cherries )
   file-print ( word "cherries-growth-start" " " cherries-growth-start )
   file-print ( word "cherries-growth-period"  " " cherries-growth-period )
+  
+  file-print ( word "Cargo_Gene" " " Cargo_Gene)
+  file-print ( word "effectivness_rate_cg" " " effectivness_rate_cg )
+  file-print ( word "cg_gender" " " cg_gender )
+  file-print ( word "Genotype_affected" " " Genotype_affected )
+  
+  file-print ( word "ms_spray_day" " " ms_spray_day )
+  file-print ( word "ms_spray_year" " " ms_spray_year )
+  file-print ( word "ms_periodic_spray" " " ms_periodic_spray )
+  file-print ( word "ms_periodic_interval" " " ms_periodic_interval )
+  file-print ( word "ms_potency_duration" " " ms_potency_duration )
+  file-print ( word "Days_to_die" " " Days_to_die )
    
 end
 
@@ -180,6 +193,7 @@ to write-headers-to-file
   set headers lput "max-generation-MR" headers                ; #74
   set headers lput "adult_with_CG" headers                    ; #75
   set headers lput "female_with_CG" headers                   ; #76
+  set headers lput "female_with_negativ_eggs" headers         ; #77
   
   while [ length headers > 0 ] [
     
@@ -297,6 +311,7 @@ to write-values-to-file
     ]
     array:set output-values 75 count flies with [ genotype = "M+" or genotype = "+M" or genotype = "MM" or genotype = "MR" or genotype = "RM" and mode = "adult" ]
     array:set output-values 76 count flies with [ genotype = "M+" or genotype = "+M" or genotype = "MM" or genotype = "MR" or genotype = "RM" and mode = "adult" and sex ="female" ]
+    array:set output-values 77 count flies with [ sex = "female" and eggs < 0 ]
     
     file-open output-file-name
     

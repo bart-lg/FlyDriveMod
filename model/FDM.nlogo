@@ -146,7 +146,7 @@ to setup
 
   set no-output temp-no-output
 
-  set model-version "V1.6.5"
+  set model-version "V1.7"
 
   if behaviorspace-run-number > 0 [ random-seed behaviorspace-run-number ]
 
@@ -165,7 +165,7 @@ to setup
 
   set visibility 15
 
-  set eggs-per-cycle 33
+  set eggs-per-cycle 8
   set egg-dev-duration 2 * ticks-per-day
 
   set immature-duration 2
@@ -228,8 +228,8 @@ to setup
     set pcolor [0 41 0]
   ]
 
-  set sim-day 1
-  set sim-year 1
+  set sim-day 0
+  set sim-year 0
 
 end
 
@@ -285,8 +285,8 @@ to go
       magic_substance_fade_away
     ]
 
-
     calculate-current-eggs-per-tick-rate
+
 
     set run-time-1-start timer
     update-egg-laying-mode
@@ -309,7 +309,7 @@ to go
 
   ]
 
-  ;als ifelse season [ if Cargo_gene = CG1
+
 
   write-values-to-file
 
@@ -329,7 +329,7 @@ to go
 end
 
 to current_date
-  let total_days ceiling ( ticks / ticks-per-day )
+  let total_days ceiling ( ( ticks + 1 ) / ticks-per-day )
   if total_days = 0 [ set total_days 1 ]
 
   set sim-year ( floor ( total_days / ( 365 + 1 ) ) ) + 1
@@ -670,7 +670,7 @@ sd-cherries
 sd-cherries
 0
 1000
-10.0
+20.0
 1
 1
 NIL
@@ -825,7 +825,7 @@ INPUTBOX
 1002
 204
 max-years
-1.0
+2.0
 1
 0
 Number
@@ -903,7 +903,7 @@ CHOOSER
 gd-gender
 gd-gender
 "female" "mixed" "male"
-2
+1
 
 SLIDER
 1292
@@ -1040,7 +1040,7 @@ periodic-release
 periodic-release
 1
 100
-0.0
+10.0
 1
 1
 NIL
@@ -1069,7 +1069,7 @@ CHOOSER
 release-location
 release-location
 "center" "corner-trees" "wildberry-plants"
-0
+2
 
 CHOOSER
 20
@@ -1120,7 +1120,7 @@ ms_spray_year
 ms_spray_year
 1
 10
-0.0
+1.0
 1
 1
 NIL
@@ -1135,7 +1135,7 @@ ms_periodic_spray
 ms_periodic_spray
 1
 20
-3.0
+4.0
 1
 1
 NIL
@@ -1150,7 +1150,7 @@ ms_periodic_interval
 ms_periodic_interval
 1
 100
-10.0
+8.0
 1
 1
 NIL
@@ -1259,8 +1259,8 @@ CHOOSER
 888
 Genotype_affected
 Genotype_affected
-"Heterozygot" "Homozygot" "Mixed"
-1
+"heterozygot" "homozygot" "mixed"
+0
 
 MONITOR
 1657
@@ -1451,6 +1451,28 @@ Circle -7500403 true true 96 51 108
 Circle -16777216 true false 113 68 74
 Polygon -10899396 true false 189 233 219 188 249 173 279 188 234 218
 Polygon -10899396 true false 180 255 150 210 105 210 75 240 135 240
+
+fly
+true
+0
+Polygon -7500403 true true 135 135 135 165 60 180 45 180 0 165 15 135 45 120 75 120
+Polygon -7500403 true true 164 135 164 165 239 180 254 180 299 165 284 135 254 120 224 120
+Circle -7500403 true true 121 61 58
+Polygon -7500403 true true 135 240
+Polygon -7500403 true true 120 210
+Polygon -7500403 true true 151 270 174 248 181 210 181 180 173 139 151 105 128 140 121 180 121 210 127 248 151 270
+
+fly_male
+true
+0
+Polygon -7500403 true true 135 135 135 165 60 180 45 180 0 165 15 135 45 120 75 120
+Polygon -7500403 true true 164 135 164 165 239 180 254 180 299 165 284 135 254 120 224 120
+Circle -7500403 true true 121 61 58
+Polygon -7500403 true true 135 240
+Polygon -7500403 true true 120 210
+Polygon -7500403 true true 151 270 174 248 181 210 181 180 173 139 151 105 128 140 121 180 121 210 127 248 151 270
+Circle -16777216 true false 20 140 20
+Circle -16777216 true false 260 140 20
 
 house
 false
@@ -3112,6 +3134,39 @@ NetLogo 6.1.1
     <enumeratedValueSet variable="cherries-growth-start">
       <value value="105"/>
     </enumeratedValueSet>
+    <enumeratedValueSet variable="release_share_heterozygot">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Cargo_Gene">
+      <value value="&quot;CG_off&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="effectivness_rate_cg">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cg_gender">
+      <value value="&quot;female&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Genotype_affected">
+      <value value="&quot;heterozygot&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_spray_day">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_periodic_spray">
+      <value value="4"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_periodic_interval">
+      <value value="8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_potency_duration">
+      <value value="11"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_spray_year">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Days_to_die">
+      <value value="11"/>
+    </enumeratedValueSet>
   </experiment>
   <experiment name="experiment-module2" repetitions="100" runMetricsEveryStep="false">
     <setup>setup</setup>
@@ -3177,6 +3232,39 @@ NetLogo 6.1.1
     </enumeratedValueSet>
     <enumeratedValueSet variable="cherries-growth-start">
       <value value="105"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release_share_heterozygot">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Cargo_Gene">
+      <value value="&quot;CG_off&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="effectivness_rate_cg">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cg_gender">
+      <value value="&quot;female&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Genotype_affected">
+      <value value="&quot;heterozygot&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_spray_day">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_periodic_spray">
+      <value value="4"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_periodic_interval">
+      <value value="8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_potency_duration">
+      <value value="11"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_spray_year">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Days_to_die">
+      <value value="11"/>
     </enumeratedValueSet>
   </experiment>
   <experiment name="experiment-module3" repetitions="100" runMetricsEveryStep="false">
@@ -3244,6 +3332,39 @@ NetLogo 6.1.1
     <enumeratedValueSet variable="cherries-growth-start">
       <value value="105"/>
     </enumeratedValueSet>
+    <enumeratedValueSet variable="release_share_heterozygot">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Cargo_Gene">
+      <value value="&quot;CG_off&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="effectivness_rate_cg">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cg_gender">
+      <value value="&quot;female&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Genotype_affected">
+      <value value="&quot;heterozygot&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_spray_day">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_periodic_spray">
+      <value value="4"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_periodic_interval">
+      <value value="8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_potency_duration">
+      <value value="11"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_spray_year">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Days_to_die">
+      <value value="11"/>
+    </enumeratedValueSet>
   </experiment>
   <experiment name="experiment-module4" repetitions="100" runMetricsEveryStep="false">
     <setup>setup</setup>
@@ -3310,6 +3431,39 @@ NetLogo 6.1.1
     <enumeratedValueSet variable="cherries-growth-start">
       <value value="105"/>
     </enumeratedValueSet>
+    <enumeratedValueSet variable="release_share_heterozygot">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Cargo_Gene">
+      <value value="&quot;CG_off&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="effectivness_rate_cg">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cg_gender">
+      <value value="&quot;female&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Genotype_affected">
+      <value value="&quot;heterozygot&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_spray_day">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_periodic_spray">
+      <value value="4"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_periodic_interval">
+      <value value="8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_potency_duration">
+      <value value="11"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_spray_year">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Days_to_die">
+      <value value="11"/>
+    </enumeratedValueSet>
   </experiment>
   <experiment name="experiment-module5" repetitions="100" runMetricsEveryStep="false">
     <setup>setup</setup>
@@ -3375,6 +3529,39 @@ NetLogo 6.1.1
     </enumeratedValueSet>
     <enumeratedValueSet variable="cherries-growth-start">
       <value value="105"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release_share_heterozygot">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Cargo_Gene">
+      <value value="&quot;CG_off&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="effectivness_rate_cg">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cg_gender">
+      <value value="&quot;female&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Genotype_affected">
+      <value value="&quot;heterozygot&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_spray_day">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_periodic_spray">
+      <value value="4"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_periodic_interval">
+      <value value="8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_potency_duration">
+      <value value="11"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_spray_year">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Days_to_die">
+      <value value="11"/>
     </enumeratedValueSet>
   </experiment>
   <experiment name="experiment-pretest2-module1" repetitions="3" runMetricsEveryStep="false">
@@ -3785,6 +3972,39 @@ NetLogo 6.1.1
     <enumeratedValueSet variable="cherries-growth-start">
       <value value="105"/>
     </enumeratedValueSet>
+    <enumeratedValueSet variable="release_share_heterozygot">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Cargo_Gene">
+      <value value="&quot;CG_off&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="effectivness_rate_cg">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cg_gender">
+      <value value="&quot;female&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Genotype_affected">
+      <value value="&quot;heterozygot&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_spray_day">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_periodic_spray">
+      <value value="4"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_periodic_interval">
+      <value value="8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_potency_duration">
+      <value value="11"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_spray_year">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Days_to_die">
+      <value value="11"/>
+    </enumeratedValueSet>
   </experiment>
   <experiment name="experiment-module7" repetitions="100" runMetricsEveryStep="false">
     <setup>setup</setup>
@@ -3850,6 +4070,39 @@ NetLogo 6.1.1
     </enumeratedValueSet>
     <enumeratedValueSet variable="cherries-growth-start">
       <value value="105"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release_share_heterozygot">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Cargo_Gene">
+      <value value="&quot;CG_off&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="effectivness_rate_cg">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cg_gender">
+      <value value="&quot;female&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Genotype_affected">
+      <value value="&quot;heterozygot&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_spray_day">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_periodic_spray">
+      <value value="4"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_periodic_interval">
+      <value value="8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_potency_duration">
+      <value value="11"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ms_spray_year">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Days_to_die">
+      <value value="11"/>
     </enumeratedValueSet>
   </experiment>
   <experiment name="experiment" repetitions="1" runMetricsEveryStep="true">
