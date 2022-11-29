@@ -1,6 +1,5 @@
 breed [ flies fly ]
 
-; properties of fly
 flies-own [
   
   ; modes: stationary (yellow), adult (red)
@@ -37,6 +36,7 @@ flies-own [
   ; R => resistant type
   genotype
   
+  
   ; fitness of fly
   fitness
   
@@ -54,6 +54,13 @@ flies-own [
   ; if direction has been set in current tick, the following variable gets updated with the tick-number
   target-tick
   target-distance
+  
+  ;the magic substance poisons the flies so they die after a few days
+  poisoned
+  poisoned_tick
+  
+  ;the ovipositionapperatus determints if the flies can lay their eggs into cherries or not, but the can always lay their eggs in wildberries
+  ovipositionapperatus
   
 ]
 
@@ -104,7 +111,7 @@ end
 to set-eggs-per-day-rates
 
   ; first check if csv file exists
-  let file-path (word path-csv-input "eggsPerDay.csv")
+  let file-path (word path-csv-input "OvipostionRate.csv")
   if file-exists? file-path [
   
     file-open file-path
@@ -143,10 +150,10 @@ to-report set-mode-durations
   let allFilesExist TRUE
   
   ; check if all csv files exist
-  let file-path (word path-csv-input "femaleEggsToAdult.csv")
+  let file-path (word path-csv-input "EggsToAdult.csv")
   if not file-exists? file-path [ 
     set allFilesExist FALSE 
-    output-print "femaleEggsToAdult.csv missing!"
+    output-print "EggsToAdult.csv missing!"
   ]
   
   set file-path (word path-csv-input "femaleAdultLongevity.csv")
@@ -155,10 +162,10 @@ to-report set-mode-durations
     output-print "femaleAdultLongevity.csv missing!"
   ]
   
-  set file-path (word path-csv-input "maleEggsToAdult.csv")
+  set file-path (word path-csv-input "EggsToAdult.csv")
   if not file-exists? file-path [ 
     set allFilesExist FALSE 
-    output-print "maleEggsToAdult.csv missing!"
+    output-print "EggsToAdult.csv missing!"
   ]
   
   set file-path (word path-csv-input "maleAdultLongevity.csv")
@@ -176,12 +183,12 @@ to-report set-mode-durations
   ; ### TEMPERATURES
   ; ### FEMALE EGGS TO ADULT
   
-  set file-path (word path-csv-input "femaleEggsToAdult.csv")
+  set file-path (word path-csv-input "EggsToAdult.csv")
   file-open file-path
   
   ; check the headers of the columns
   let headers csv:from-row file-read-line
-  if item 0 headers = "temperature" and item 1 headers = "femaleEggsToAdult" [
+  if item 0 headers = "temperature" and item 1 headers = "EggsToAdult" [
   
     ; create arrays
     set mode-duration-temperatures array:from-list []
@@ -232,12 +239,12 @@ to-report set-mode-durations
   
   ; ### MALE EGGS TO ADULT
   
-  set file-path (word path-csv-input "maleEggsToAdult.csv")
+  set file-path (word path-csv-input "EggsToAdult.csv")
   file-open file-path
   
   ; check the headers of the columns
   set headers csv:from-row file-read-line
-  if item 0 headers = "temperature" and item 1 headers = "maleEggsToAdult" [
+  if item 0 headers = "temperature" and item 1 headers = "EggsToAdult" [
   
     ; create arrays
     set male-stat-durations array:from-list []
@@ -310,6 +317,7 @@ to get-current-mode-durations
   
 end
 
+
 to calculate-current-eggs-per-tick-rate
   
   ; determine index for array
@@ -356,7 +364,7 @@ to fly-init-pop
         set mode "adult"
         set mode-duration 0
         set generation 1
-        ifelse ( random 2 ) = 1 [ set sex "f" ][ set sex "m" ]
+        ifelse ( random 2 ) = 1 [ set sex "female" ][ set sex "male" ]
         set partner-search TRUE
         set eggs 0
         set ready-to-lay-egg FALSE
@@ -365,8 +373,12 @@ to fly-init-pop
         set total-age 0
         set fertilization-tick 0
         set immature-state FALSE
-        if sex = "f" [ set color magenta ]
-        if sex = "m" [ set color blue    ]
+        set poisoned FALSE
+        set poisoned_tick 0
+        set ovipositionapperatus true
+        set shape "fly"
+        if sex = "female" [ set color magenta ]
+        if sex = "male" [ set color blue  set shape "fly_male"  ]
       ] 
     ]
   ]
@@ -381,23 +393,95 @@ end
 to kill-flies-off-season
   ask flies with [ mode = "stationary" ] [ die ]
   let surviving-flies count flies - ceiling ( count flies * mortality-off-season )
-  ask n-of ( ceiling ( count flies with [ sex = "f" ] * mortality-off-season ) ) flies with [ sex = "f" ] [ die ]
-  ask n-of ( count flies - surviving-flies ) flies with [ sex = "m" ] [ die ]
+  ask n-of ( ceiling ( count flies with [ sex = "female" ] * mortality-off-season ) ) flies with [ sex = "female" ] [ die ]
+  ask n-of ( count flies - surviving-flies ) flies with [ sex = "male" ] [ die ]
+end
+ 
+
+to kill_Medea_flies_diapause
+  ;If Cargo_Gene 1, envrionmental cue is the winter season, is true than it kills all the flies with a Medea gene   
+  
+  let flies_with_affected_genotype flies with [ member? "M" genotype ]
+  if genotype_affected = "heterozygot" [
+    set flies_with_affected_genotype flies with [ genotype = "M+" or genotype = "+M" or genotype = "RM"  or genotype = "MR" ]
+  ]
+  if genotype_affected = "homozygot" [
+    set flies_with_affected_genotype flies with [ genotype = "MM" ]
+  ]
+      
+    
+  let affected_flies flies_with_affected_genotype
+  if cg_gender != "mixed" [
+    set affected_flies flies_with_affected_genotype with [ sex = cg_gender ]  
+  ]
+  
+  ask n-of ( ceiling ( count affected_flies * effectivness_rate_cg ) ) affected_flies [die]
+  
+end
+
+to poison_flies
+  
+  if any? trees with [ magic_substance = TRUE ] [
+    
+    let flies_with_affected_genotype no-turtles
+    ifelse genotype_affected = "heterozygot" [
+      set flies_with_affected_genotype flies with [ genotype = "M+" or genotype = "+M" or genotype = "RM"  or genotype = "MR" ]
+    ][
+      ifelse genotype_affected = "homozygot" [
+        set flies_with_affected_genotype flies with [ genotype = "MM" ]
+      ][
+        set flies_with_affected_genotype flies with [ member? "M" genotype ] 
+      ]
+    ]
+
+    let affected_flies flies_with_affected_genotype
+    if cg_gender != "mixed" [
+      set affected_flies flies_with_affected_genotype with [ sex = cg_gender ]  
+    ]
+      
+    ask trees with [magic_substance = true] [
+      let poison_patches patches in-radius tree-radius ] 
+    
+    
+    ask trees with [magic_substance = true] [
+      ask affected_flies in-radius tree-radius [
+        set poisoned_tick ticks
+        set poisoned TRUE
+        set color 139.9
+      ]
+    ]
+  ]
+    
+end
+  
+
+to kill_flies_with_magic_substance
+  ;should I include a function IF any? flies with [poisoned = true] [ or is it included in the next line anyway?
+  ask flies with [poisoned = TRUE] [
+    IF ticks >= poisoned_tick + Days_to_die * ticks-per-day [
+      Ifelse effectivness_rate_cg >= random-float 1 [
+        die
+      ][
+        set poisoned FALSE
+        set poisoned_tick 0
+      ]
+    ]
+  ]
 end
 
 to kill-flies
   
   ; ### death due to life-expectancy ###
 
-  let female-adult-flies count flies with [ sex = "f" and mode = "adult" ]
-  let male-adult-flies   count flies with [ sex = "m" and mode = "adult" ]
+  let female-adult-flies count flies with [ sex = "female" and mode = "adult" ]
+  let male-adult-flies   count flies with [ sex = "male" and mode = "adult" ]
   
-  ask flies with [ sex = "f" and mode = "adult" and current-female-adult-longevity < mode-duration ] [ die ]
-  ask flies with [ sex = "m" and mode = "adult" and current-male-adult-longevity   < mode-duration ] [ die ]
+  ask flies with [ sex = "female" and mode = "adult" and current-female-adult-longevity < mode-duration ] [ die ]
+  ask flies with [ sex = "male" and mode = "adult" and current-male-adult-longevity   < mode-duration ] [ die ]
 
   ; log
-  array:set output-values 47 ( female-adult-flies - ( count flies with [ sex = "f" and mode = "adult" ] ) )
-  array:set output-values 48 ( male-adult-flies   - ( count flies with [ sex = "m" and mode = "adult" ] ) )
+  array:set output-values 47 ( female-adult-flies - ( count flies with [ sex = "female" and mode = "adult" ] ) )
+  array:set output-values 48 ( male-adult-flies   - ( count flies with [ sex = "male" and mode = "adult" ] ) )
   
   ; ### death due to mortality rate ###
   
@@ -530,7 +614,7 @@ to update-egg-laying-mode
     set inverse-current-eggs-per-tick round ( 1 / current-eggs-per-tick )
   ]
  
-  ask flies with [ sex = "f" and eggs > 0 ] [
+  ask flies with [ sex = "female" and eggs > 0 ] [
     
     ifelse current-eggs-per-tick > 0 and ticks-since-fertilization > egg-dev-duration and ( ticks - last-egg-tick ) >= inverse-current-eggs-per-tick [
       set ready-to-lay-egg TRUE
@@ -553,8 +637,8 @@ to fly-activities
     set total-age ( total-age + 1 )    
   ]
   
-  let male-adult-flies flies with [ sex = "m" and mode = "adult" ]
-  let female-adult-flies flies with [ sex = "f" and mode = "adult" ]
+  let male-adult-flies flies with [ sex = "male" and mode = "adult" ]
+  let female-adult-flies flies with [ sex = "female" and mode = "adult" ]
   
   ; limit number of matings for male fly (current limit: 1 mating per tick)
   ask male-adult-flies with [ partner-search = FALSE and ticks-since-fertilization > 0 ] [ 
@@ -567,7 +651,7 @@ to fly-activities
   ask fertile-female-adult-flies [
     
     let mating-chance random-float 1
-    let fertile-male-adult-flies-here flies-here with [ sex = "m" and mode = "adult" and partner-search = TRUE and fitness >= mating-chance ]
+    let fertile-male-adult-flies-here flies-here with [ sex = "male" and mode = "adult" and partner-search = TRUE and fitness >= mating-chance ]
     
     ; if female fly detects male fly on same patch => start fertilization
     if any? fertile-male-adult-flies-here [
@@ -597,112 +681,175 @@ to fly-activities
     ]     
  
   ]
-  
+  ;____________________________________________________________________________________________________________________________________ 
   ask female-adult-flies with [ ready-to-lay-egg = TRUE ] [  
     
     if ( cherries-available or wildberries-available ) [
-
+      
       let cherries-here no-turtles
-      if cherries-available [ set cherries-here ( trees-on patches in-radius tree-radius ) with [grown-cherries > 0] ]
+      if cherries-available [ set cherries-here ( trees-on patches in-radius tree-radius ) with [ grown-cherries > 0 ] ]
       
       let wildberries-here no-turtles
-      if wildberries-available [ set wildberries-here ( wildberry-plants-on patch-here ) with [grown-wildberries > 0] ]
+      if wildberries-available [ set wildberries-here ( wildberry-plants-on patch-here ) with [ grown-wildberries > 0 ] ]
       
-      if any? cherries-here or any? wildberries-here [
-        
-        ; save generation number in separate variable to make it accessible in sprout statement
-        let generation-temp generation
-        
-        let genotype-temp new-genotype genotype genotype-of-partner
-        
-        ; Notice: egg poisioning or the non-production of eggs due to fitness rate have impact on frequency of egg laying, 
-        ; due to the updated variables eggs and last-egg-tick 
-        
-        ; FEMALE: M+ or MR => ++ or R+ DIE
-        ; FEMALE: M+ or MR => RR DIE with certain prob. due to resistance
-        let lay-egg TRUE
-        if member? "M" genotype [
-          if genotype-temp = "++" or genotype-temp = "R+" or genotype-temp = "+R" [ set lay-egg FALSE ]
-          if genotype-temp = "RR" [
-            if random-float 1 > resistance-rate [
-              set lay-egg FALSE
-            ]
-          ] 
-        ]
-        
-        ; fitness rate
-        ; deactivated. new impact of fitness: mating chance(m)/success(f)
-        ; if random-float 1 > combined-fitness [ set lay-egg FALSE ]
-        
-        ifelse lay-egg [
+      if any? cherries-here or any? wildberries-here [ 
+        ifelse ( any? wildberries-here ) or ( any? cherries-here and ovipositionapperatus = TRUE ) or ( ovipositionapperatus = FALSE and any? cherries-here and ( random-float 1 ) > effectivness_rate_cg  ) [
           
-          ask patch-here [
-            sprout-flies 1 [
-              set color yellow
-              set mode "stationary"
-              set mode-duration 0
-              set generation generation-temp + 1
-              ifelse ( random 2 ) = 1 [ set sex "f" ][ set sex "m" ]
-              set partner-search FALSE
-              set eggs 0
-              set ready-to-lay-egg FALSE
-              set genotype genotype-temp
-              set fitness ( get-fitness-for-genotype genotype-temp )
-              set total-age 0
-              set fertilization-tick 0
-              set immature-state FALSE
-            ]
+          let lay-egg TRUE
+          
+          ; save generation number in separate variable to make it accessible in sprout statement
+          let generation-temp generation
+          
+          let genotype-temp new-genotype genotype genotype-of-partner ; new-genotype is a reporter which uses genotype and genotype-of-partner as inputs die und die vorherige nach ifelse lay-egg verschieben
+          
+          ; Notice: egg poisioning or the non-production of eggs due to fitness rate have impact on frequency of egg laying, 
+          ; due to the updated variables eggs and last-egg-tick 
+          
+          ; FEMALE: M+ or MR => ++ or R+ DIE
+          ; FEMALE: M+ or MR => RR DIE with certain prob. due to resistance
+          
+          ; descion of which sex the off-spring will have was forwared here, for better clarity
+          
+          
+          if member? "M" genotype [
+            if genotype-temp = "++" or genotype-temp = "R+" or genotype-temp = "+R" [ set lay-egg FALSE ]
+            if genotype-temp = "RR" [
+              if random-float 1 > resistance-rate [
+                set lay-egg FALSE
+              ]
+            ] 
           ]
           
-          ifelse any? cherries-here [
+          let sex-temp ""
+          ifelse ( random 2 ) = 1 [ set sex-temp "female" ][ set sex-temp "male" ]
+          
+          if Cargo_Gene = "CG5" and member? "M" genotype-temp [
             
-            ask one-of cherries-here [
-              set grown-cherries ( grown-cherries - 1 )
-              set occupied-cherries ( occupied-cherries + 1 )
-              update-tree-label
+            
+            ifelse genotype_affected = "heterozygot" and genotype-temp = "M+" or genotype-temp = "+M" or genotype-temp = "RM"  or genotype-temp = "MR" [
+              if cg_gender = sex-temp and effectivness_rate_cg <= ( random-float 1 ) [
+                set lay-egg FALSE
+              ]
+            ][
+              ifelse genotype_affected = "homozygot" and genotype-temp = "MM" [
+                if cg_gender = sex-temp and effectivness_rate_cg <= ( random-float 1 ) [
+                  set lay-egg FALSE
+                ]
+              ]
+              [ if genotype_affected = "mixed" and member? "M" genotype-temp [ 
+                if cg_gender = sex-temp and effectivness_rate_cg <= ( random-float 1 ) [
+                  set lay-egg FALSE
+                ]
+                ]
+              ]
+            ]
+          ]
+              
+
+          ; fitness rate
+          ; deactivated. new impact of fitness: mating chance(m)/success(f)
+          ; if random-float 1 > combined-fitness [ set lay-egg FALSE ]
+          ;____________________________________________________________________________________________________________________________________
+          ifelse lay-egg [
+            
+            ask patch-here [
+              sprout-flies 1 [
+                set color yellow
+                set mode "stationary"
+                set mode-duration 0
+                set generation generation-temp + 1
+                set sex sex-temp 
+                set partner-search FALSE
+                set eggs 0
+                set ready-to-lay-egg FALSE
+                set genotype genotype-temp
+                set total-age 0
+                set fertilization-tick 0
+                set immature-state FALSE
+                set poisoned FALSE
+                set poisoned_tick 0
+                ;the next to variables could change depending on the cargo gene
+                set fitness ( get-fitness-for-genotype genotype-temp )
+                if Cargo_Gene = "CG3" [
+                  ifelse genotype_affected = "heterozygot" and genotype = "M+" or genotype = "+M" or genotype = "MR" or genotype = "RM" [
+                    if (cg_gender = "mixed" or sex = cg_gender) and random-float 1 <= effectivness_rate_cg [ set fitness 0 ]
+                  ][
+                    ifelse genotype_affected = "homozygot" and genotype = "MM" [
+                      if (cg_gender = "mixed" or sex = cg_gender) and random-float 1 <= effectivness_rate_cg [ set fitness 0 ]
+                    ][
+                      if genotype_affected = "mixed" and member? "M" genotype [
+                        if (cg_gender = "mixed" or sex = cg_gender) and random-float 1 <= effectivness_rate_cg [ set fitness 0 ]
+                      ]
+                    ]
+                  ]
+                ] 
+                
+                set ovipositionapperatus true
+                if Cargo_Gene = "CG4" [
+                  if genotype_affected = "heterozygot" and genotype = "M+" or genotype = "+M" or genotype = "MR" or genotype = "RM" [
+                    set ovipositionapperatus false
+                  ]
+                  if genotype_affected = "homozygot" and genotype = "MM" [
+                    set ovipositionapperatus false
+                  ]
+                  if genotype_affected = "mixed" and member? "M" genotype [
+                    set ovipositionapperatus false
+                  ]
+                ]              
+              ]
             ]
             
-            if sum [ grown-cherries ] of trees = 0 [ set cherries-available FALSE ]
-            
-          ] [
-            
-            ifelse any? wildberries-here [
+            ifelse any? cherries-here [
               
-              ask one-of wildberries-here [
-                set grown-wildberries ( grown-wildberries - 1 ) 
-                set occupied-wildberries ( occupied-wildberries + 1 )
+              ask one-of cherries-here [
+                set grown-cherries ( grown-cherries - 1 )
+                set occupied-cherries ( occupied-cherries + 1 )
+                update-tree-label
               ]
               
-              if sum [ grown-wildberries ] of wildberry-plants = 0 [ set wildberries-available FALSE ]
+              if sum [ grown-cherries ] of trees = 0 [ set cherries-available FALSE ]
               
             ] [
-              print "Laid egg on patch with no cherries and no fruit (should not happen!)" 
+              
+              ifelse any? wildberries-here [
+                
+                ask one-of wildberries-here [
+                  set grown-wildberries ( grown-wildberries - 1 ) 
+                  set occupied-wildberries ( occupied-wildberries + 1 )
+                ]
+                
+                if sum [ grown-wildberries ] of wildberry-plants = 0 [ set wildberries-available FALSE ]
+                
+              ] [
+                print "Laid egg on patch with no cherries and no fruit (should not happen!)" 
+              ]
+              
             ]
             
+            ; log
+            array:set output-values 39 ( ( array:item output-values 39 ) + 1 )
+            
+          ] [
+            ; log
+            array:set output-values 40 ( ( array:item output-values 40 ) + 1 )
           ]
           
-          ; log
-          array:set output-values 39 ( ( array:item output-values 39 ) + 1 )
+          set eggs ( eggs - 1 )
+          set last-egg-tick ticks
           
+          if eggs = 0 [
+            ; set partner-search TRUE => controlled by start-immature-state and end-immature-state
+            start-immature-state
+            set color magenta
+          ] 
         ] [
-          ; log
-          array:set output-values 40 ( ( array:item output-values 40 ) + 1 )
-        ]
-        
-        set eggs ( eggs - 1 )
-        set last-egg-tick ticks
-        
-        if eggs = 0 [
-          ; set partner-search TRUE => controlled by start-immature-state and end-immature-state
-          start-immature-state
-          set color magenta
-        ] 
-        
-      ]
-        
+          set last-egg-tick ( ticks + ticks-per-day ) 
+        ]  
+      ]         
     ]
-    
   ]
+    
+  
   
   ask female-adult-flies [
     if not ( target-tick = ticks ) [ rt random 360 ]
@@ -721,18 +868,20 @@ to upgrade-fly
   
   if mode = "stationary" [
     
-    if ( sex = "f" and mode = "stationary" and mode-duration >= current-female-stat-duration ) [
+    if ( sex = "female" and mode = "stationary" and mode-duration >= current-female-stat-duration ) [
       set mode "adult"
       set mode-duration 0
       set partner-search TRUE
       set color magenta
+      set shape "fly"
     ]
     
-    if ( sex = "m" and mode = "stationary" and mode-duration >= current-male-stat-duration ) [
+    if ( sex = "male" and mode = "stationary" and mode-duration >= current-male-stat-duration ) [
       set mode "adult"
       set mode-duration 0
       set partner-search TRUE
       set color blue
+      set shape "fly_male"
     ]
     
     ; increase log-value
@@ -853,29 +1002,54 @@ to release-gene-drive-at-position [gd-xcor gd-ycor gd-release-amount]
       set mode "adult"
       set mode-duration 0
       set generation 1
-      set sex "f" ; default, if gd-gender not set
-      if gd-gender = "female" [
-        set sex "f"  
-      ]
-      if gd-gender = "mixed" [
-        ifelse ( random 2 ) = 1 [ set sex "f" ][ set sex "m" ]
-      ]
-      if gd-gender = "male" [
-        set sex "m"
+      set sex gd-gender
+            if gd-gender = "mixed" [
+        ifelse ( random 2 ) = 1 [ set sex "female" ][ set sex "male" ]
       ]
       set ready-to-lay-egg FALSE
       ; set partner-search TRUE => controlled by start-immature-state and end-immature-state
       set eggs 0
-      set genotype "MM"
-      set fitness fitness-MM
       set total-age 0
       set fertilization-tick 0
       start-immature-state
-      if sex = "f" [ set color magenta ]
-      if sex = "m" [ set color blue    ]
+      set poisoned FALSE
+      set poisoned_tick 0
+            set genotype "MM"
+      set fitness fitness-MM
+      If (random-float 1) <= release_share_heterozygot [
+        set genotype "M+" 
+        set fitness fitness-MP
+      ]
+      if Cargo_Gene = "CG3" [
+        ifelse genotype_affected = "heterozygot" and genotype = "M+" or genotype = "+M" or genotype = "MR" or genotype = "RM" [
+          if (cg_gender = "mixed" or sex = cg_gender) and random-float 1 <= effectivness_rate_cg [ set fitness 0 ]
+        ][
+          ifelse genotype_affected = "homozygot" and genotype = "MM" [
+            if (cg_gender = "mixed" or sex = cg_gender) and random-float 1 <= effectivness_rate_cg [ set fitness 0 ]
+          ][
+            if genotype_affected = "mixed" and member? "M" genotype [
+              if (cg_gender = "mixed" or sex = cg_gender) and random-float 1 <= effectivness_rate_cg [ set fitness 0 ]
+            ]
+          ]
+        ]
+      ]  
+      set ovipositionapperatus TRUE
+      if Cargo_Gene = "CG4" [
+                if genotype_affected = "heterozygot" and genotype = "M+" or genotype = "+M" or genotype = "MR" or genotype = "RM" [
+                  set ovipositionapperatus false
+                ]
+                if genotype_affected = "homozygot" and genotype = "MM" [
+                  set ovipositionapperatus false
+                ]
+                if genotype_affected = "mixed" and member? "M" genotype [
+                  set ovipositionapperatus false
+                ]
+              ]
+      if sex = "female" [ set color magenta set shape "fly"]
+      if sex = "male" [ set color blue set shape "fly_male" ]
     ] 
-  ]    
-  
+   ]
+   
 end
 
 to-report get-fitness-for-genotype [ temp-genotype ]
@@ -892,9 +1066,9 @@ end
 
 to female-attract-male-flies
   
-  let fertile-male-adult-flies flies with [ sex = "m" and mode = "adult" and partner-search = TRUE ]
+  let fertile-male-adult-flies flies with [ sex = "male" and mode = "adult" and partner-search = TRUE ]
   
-  ask flies with [ mode = "adult" and sex = "f" and partner-search = TRUE ] [
+  ask flies with [ mode = "adult" and sex = "female" and partner-search = TRUE ] [
     
     let target-fly min-one-of fertile-male-adult-flies with [ target-tick < ticks or distance myself < target-distance ] in-radius visibility [ distance myself ]
 
@@ -915,6 +1089,7 @@ end
 to start-immature-state
   
   set immature-state TRUE
+  set ready-to-lay-egg FALSE
   set immature-start ticks
   set partner-search FALSE
   

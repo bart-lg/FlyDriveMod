@@ -89,11 +89,12 @@ to grow-wildberries
   
 end
 
+
 to wildberries-attract-closest-flies
   
   if wildberries-available [
     
-    let female-flies-with-eggs flies with [ ready-to-lay-egg ]
+    let female-flies-with-eggs flies with [ ready-to-lay-egg]
     
     ask wildberry-plants with [ grown-wildberries > 0 ] [
      

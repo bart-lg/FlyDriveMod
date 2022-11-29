@@ -3,25 +3,27 @@ extensions [ time ]
 
 to create-file
   
-  let number-of-values 75
+  let number-of-values 78
   set output-values array:from-list n-values number-of-values [0]
   
   if no-output != "YES" [ 
     
+    ; this is the current real-life time
+    
     let cur-date time:create "now"
     
-    let year   time:get "year"   cur-date
-    let month  time:get "month"  cur-date
-    let day    time:get "day"    cur-date
-    let hour   time:get "hour"   cur-date
-    let minute time:get "minute" cur-date
-    let second time:get "second" cur-date
+    let year        time:get "year"   cur-date
+    let month       time:get "month"  cur-date
+    let day         time:get "day"    cur-date
+    let hour        time:get "hour"   cur-date
+    let minute      time:get "minute" cur-date
+    let second      time:get "second" cur-date
     
-    if month  < 10 [ set month  word "0" month  ]
-    if day    < 10 [ set day    word "0" day    ]
-    if hour   < 10 [ set hour   word "0" hour   ]
-    if minute < 10 [ set minute word "0" minute ]
-    if second < 10 [ set second word "0" second ]
+    if month       < 10 [ set month  word "0" month  ]
+    if day         < 10 [ set day    word "0" day    ]
+    if hour        < 10 [ set hour   word "0" hour   ]
+    if minute      < 10 [ set minute word "0" minute ]
+    if second      < 10 [ set second word "0" second ]
     
     set output-file-name ( word "../output/" year "-" month "-" day " " hour "_" minute "_" second " [" behaviorspace-run-number "] output.csv" )
     let config-output-file-name ( word "../output/" year "-" month "-" day " " hour "_" minute "_" second " [" behaviorspace-run-number "] config-output.csv" )
@@ -91,11 +93,24 @@ to write-configs-to-file
   file-print ( word "periodic-release" " " periodic-release )
   file-print ( word "periodic-interval" " " periodic-interval )
   file-print ( word "release-location" " " release-location )
+  file-print ( word "release_share_heterozygot" " " release_share_heterozygot )
   
   file-print ( word "mean-cherries" " " mean-cherries )
   file-print ( word "sd-cherries" " " sd-cherries )
   file-print ( word "cherries-growth-start" " " cherries-growth-start )
   file-print ( word "cherries-growth-period"  " " cherries-growth-period )
+  
+  file-print ( word "Cargo_Gene" " " Cargo_Gene)
+  file-print ( word "effectivness_rate_cg" " " effectivness_rate_cg )
+  file-print ( word "cg_gender" " " cg_gender )
+  file-print ( word "Genotype_affected" " " Genotype_affected )
+  
+  file-print ( word "ms_spray_day" " " ms_spray_day )
+  file-print ( word "ms_spray_year" " " ms_spray_year )
+  file-print ( word "ms_periodic_spray" " " ms_periodic_spray )
+  file-print ( word "ms_periodic_interval" " " ms_periodic_interval )
+  file-print ( word "ms_potency_duration" " " ms_potency_duration )
+  file-print ( word "Days_to_die" " " Days_to_die )
    
 end
 
@@ -176,6 +191,9 @@ to write-headers-to-file
   set headers lput "max-generation-M+" headers                ; #72
   set headers lput "min-generation-MR" headers                ; #73
   set headers lput "max-generation-MR" headers                ; #74
+  set headers lput "adult_with_CG" headers                    ; #75
+  set headers lput "female_with_CG" headers                   ; #76
+  set headers lput "female_with_negativ_eggs" headers         ; #77
   
   while [ length headers > 0 ] [
     
@@ -209,10 +227,10 @@ to write-values-to-file
     array:set output-values 10 sum [ occupied-wildberries ] of wildberry-plants
     array:set output-values 11 count flies with [ mode = "stationary" ]
     array:set output-values 12 count flies with [ mode = "adult" ]
-    array:set output-values 13 count flies with [ sex = "f" ]
-    array:set output-values 14 count flies with [ sex = "f" and partner-search ]
+    array:set output-values 13 count flies with [ sex = "female" ]
+    array:set output-values 14 count flies with [ sex = "female" and partner-search ]
     array:set output-values 15 count flies with [ eggs > 0 ]
-    array:set output-values 16 count flies with [ sex = "m" ]
+    array:set output-values 16 count flies with [ sex = "male" ]
     array:set output-values 17 count flies with [ genotype = "++" ]
     array:set output-values 18 count flies with [ genotype = "++" and mode = "stationary" ]
     array:set output-values 19 count flies with [ genotype = "++" and mode = "adult" ]
@@ -291,6 +309,9 @@ to write-values-to-file
       array:set output-values 73 0
       array:set output-values 74 0
     ]
+    array:set output-values 75 count flies with [ genotype = "M+" or genotype = "+M" or genotype = "MM" or genotype = "MR" or genotype = "RM" and mode = "adult" ]
+    array:set output-values 76 count flies with [ genotype = "M+" or genotype = "+M" or genotype = "MM" or genotype = "MR" or genotype = "RM" and mode = "adult" and sex ="female" ]
+    array:set output-values 77 count flies with [ sex = "female" and eggs < 0 ]
     
     file-open output-file-name
     
