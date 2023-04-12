@@ -125,8 +125,6 @@ globals [
   ; path for input csv files
   path-csv-input
 
-  ;cargo_genes
-
 
   ;Zeitvariablen
   sim-day
@@ -277,13 +275,6 @@ to go
       get-current-mode-durations
       kill-flies
     ]
-    ;The spraying of pesticides only activates if the Cargo Gene 2 is choosen
-    if Cargo_gene = "CG2" [
-      spray_magic_substance
-      poison_flies
-      kill_flies_with_magic_substance
-      magic_substance_fade_away
-    ]
 
     calculate-current-eggs-per-tick-rate
 
@@ -388,26 +379,9 @@ to end-season
 
   set season FALSE
   kill-flies-off-season
-  if Cargo_Gene = "CG1" [
-    kill_Medea_flies_diapause
-  ]
 
 end
 
-
-to spray_magic_substance
-
-  if sim-year >= ms_spray_year and sim-day <= ( ms_spray_day + ( ms_periodic_spray * ( ms_periodic_interval - 1 ) ) ) and sim-day >= ms_spray_day [                         ;the general time frame for when spraying should happen
-    if ( sim-day - ms_spray_day ) mod ms_periodic_interval  = 0 [                                                                                                    ;the actual time spraying happens
-      ask trees  [
-        set magic_substance true
-        set color blue
-        set magic_substance_tick ticks
-      ]
-    ]
-  ]
-
-end
 
 
 
@@ -499,7 +473,7 @@ init-pop
 init-pop
 0
 10000
-550.0
+0.0
 10
 1
 NIL
@@ -669,7 +643,7 @@ SLIDER
 sd-cherries
 sd-cherries
 0
-1000
+100
 10.0
 1
 1
@@ -977,10 +951,10 @@ run-time-total
 11
 
 MONITOR
-1659
-191
-1723
-236
+1657
+199
+1721
+244
 timer1 %
 run-time-1
 17
@@ -999,10 +973,10 @@ run-time-2
 11
 
 MONITOR
-1656
-296
-1720
-341
+1657
+287
+1721
+332
 timer3 %
 run-time-3
 17
@@ -1071,137 +1045,6 @@ release-location
 "center" "corner-trees" "wildberry-plants"
 2
 
-CHOOSER
-20
-715
-158
-760
-Cargo_Gene
-Cargo_Gene
-"CG_off" "CG1" "CG2" "CG3" "CG4" "CG5"
-0
-
-SLIDER
-21
-763
-193
-796
-effectivness_rate_cg
-effectivness_rate_cg
-0
-1
-1.0
-0.01
-1
-NIL
-HORIZONTAL
-
-SLIDER
-233
-715
-405
-748
-ms_spray_day
-ms_spray_day
-1
-365
-50.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-405
-715
-507
-748
-ms_spray_year
-ms_spray_year
-1
-10
-1.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-233
-751
-405
-784
-ms_periodic_spray
-ms_periodic_spray
-1
-20
-4.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-233
-785
-405
-818
-ms_periodic_interval
-ms_periodic_interval
-1
-100
-8.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-233
-820
-405
-853
-ms_potency_duration
-ms_potency_duration
-0
-100
-11.0
-1
-1
-NIL
-HORIZONTAL
-
-CHOOSER
-21
-799
-159
-844
-cg_gender
-cg_gender
-"male" "female" "mixed"
-1
-
-MONITOR
-409
-788
-479
-833
-Magic trees
-count trees with [magic_substance = TRUE]
-17
-1
-11
-
-TEXTBOX
-254
-686
-404
-704
-NIL
-11
-0.0
-1
-
 SLIDER
 1454
 242
@@ -1216,51 +1059,6 @@ release_share_heterozygot
 1
 NIL
 HORIZONTAL
-
-TEXTBOX
-25
-686
-175
-704
-General Cargo Gene
-11
-0.0
-1
-
-TEXTBOX
-238
-684
-388
-712
-Magic substance (Cargo Gene 2)
-11
-0.0
-1
-
-SLIDER
-405
-751
-507
-784
-Days_to_die
-Days_to_die
-0
-3
-1.3
-0.1
-1
-NIL
-HORIZONTAL
-
-CHOOSER
-21
-843
-159
-888
-Genotype_affected
-Genotype_affected
-"heterozygot" "homozygot" "mixed"
-0
 
 MONITOR
 1657
@@ -4263,6 +4061,189 @@ NetLogo 6.1.1
     </enumeratedValueSet>
     <enumeratedValueSet variable="Cargo_Gene">
       <value value="&quot;CG_off&quot;"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="sensitivity-analysis-female" repetitions="3" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <enumeratedValueSet variable="wildberries-per-plant">
+      <value value="10"/>
+      <value value="20"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="init-pop">
+      <value value="500"/>
+      <value value="5000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-day">
+      <value value="50"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-amount">
+      <value value="500"/>
+      <value value="5000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistant-ratio">
+      <value value="0.2"/>
+      <value value="0.8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistance-rate">
+      <value value="0.02"/>
+      <value value="0.2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gd-gender">
+      <value value="&quot;female&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-RR">
+      <value value="0.2"/>
+      <value value="0.8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-MM">
+      <value value="0.2"/>
+      <value value="0.8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-PP">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mean-cherries">
+      <value value="100"/>
+      <value value="300"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sd-cherries">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-years">
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-period">
+      <value value="45"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-start">
+      <value value="105"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gene-drive">
+      <value value="true"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="sensitivity-analysis-male" repetitions="3" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <enumeratedValueSet variable="wildberries-per-plant">
+      <value value="10"/>
+      <value value="20"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="init-pop">
+      <value value="500"/>
+      <value value="5000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-day">
+      <value value="50"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-amount">
+      <value value="500"/>
+      <value value="5000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistant-ratio">
+      <value value="0.2"/>
+      <value value="0.8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistance-rate">
+      <value value="0.02"/>
+      <value value="0.2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gd-gender">
+      <value value="&quot;male&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-RR">
+      <value value="0.2"/>
+      <value value="0.8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-MM">
+      <value value="0.2"/>
+      <value value="0.8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-PP">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mean-cherries">
+      <value value="100"/>
+      <value value="300"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sd-cherries">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-years">
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-period">
+      <value value="45"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-start">
+      <value value="105"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gene-drive">
+      <value value="true"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="sensitivity-analysis-mixed" repetitions="3" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <enumeratedValueSet variable="wildberries-per-plant">
+      <value value="10"/>
+      <value value="20"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="init-pop">
+      <value value="500"/>
+      <value value="5000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-day">
+      <value value="50"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="release-amount">
+      <value value="500"/>
+      <value value="5000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistant-ratio">
+      <value value="0.2"/>
+      <value value="0.8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="resistance-rate">
+      <value value="0.02"/>
+      <value value="0.2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gd-gender">
+      <value value="&quot;mixed&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-RR">
+      <value value="0.2"/>
+      <value value="0.8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-MM">
+      <value value="0.2"/>
+      <value value="0.8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fitness-PP">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mean-cherries">
+      <value value="100"/>
+      <value value="300"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sd-cherries">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-years">
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-period">
+      <value value="45"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cherries-growth-start">
+      <value value="105"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="gene-drive">
+      <value value="true"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>

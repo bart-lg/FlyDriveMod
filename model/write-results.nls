@@ -100,17 +100,7 @@ to write-configs-to-file
   file-print ( word "cherries-growth-start" " " cherries-growth-start )
   file-print ( word "cherries-growth-period"  " " cherries-growth-period )
   
-  file-print ( word "Cargo_Gene" " " Cargo_Gene)
-  file-print ( word "effectivness_rate_cg" " " effectivness_rate_cg )
-  file-print ( word "cg_gender" " " cg_gender )
-  file-print ( word "Genotype_affected" " " Genotype_affected )
-  
-  file-print ( word "ms_spray_day" " " ms_spray_day )
-  file-print ( word "ms_spray_year" " " ms_spray_year )
-  file-print ( word "ms_periodic_spray" " " ms_periodic_spray )
-  file-print ( word "ms_periodic_interval" " " ms_periodic_interval )
-  file-print ( word "ms_potency_duration" " " ms_potency_duration )
-  file-print ( word "Days_to_die" " " Days_to_die )
+
    
 end
 

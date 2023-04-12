@@ -8,8 +8,7 @@ trees-own [
   max-cherries
   grown-cherries
   occupied-cherries
-  magic_substance
-  magic_substance_tick
+
   
 ]
 
@@ -120,14 +119,6 @@ to harvest
 end
 
 
-to magic_substance_fade_away
-  ; if any? trees with [ magic_substance = TRUE ] [ does this make sense or is it included in the next line anyways?
-  ask trees with [ magic_substance = true and magic_substance_tick <= ( ticks - (ms_potency_duration * ticks-per-day ) ) ] [ 
-    set magic_substance false
-    set color green
-    set magic_substance_tick 0 ;nicht wichtig
-  ] 
-end
 
 to cherries-attract-closest-flies
   
